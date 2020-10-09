@@ -3,6 +3,7 @@
     context = {
         'user_game_rooms': user_game_room_qs,
         'other_game_rooms': other_game_room_qs,
+        'joined_game_rooms': joined_game_rooms,
     }
 {% endcomment %}
 {% block title %}
@@ -17,19 +18,22 @@
         <br/>
         Hello, {{ user.username }}
         <br/>
-        <h2>Your Game Rooms</h2>
+        <h3>Your Game Rooms</h3>
         <a href="{% url 'create_game_room' %}">Create New Room</a>
         <br/>
+        <br/>
         {% if user_game_rooms %}
-            <table>
+            <table border="1">
                 <tr>
                     <th>Serial Number</th>
                     <th>Unique Game ID</th>
+                    <th>Enter Button</th>
                 </tr>
                 {% for user_game_room in user_game_rooms %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td>{{ user_game_room.unique_game_id }}</td>
+                        <td><a href="{% url 'enter_game_room' user_game_room.unique_game_id %}">View</a></td>
                     </tr>
                 {% endfor %}
             </table>
@@ -37,19 +41,21 @@
             You haven't created any game rooms yet.
         {% endif %}
 
-        <h2>Other Game Rooms</h2>
+        <h3>Other Game Rooms</h3>
         {% if other_game_rooms %}
-            <table>
+            <table border="1">
             <tr>
                 <th>Serial Number</th>
                 <th>Unique Game ID</th>
+                <th>Admin</th>
                 <th>Join Button</th>
             </tr>
             {% for other_game_room in other_game_rooms %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
                     <td>{{ other_game_room.unique_game_id }}</td>
-                    <td><button type="button">Join</button></td>
+                    <td>{{ other_game_room.admin }}</td>
+                    <td><a href="{% url 'join_game_room' other_game_room.unique_game_id %}">Join</a></td>
                 </tr>
             {% endfor %}
             </table>
@@ -57,6 +63,28 @@
             Alas! No Other Game Rooms are available at this moment.
         {% endif %}
 
+        <h3>Joined Game Rooms</h3>
+        {% if joined_game_rooms %}
+            <table border="1">
+                <tr>
+                    <th>Serial Number</th>
+                    <th>Unique Game ID</th>
+                    <th>Admin</th>
+                    <th>Enter Button</th>
+                </tr>
+            {% for joined_game_room in joined_game_rooms %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ joined_game_room.unique_game_id }}</td>
+                    <td>{{ joined_game_room.admin }}</td>
+                    <td><a href="{% url 'enter_game_room' joined_game_room.unique_game_id %}">Enter</a></td>
+                </tr>
+            {% endfor %}
+
+            </table>
+        {% else %}
+            You have not joined any Game Room Yet.
+        {% endif %}
 
     {% else %}
         Hey! How did you get in here. You are not logged in!

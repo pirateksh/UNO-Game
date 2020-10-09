@@ -18,11 +18,14 @@ class GameRoom(models.Model):
 
     admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-    unique_game_id = models.CharField(max_length=10, verbose_name="Unique ID", default="xx")
+    unique_game_id = models.CharField(max_length=10, verbose_name="Unique ID", unique=True)
 
     def save(self, *args, **kwargs):
         self.unique_game_id = f"{id_generator(10)}"
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.unique_game_id}_{self.admin.username}"
 
 
 class Player(models.Model):
