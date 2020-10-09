@@ -1,6 +1,6 @@
 UNO Game
 
-# Contributors
+# Contributors - Team Django Unchained
 * Kshitiz Srivastava
 * Ankit Sangwan
 * Vishwajeet Kumar
