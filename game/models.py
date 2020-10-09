@@ -34,5 +34,7 @@ class Player(models.Model):
 
     game_room = models.ForeignKey(GameRoom, on_delete=models.CASCADE, verbose_name="Game Room")
 
+    is_online = models.BooleanField(default=False, verbose_name="Is Online")
+
     def __str__(self):
         return self.player.username

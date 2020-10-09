@@ -13,9 +13,12 @@
         <h2>Game Room Admin: {{ game_room.admin.username }}</h2>
         <h2>Players:</h2>
         <ul>
-            <li id="id_player_{{ game_room.admin.pk }}_{{ game_room.pk }}">{{ game_room.admin.username }} (admin)</li>
         {% for player in players %}
-            <li id="id_player_{{ player.player.pk }}_{{ game_room.pk }}">{{ player.player.username }}</li>
+            {% if player.is_online %}
+                <li style="background-color: lightgreen;" id="id_player_{{ player.player.pk }}_{{ game_room.pk }}">{{ player.player.username }}</li>
+            {% else %}
+                <li id="id_player_{{ player.player.pk }}_{{ game_room.pk }}">{{ player.player.username }}</li>
+            {% endif %}
         {% endfor %}
         </ul>
     {% endif %}

@@ -16,6 +16,24 @@ class GameRoomConsumer(AsyncConsumer):
 
     async def websocket_connect(self, event):
         print("connected", event)
+        unique_id = self.scope['url_route']['kwargs']['unique_id']
+
+        game_room_obj = await self.get_game_room(unique_id=unique_id)
+        print(game_room_obj.unique_game_id)
+        self.game_room_obj = game_room_obj
+
+        player_obj = await self.get_player_obj()
+        self.player_obj = player_obj
+
+        await self.set_is_online_true()
+
+        game_room_id = f"game_room_{unique_id}"
+        self.game_room_id = game_room_id
+
+        await self.channel_layer.group_add(
+            game_room_id,
+            self.channel_name
+        )
         await self.send({
             "type": "websocket.accept"
         })
@@ -25,15 +43,50 @@ class GameRoomConsumer(AsyncConsumer):
         front_text = event.get('text', None)
         if front_text:
             loaded_dict_data = json.loads(front_text)
-            await self.send({
-                "type": "websocket.send",
-                "text": json.dumps(loaded_dict_data)
-            })
+            # Broadcasts the enter_room event to be sent
+            await self.channel_layer.group_send(
+                self.game_room_id,
+                {
+                    # "type": "enter_room",
+                    # Above commented line is also correct
+                    "type": "enter.room",
+                    "text": json.dumps(loaded_dict_data)
+                }
+            )
         # {'type': 'websocket.receive', 'text': '{"status":"connected","username":"ankitsang","pk":"3"}'}
+
+    async def enter_room(self, event):
+        # This method actually sends the message
+        await self.send({
+            "type": "websocket.send",
+            "text": event['text']
+        })
 
     async def websocket_disconnect(self, event):
         print("disconnected", event)
+        await self.set_is_online_false()
 
+    @database_sync_to_async
+    def set_is_online_false(self):
+        player_obj = self.player_obj
+        player_obj.is_online = False
+        player_obj.save()
+
+    @database_sync_to_async
+    def set_is_online_true(self):
+        player_obj = self.player_obj
+        player_obj.is_online = True
+        player_obj.save()
+
+    @database_sync_to_async
+    def get_game_room(self, unique_id):
+        return GameRoom.objects.get(unique_game_id=unique_id)
+
+    @database_sync_to_async
+    def get_player_obj(self):
+        me = self.scope['user']
+        game_room_obj = self.game_room_obj
+        return Player.objects.get(player=me, game_room=game_room_obj)
 
 # class ChatConsumer(AsyncConsumer):
 #

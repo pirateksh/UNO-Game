@@ -12,7 +12,12 @@ def create_game_room(request):
     """
     user = request.user
     if user.is_authenticated:
+        # Creating a new GameRoom Object
         new_game_room = GameRoom.objects.create(admin=user)
+
+        # Creating a Player Object corresponding to admin
+        player_obj = Player.objects.create(player=user, game_room=new_game_room)
+
         return HttpResponseRedirect(reverse('user_profile', kwargs={'username': user.username}))
     else:
         return HttpResponse(f"Oops! User with username {user.username} not found!")
