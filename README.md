@@ -17,7 +17,7 @@
 * Checkout to new branch using `git checkout <branch-name>`.
 * Make the changes to project.
 * Run `git add .`.
-* Commit using `git commit -m '<commit-message>`.
+* Commit using `git commit -m <commit-message>`.
 * Checkout to **main** branch using `git checkout main`.
 * **Pull** the recent changes using `git pull origin main`.
 * Merge your branch using `git merge <branch-name>`.
