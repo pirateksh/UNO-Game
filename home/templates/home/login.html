@@ -9,4 +9,10 @@
         {{ form.as_p }}
         <button type="submit">Login</button>
     </form>
+    <p><strong>-- OR --</strong></p>
+    <a href="{% url 'social:begin' 'github' %}">Login with GitHub</a><br>
+    <p><strong>-- OR --</strong></p>
+    <a href="{% url 'social:begin' 'google-oauth2' %}">Login with Google</a><br>
+    <p><strong>-- OR --</strong></p>
+    <a href="{% url 'social:begin' 'facebook' %}">Login with Facebook</a><br>
 {% endblock %}
