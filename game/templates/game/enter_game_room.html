@@ -9,18 +9,31 @@
 
 {% block content %}
     {% if game_room %}
-        <h2>Game Room ID: {{ game_room.unique_game_id }}</h2>
-        <h2>Game Room Admin: {{ game_room.admin.username }}</h2>
-        <h2>Players:</h2>
-        <ul>
-        {% for player in players %}
-            {% if player.is_online %}
-                <li style="background-color: lightgreen;" id="id_player_{{ player.player.pk }}_{{ game_room.pk }}">{{ player.player.username }}</li>
-            {% else %}
-                <li id="id_player_{{ player.player.pk }}_{{ game_room.pk }}">{{ player.player.username }}</li>
+        <div>
+            Game Room ID: {{ game_room.unique_game_id }}
+            <br/>
+            Game Room Admin: {{ game_room.admin.username }}
+            <br/>
+            {% if user.isauthenticated and user.username == game_room.admin.username %}
+                <a href="">Start Game</a>
             {% endif %}
-        {% endfor %}
-        </ul>
+        </div>
+        <div>
+            <div style="display: inline-block; border-style: dotted">
+                <p>Connected Players</p>
+                <ul id="id_connected_players_{{ game_room.pk }}">
+                    {% for player in players %}
+                        {% if player.is_online %}
+                            <li id="id_connected_players_{{ player.player.pk }}_{{ game_room.pk }}">{{ player.player.username }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            <div style="display: inline-block;">
+                Inline display
+            </div>
+        </div>
+
     {% endif %}
 {% endblock %}
 
@@ -36,7 +49,14 @@
         // var socket = new ReconnectingWebSocket(endpoint);
         var socket = new WebSocket(endpoint);
 
-        var me = $('#id_player_{{ user.pk }}_{{ game_room.pk }}');
+        var connectedList = $("#id_connected_players_{{ game_room.pk }}");
+        var connectedListChildren = connectedList.children();
+        var isConnected = [];
+        for(var i = 0; i < connectedListChildren.length; ++i) {
+            if(!isConnected.includes(connectedListChildren[i].innerText)) {
+                isConnected.push(connectedListChildren[i].innerText);
+            }
+        }
         socket.onopen = function (e) {
             console.log("open", e);
             var finalData = {
@@ -46,27 +66,41 @@
             };
             socket.send(JSON.stringify(finalData));
         };
+
         socket.onmessage = function (e) {
             console.log("message", e);
-            console.log(JSON.parse(e.data));
             var backendData = JSON.parse(e.data);
             var status = backendData.status;
+            var username = backendData.username;
+            var pk = backendData.pk;
             if(status === "connected") {
-                var connectedUsername = backendData.username;
-                var connectedPK = backendData.pk;
-                var connectedPlayerID = `#id_player_${connectedPK}_{{ game_room.pk }}`;
-                var listElement = $(connectedPlayerID);
-                // Changing color of name of user to green to indicate online status.
-                listElement.css({"backgroundColor": "lightgreen"});
+                //alert(`${username} connected.`);
+                console.log(isConnected);
+                if(!isConnected.includes(username)) {
+                    isConnected.push(username);
+                    var appendIt = `<li id="id_connected_players_${pk}_{{ game_room.pk }}">${username}</li>`;
+                    connectedList.append(appendIt);
+                }
+                console.log(isConnected);
+            }
+            else if(status === "disconnected") {
+                //alert(`${username} disconnected.`);
+                console.log(isConnected);
+                if(isConnected.includes(username)) {
+                    isConnected.splice(isConnected.indexOf(username), 1);
+                    var elemId = `#id_connected_players_${pk}_{{ game_room.pk }}`;
+                    var elem = $(elemId);
+                    elem.remove();
+                }
+                console.log(isConnected);
             }
         };
+
         socket.onerror = function (e) {
             console.log("error", e);
         };
         socket.onclose = function (e) {
             console.log("close", e);
-            // Changing color of name of user to yellow to indicate offline status
-            me.css({"backgroundColor": "yellow"})
         };
     </script>
 {% endblock %}

@@ -33,7 +33,7 @@
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td>{{ user_game_room.unique_game_id }}</td>
-                        <td><a href="{% url 'enter_game_room' user_game_room.unique_game_id %}">View</a></td>
+                        <td><a href="{% url 'enter_game_room' user_game_room.unique_game_id %}">Enter</a></td>
                     </tr>
                 {% endfor %}
             </table>

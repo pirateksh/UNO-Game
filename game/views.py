@@ -33,14 +33,20 @@ def join_game_room(request, unique_id):
     """
     game_room_qs = GameRoom.objects.filter(unique_game_id=unique_id)
     user = request.user
+
     if not user.is_authenticated:
         return HttpResponse(f"Login / Signup to join a Game Room.")
+
     if game_room_qs:
+
         game_room = game_room_qs[0]
-        player = Player.objects.filter(game_room=game_room, player=user)
-        if player:
+        player_obj = Player.objects.filter(game_room=game_room, player=user)
+        if player_obj:
             return HttpResponse(f"You are already in this Game Room (Unique ID: {unique_id}).")
-        player = Player.objects.create(player=user, game_room=game_room)
+
+        # Creating new Player Object if this user has not joined the room
+        player_obj = Player.objects.create(player=user, game_room=game_room)
+
         return HttpResponseRedirect(reverse('enter_game_room', kwargs={'unique_id': unique_id}))
     else:
         return HttpResponse(f"Game with unique_id {unique_id} not found.")
@@ -59,6 +65,7 @@ def enter_game_room(request, unique_id):
     user = request.user
     if not user.is_authenticated:
         return HttpResponse(f"Login / Signup to enter a Game Room.")
+
     if game_room_qs:
         game_room = game_room_qs[0]
         players_qs = Player.objects.filter(game_room=game_room)
@@ -70,11 +77,7 @@ def enter_game_room(request, unique_id):
                 is_member = True
                 break
 
-        # If user is admin of the game room
-        if game_room.admin.username == user.username:
-            is_member = True
-
-        # If user has neither joined the room nor is the admin but is trying to enter it.
+        # If user has not joined the room but is trying to enter it.
         if not is_member:
             return HttpResponse("You are not a member of this Room. Join the room and then try to enter.")
 
