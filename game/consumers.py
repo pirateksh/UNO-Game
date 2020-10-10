@@ -65,6 +65,29 @@ class GameRoomConsumer(AsyncConsumer):
     async def websocket_disconnect(self, event):
         print("disconnected", event)
         await self.set_is_online_false()
+        me = self.scope['user']
+        response = {
+            "status": "disconnected",
+            "username": me.username,
+            "pk": me.pk,
+        }
+        await self.channel_layer.group_send(
+            self.game_room_id,
+            {
+                "type": "leave.room",
+                "text": json.dumps(response)
+            }
+        )
+        await self.channel_layer.group_discard(
+            self.game_room_id,
+            self.channel_name
+        )
+
+    async def leave_room(self, event):
+        await self.send({
+            "type": "websocket.send",
+            "text": event['text']
+        })
 
     @database_sync_to_async
     def set_is_online_false(self):
