@@ -3,16 +3,32 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
-    <h2>Login</h2>
-    <form method="post" action="{% url 'login' %}">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Login</button>
-    </form>
-    <p><strong>-- OR --</strong></p>
-    <a href="{% url 'social:begin' 'github' %}">Login with GitHub</a><br>
-    <p><strong>-- OR --</strong></p>
-    <a href="{% url 'social:begin' 'google-oauth2' %}">Login with Google</a><br>
-    <p><strong>-- OR --</strong></p>
-    <a href="{% url 'social:begin' 'facebook' %}">Login with Facebook</a><br>
+    <div class="ui container" style="margin-top: 10em; text-align: center;">
+        <div class="div ui segment raised padded very compact">
+            <div class="ui header massive">Login</div>
+            <form class="ui big form segment" style="text-align: left;" method="post" action="{% url 'login' %}">
+                
+                    <div class="field center aligned">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                    </div>
+                
+                <button class="ui button submit large positive" type="submit">Login</button>
+            </form>
+            <div class="div ui buttons huge">
+                <button class="button basic blue ui">
+                    <a href="{% url 'social:begin' 'github' %}"> <i class="icon github black"></i> <span class="ui text black">Login with GitHub</span></a>
+                </button>
+                <div class="or"></div>
+                <button class="ui basic red button">
+                    <a href="{% url 'social:begin' 'google-oauth2' %}"> <i class="icon google red"></i> <span class="ui text black">Login with Google</span></a>
+                </button>
+                <div class="or"></div>
+                <button class="ui basic blue button">
+                    <a href="{% url 'social:begin' 'facebook' %}"> <i class="icon facebook"></i> <span class="ui text black">Login with Facebook</span></a>
+                </button>
+            </div>
+
+        </div>
+    </div>
 {% endblock %}

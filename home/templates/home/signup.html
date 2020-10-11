@@ -5,12 +5,29 @@
 {% endblock %}
 
 {% block content %}
-     <h2>Sign up</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Sign up</button>
-    </form>
+    <div class="ui container" style="margin-top: 10em; text-align: center;">
+        <div class="div ui segment raised padded very compact">
+            <div class="ui header massive">Signup</div>
+            <form class="ui big form segment" method="post" style="text-align: left;">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button class="ui button submit large positive" type="submit">Sign up</button>
+            </form>
+            <div class="div ui buttons huge">
+                <button class="button basic blue ui">
+                    <a href="{% url 'social:begin' 'github' %}"> <i class="icon github black"></i> <span class="ui text black">Signup with GitHub</span></a>
+                </button>
+                <div class="or"></div>
+                <button class="ui basic red button">
+                    <a href="{% url 'social:begin' 'google-oauth2' %}"> <i class="icon google red"></i> <span class="ui text black">Signup with Google</span></a>
+                </button>
+                <div class="or"></div>
+                <button class="ui basic blue button">
+                    <a href="{% url 'social:begin' 'facebook' %}"> <i class="icon facebook"></i> <span class="ui text black">Signup with Facebook</span></a>
+                </button>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block javascript %}
