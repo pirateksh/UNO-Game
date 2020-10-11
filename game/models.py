@@ -22,6 +22,9 @@ class GameRoom(models.Model):
 
     is_game_running = models.BooleanField(default=False, verbose_name="Is Game Running")
 
+    # Numbers of Player who have joined the game. Max Limit will be 10.
+    joined_player_count = models.IntegerField(default=0, verbose_name="Joined Player Count")
+
     def save(self, *args, **kwargs):
         if self.unique_game_id is None:
             self.unique_game_id = f"{id_generator(10)}"

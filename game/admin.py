@@ -7,7 +7,7 @@ class PlayerAdmin(admin.ModelAdmin):
 
 
 class GameRoomAdmin(admin.ModelAdmin):
-    list_display = ['unique_game_id', 'admin', 'is_game_running']
+    list_display = ['unique_game_id', 'admin', 'joined_player_count', 'is_game_running']
 
 
 class CardAdmin(admin.ModelAdmin):
