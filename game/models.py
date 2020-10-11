@@ -18,10 +18,13 @@ class GameRoom(models.Model):
 
     admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-    unique_game_id = models.CharField(max_length=10, verbose_name="Unique ID", unique=True)
+    unique_game_id = models.CharField(max_length=10, verbose_name="Unique ID", unique=True, default=None)
+
+    is_game_running = models.BooleanField(default=False, verbose_name="Is Game Running")
 
     def save(self, *args, **kwargs):
-        self.unique_game_id = f"{id_generator(10)}"
+        if self.unique_game_id is None:
+            self.unique_game_id = f"{id_generator(10)}"
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -69,13 +72,14 @@ class Card(models.Model):
         (WILD_FOUR, "Wild Four"),
     )
 
-    category = models.CharField(max_length=2, choices=category_options, verbose_name="Color")
+    category = models.CharField(max_length=2, choices=category_options, verbose_name="Category")
 
     ZERO, ONE, TWO, THREE, FOUR = 0, 1, 2, 3, 4
     FIVE, SIX, SEVEN, EIGHT, NINE = 5, 6, 7, 8, 9
-    SKIP, DRAW_TWO, REVERSE = 10, 11, 12
+    SKIP, DRAW_TWO, REVERSE, NONE = 10, 11, 12, 13
 
     number_option = (
+        (NONE, "None"),  # For WILD and WILD_FOUR Cards
         (ZERO, "Zero"), (ONE, "One"), (TWO, "Two"), (THREE, "Three"), (FOUR, "Four"),
         (FIVE, "Five"), (SIX, "Six"), (SEVEN, "Seven"), (EIGHT, "Eight"), (NINE, "Nine"),
         (SKIP, "Skip"), (DRAW_TWO, "Draw Two"), (REVERSE, "Reverse"),

@@ -1,14 +1,29 @@
 from django.contrib import admin
 from .models import GameRoom, Player, Card, PlayerHandCard, GameRoomDeckCard
-# Register your models here.
 
 
 class PlayerAdmin(admin.ModelAdmin):
-    fields = ['player', 'is_online', 'game_room']
+    list_display = ['player', 'is_online', 'game_room']
 
 
-admin.site.register(GameRoom)
+class GameRoomAdmin(admin.ModelAdmin):
+    list_display = ['unique_game_id', 'admin', 'is_game_running']
+
+
+class CardAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'category', 'number']
+
+
+class PlayerHandCardAdmin(admin.ModelAdmin):
+    pass
+
+
+class GameRoomDeckCardAdmin(admin.ModelAdmin):
+    list_display = ['game_room', 'card']
+
+
+admin.site.register(GameRoom, GameRoomAdmin)
 admin.site.register(Player, PlayerAdmin)
-admin.site.register(Card)
-admin.site.register(PlayerHandCard)
-admin.site.register(GameRoomDeckCard)
+admin.site.register(Card, CardAdmin)
+admin.site.register(PlayerHandCard, PlayerHandCardAdmin)
+admin.site.register(GameRoomDeckCard, GameRoomDeckCardAdmin)

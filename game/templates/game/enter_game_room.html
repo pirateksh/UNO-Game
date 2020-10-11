@@ -7,6 +7,21 @@
 {% endcomment %}
 {% block title %} Game Room Detail {% endblock %}
 
+{#{% block styles %}#}
+{#    <style type="text/css">#}
+{#        html , body {#}
+{#            background: #212121;#}
+{#            color: #fff;#}
+{#            margin: 0;#}
+{#            padding: 0;#}
+{#        }#}
+{#        #canvas {#}
+{#            position: absolute;#}
+{#            left: 0; right: 0; top: 0; bottom: 0;#}
+{#            margin: auto;#}
+{#        }#}
+{#    </style>#}
+{#{% endblock %}#}
 {% block content %}
     {% if game_room %}
         <div>
@@ -14,12 +29,21 @@
             <br/>
             Game Room Admin: {{ game_room.admin.username }}
             <br/>
-            {% if user.isauthenticated and user.username == game_room.admin.username %}
-                <a href="">Start Game</a>
+            <br/>
+            {% if user.is_authenticated and user.username == game_room.admin.username %}
+                <button id="id_start_game_{{ game_room.pk }}">
+                    Start Game
+                </button>
+                <br/>
+                <button id="id_end_game_{{ game_room.pk }}">
+                    End Game
+                </button>
             {% endif %}
+            <br/>
+            <br/>
         </div>
         <div>
-            <div style="display: inline-block; border-style: dotted">
+            <div style="display: inline-block; border-style: dotted; margin-right: 50px;">
                 <p>Connected Players</p>
                 <ul id="id_connected_players_{{ game_room.pk }}">
                     {% for player in players %}
@@ -29,16 +53,27 @@
                     {% endfor %}
                 </ul>
             </div>
-            <div style="display: inline-block;">
-                Inline display
+            <div style="display: inline-block; border-style: dotted;">
+                <p>Game Room Notifications</p>
+                <ul id="id_game_room_notifications_{{ game_room.pk }}">
+                    
+                </ul>
             </div>
         </div>
+{#        <div>#}
+{#            <canvas id="canvas"> This is canvas</canvas>#}
+{#        </div>#}
 
     {% endif %}
 {% endblock %}
 
 {% block javascript %}
     <script>
+        // Constants
+        const ERROR = "error";
+        const SUCCESS = "success";
+
+        // Fetching Endpoint
         var loc = window.location;
         var wsStart = 'ws://';
         if(loc.protocol === 'https:') {
@@ -46,8 +81,11 @@
             wsStart = 'wss://'
         }
         var endpoint = wsStart + loc.host + loc.pathname;
+
+        // Making WebSocket Object
         // var socket = new ReconnectingWebSocket(endpoint);
         var socket = new WebSocket(endpoint);
+
 
         var connectedList = $("#id_connected_players_{{ game_room.pk }}");
         var connectedListChildren = connectedList.children();
@@ -57,14 +95,84 @@
                 isConnected.push(connectedListChildren[i].innerText);
             }
         }
+
+        var startGameButton = $('#id_start_game_{{ game_room.pk }}');
+        var endGameButton = $('#id_end_game_{{ game_room.pk }}');
+
+        var notificationList = $('#id_game_room_notifications_{{ game_room.pk }}');
+
         socket.onopen = function (e) {
             console.log("open", e);
-            var finalData = {
+            var userInfo = {
                 "status": "connected",
                 "username": "{{ user.username }}",
                 "pk": "{{ user.pk }}"
             };
-            socket.send(JSON.stringify(finalData));
+
+            var response = {
+                "type": "enter.room",
+                "text": userInfo
+            };
+            socket.send(JSON.stringify(response));
+            
+            // When start game Button is clicked
+            startGameButton.click(function () {
+                var url = "{% url 'start_game' game_room.unique_game_id %}";
+                $.ajax({
+                    url: url,
+                    type: "GET",
+                    success: function (json) {
+                        console.log(json);
+                        var status = json.status;
+                        if(status === SUCCESS) {
+                            var startGameData = {
+                                "status": "game_started"
+                            };
+                            response = {
+                                "type": "start.game",
+                                "text": startGameData
+                            };
+                            socket.send(JSON.stringify(response));
+                        }
+                        else if(status === ERROR) {
+                            console.log(json.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                    }
+                });
+
+            });
+
+            // When End Game Button is clicked
+            endGameButton.click(function () {
+                var url = "{% url 'end_game' game_room.unique_game_id %}";
+                $.ajax({
+                    url: url,
+                    type: "GET",
+                    success: function (json) {
+                        console.log(json);
+                        var status = json.status;
+                        if(status === SUCCESS) {
+                            var endGameData = {
+                                "status": "game_ended"
+                            };
+                            response = {
+                                "type": "end.game",
+                                "text": endGameData
+                            };
+                            socket.send(JSON.stringify(response));
+                        }
+                        else if(status === ERROR) {
+                            console.log(json.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                    }
+                });
+            });
         };
 
         socket.onmessage = function (e) {
@@ -73,6 +181,8 @@
             var status = backendData.status;
             var username = backendData.username;
             var pk = backendData.pk;
+            var notificationMessage;
+
             if(status === "connected") {
                 //alert(`${username} connected.`);
                 console.log(isConnected);
@@ -94,11 +204,20 @@
                 }
                 console.log(isConnected);
             }
+            else if(status === "game_started") {
+                notificationMessage = "Game has been started. Deck is ready. Waiting for hands to be distributed.";
+                notificationList.append(`<li>${notificationMessage}</li>`);
+            }
+            else if(status === "game_ended") {
+                notificationMessage = "Current Game has ended. You can either leave the room or wait for another game to start";
+                notificationList.append(`<li>${notificationMessage}</li>`);
+            }
         };
 
         socket.onerror = function (e) {
             console.log("error", e);
         };
+
         socket.onclose = function (e) {
             console.log("close", e);
         };
