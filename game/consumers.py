@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from channels.consumer import AsyncConsumer
 from channels.db import database_sync_to_async
 from channels.exceptions import StopConsumer
-from .models import GameRoom, Player
+from .models import GameRoom, Player, Card, GameRoomDeckCard
 
 User = get_user_model()
 
@@ -39,24 +39,40 @@ class GameRoomConsumer(AsyncConsumer):
         })
 
     async def websocket_receive(self, event):
+        """
+            Example event:
+            event = {'type': 'websocket.receive', 'text': '{"type":"enter.room","text":{"status":"connected","username":"pirateksh","pk":"1"}}'}
+        """
         print("received", event)
         front_text = event.get('text', None)
         if front_text:
             loaded_dict_data = json.loads(front_text)
+            type_of_event = loaded_dict_data['type']
+            text_of_event = loaded_dict_data['text']
+
             # Broadcasts the enter_room event to be sent
             await self.channel_layer.group_send(
                 self.game_room_id,
                 {
-                    # "type": "enter_room",
-                    # Above commented line is also correct
-                    "type": "enter.room",
-                    "text": json.dumps(loaded_dict_data)
+                    "type": type_of_event,
+                    "text": json.dumps(text_of_event)
                 }
             )
-        # {'type': 'websocket.receive', 'text': '{"status":"connected","username":"ankitsang","pk":"3"}'}
 
     async def enter_room(self, event):
         # This method actually sends the message
+        await self.send({
+            "type": "websocket.send",
+            "text": event['text']
+        })
+
+    async def start_game(self, event):
+        await self.send({
+            "type": "websocket.send",
+            "text": event['text']
+        })
+
+    async def end_game(self, event):
         await self.send({
             "type": "websocket.send",
             "text": event['text']
@@ -88,6 +104,11 @@ class GameRoomConsumer(AsyncConsumer):
             "type": "websocket.send",
             "text": event['text']
         })
+
+    @database_sync_to_async
+    def prepare_deck_cards(self):
+        game_room_obj = self.game_room_obj
+
 
     @database_sync_to_async
     def set_is_online_false(self):
