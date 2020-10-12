@@ -6,7 +6,6 @@ from django.contrib.auth import login, authenticate, logout
 def home_view(request):
     return render(request, 'home/index.html', {})
 
-
 def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)

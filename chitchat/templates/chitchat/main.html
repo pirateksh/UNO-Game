@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<marquee>
+    Welcome to the Chat Server of the Future!
+</marquee>
+
+<div>
+    <p> Hello, {{ user.username }}. PFB list of all your Friends.</p>
+    <ul>
+        {% for friend in friends %}
+            <li> <a href="{% url 'chat' friend %}">{{ friend }}</a> </li>
+        {% endfor %}
+    </ul>
+
+    <p> Go ahead. Just Click on any of them to start a chitchat.</p>
+
+
+</div>
+
+{%endblock content%}
