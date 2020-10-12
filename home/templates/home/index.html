@@ -7,7 +7,7 @@
 {% block content %}
     <div class="ui container" style="margin-top: 10em; text-align: center;">
         <div class="ui segment raised very padded container">
-            <div class="ui header massive">Welcome to UNO Game!</div>
+            <div class="ui header huge">Welcome to UNO Game!</div>
             <!-- <button class="ui animated button">
                 <span class="visible content">Next</span>
                 <span class="hidden content"><i class="right arrow icon"></i></span>
@@ -17,13 +17,13 @@
                 <br/>
                 <h3><a href="{% url 'user_profile' user.username %}">Visit Your Profile</a></h3>
             {% else %}
-                <div class="ui buttons huge">
+                <div class="ui buttons large">
                     <button class="button ui teal">
-                        <a href="{% url 'signup' %}"><span class="ui text black">Signup</span></a>
+                        <a style="color: white;" href="{% url 'signup' %}">Signup</a>
                     </button>
                     <div class="or"></div>
                     <button class="button ui teal inverted">
-                        <a href="{% url 'login' %}"><span class="ui text black">Login</span></a>
+                        <a style="color: black;" href="{% url 'login' %}">Login</a>
                     </button>   
                 </div>
             {% endif %}
