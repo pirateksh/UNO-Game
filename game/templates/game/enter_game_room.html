@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% comment %}
     context = {
         'game_room': game_room,
@@ -7,7 +8,18 @@
 {% endcomment %}
 {% block title %} Game Room Detail {% endblock %}
 
-{#{% block styles %}#}
+{% block styles %}
+    <style type="text/css">
+    canvas {
+		    display: block;
+		    margin: 0;
+		    position: absolute;
+		    top: 50%;
+		    left: 50%;
+		    transform: translate(-50%, -50%);
+		}
+    </style>
+
 {#    <style type="text/css">#}
 {#        html , body {#}
 {#            background: #212121;#}
@@ -21,7 +33,7 @@
 {#            margin: auto;#}
 {#        }#}
 {#    </style>#}
-{#{% endblock %}#}
+{% endblock %}
 {% block content %}
     {% if game_room %}
         <div>
@@ -68,6 +80,9 @@
 {% endblock %}
 
 {% block javascript %}
+    <script type="text/javascript" src="{% static 'js/phaserjs/game.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/phaserjs/Scene1.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/phaserjs/Scene2.js' %}"></script>
     <script>
         // Constants
         const ERROR = "error";
