@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Chat{% endblock %}
+
+{% block content %}
+
+<div>
+    <p>[Logged In user]Person 1: {{ user.username }}</p>
+    <p>Person 2: {{ person2 }}</p>
+    <ol id="chat_items">
+    {% for chat in chats %}
+        <li><b>{{ chat.sender }}</b>: {{ chat.message }} <b><i>from thread_id:</b></i> {{ chat.thread.id }}</li>
+    {% endfor %}
+    </ol>
+
+    <form id="form" action="" method="post">
+         {% csrf_token %}
+        <label> Your Message:</label>
+        <input id="message" type='text'></input>
+        <button type="submit"> Submit</button>
+    </form>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js"></script>
+<script>
+
+    var loc = window.location;
+    var host = loc.host;
+    var pathname = loc.pathname;
+
+    var wsStart = 'ws://';
+    if(loc.protocol == 'https:'){
+        wsStart = 'wss://';
+    }
+
+    const endpoint = wsStart + host + pathname;
+    console.log("Request For Websocket Connection Sent to Server at endpoint: " + endpoint);
+    {#var socket = new WebSocket(endpoint);#}
+    var socket = new ReconnectingWebSocket(endpoint);
+
+    var formData = $("#form");
+    var msg = $("#message");
+    var chat_list = $('#chat_items');
+
+    socket.onopen = function (e) {
+        console.log("The Connection has been Opened from Both Sides Now.", e);
+         formData.submit(function(e) {
+             e.preventDefault();
+             let message = {"message": msg.val()};
+             socket.send(JSON.stringify(message));
+             msg.val('');
+         });
+    };
+
+    socket.onmessage = function (e) {
+        console.log("The Message sent by the Server is: ", e.data);
+        var chat_message = JSON.parse(e.data);
+        chat_list.append("<li>" + chat_message.message + "<b> by </b>" + chat_message.sender + "</li>");
+    };
+
+    socket.onerror = function (e) {
+        console.log("error", e);
+    };
+    socket.onclose = function (e) {
+        console.log("The Connection has been Closed from the Server End", e);
+    };
+</script>
+
+{%endblock content%}
+
