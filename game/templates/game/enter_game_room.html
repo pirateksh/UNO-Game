@@ -15,25 +15,12 @@
 		    margin: 0;
 		    position: absolute;
 		    top: 50%;
-		    left: 50%;
+		    left: 70%;
 		    transform: translate(-50%, -50%);
 		}
     </style>
-
-{#    <style type="text/css">#}
-{#        html , body {#}
-{#            background: #212121;#}
-{#            color: #fff;#}
-{#            margin: 0;#}
-{#            padding: 0;#}
-{#        }#}
-{#        #canvas {#}
-{#            position: absolute;#}
-{#            left: 0; right: 0; top: 0; bottom: 0;#}
-{#            margin: auto;#}
-{#        }#}
-{#    </style>#}
 {% endblock %}
+
 {% block content %}
     {% if game_room %}
         <div>
@@ -68,14 +55,21 @@
             <div style="display: inline-block; border-style: dotted;">
                 <p>Game Room Notifications</p>
                 <ul id="id_game_room_notifications_{{ game_room.pk }}">
-                    
+
+                </ul>
+            </div>
+            <br/>
+            <div style="display: inline-block; margin-right: 50px; border-style: dotted;">
+                <p>Current Top Card</p>
+                <p id="id_top_card_{{ game_room.unique_game_id }}"></p>
+            </div>
+            <div style="display: inline-block; border-style: dotted; margin-top: 35px;">
+                <p>My Hand</p>
+                <ul id="id_hand_{{ user.username }}_{{ game_room.unique_game_id }}">
+
                 </ul>
             </div>
         </div>
-{#        <div>#}
-{#            <canvas id="canvas"> This is canvas</canvas>#}
-{#        </div>#}
-
     {% endif %}
 {% endblock %}
 
@@ -116,25 +110,164 @@
 
         var notificationList = $('#id_game_room_notifications_{{ game_room.pk }}');
 
+        var myHand = [];
+        var topCard;
+        var myHandList = $("#id_hand_{{ user.username }}_{{ game_room.unique_game_id }}");
+        var topCardElem = $("#id_top_card_{{ game_room.unique_game_id }}");
+
         socket.onopen = function (e) {
             console.log("open", e);
-
             // Entering the Game Room (when socket connection opens).
-            var userInfo = {
+            var data = {
                 "status": "connected",
-                "username": "{{ user.username }}",
-                "pk": "{{ user.pk }}"
+                "message": "Connecting...",
+                "data": {
+                    "username": "{{ user.username }}",
+                    "pk": "{{ user.pk }}",
+                }
             };
 
             var response = {
                 "type": "enter.room",
-                "text": userInfo
+                "text": data
             };
             socket.send(JSON.stringify(response));
             
             // When start game Button is clicked
             startGameButton.click(function () {
-                var url = "{% url 'start_game' game_room.unique_game_id %}";
+                var data = {
+                    "status": "broadcast_notification",
+                    "message": "Game is being started.",
+                    "data": {}
+                };
+                response = {
+                    "type": "broadcast.notification",
+                    "text": data
+                };
+                socket.send(JSON.stringify(response));
+
+                var data = {
+                    "status": "start_game",
+                    "message": "Game is being started.",
+                    "data": {}
+                };
+                response = {
+                    "type": "start.game",
+                    "text": data
+                };
+                socket.send(JSON.stringify(response));
+
+
+            });
+
+            // When End Game Button is clicked
+            endGameButton.click(function () {
+                var data = {
+                    "status": "broadcast_notification",
+                    "message": "Game is being ended.",
+                    "data": {}
+                };
+                response = {
+                    "type": "broadcast.notification",
+                    "text": data
+                };
+                socket.send(JSON.stringify(response));
+
+                var data = {
+                    "status": "end_game",
+                    "message": "Game is being ended.",
+                    "data": {}
+                };
+                response = {
+                    "type": "end.game",
+                    "text": data
+                };
+                socket.send(JSON.stringify(response));
+
+            });
+        };
+
+        socket.addEventListener("message", function (e) {
+
+        {# });#}
+        {#socket.onmessage = function (e) {#}
+            console.log("message from enter_game_room", e);
+            var backendResponse = JSON.parse(e.data);
+            var status = backendResponse.status;
+            var message = backendResponse.message;
+            var data = backendResponse.data;
+            var username, pk, elementToAppend;
+            {#if(backendResponse.serializedGame) {#}
+            {#    console.log(JSON.parse(backendResponse.serializedGame));#}
+            {# }#}
+            {#if(backendResponse.serializedPlayer) {#}
+            {#    console.log(JSON.parse(backendResponse.serializedPlayer));#}
+            {# }#}
+
+
+            if(status === "connected") {
+                username = data.username;
+                pk = data.pk;
+                if(!isConnected.includes(username)) {
+                    isConnected.push(username);
+                    var appendIt = `<li id="id_connected_players_${pk}_{{ game_room.pk }}">${username}</li>`;
+                    connectedList.append(appendIt);
+                }
+            }
+            else if(status === "disconnected") {
+                username = data.username;
+                pk = data.pk;
+                if(isConnected.includes(username)) {
+                    isConnected.splice(isConnected.indexOf(username), 1);
+                    var elemId = `#id_connected_players_${pk}_{{ game_room.pk }}`;
+                    var elem = $(elemId);
+                    elem.remove();
+                }
+            }
+            else if(status === "broadcast_notification") {
+                elementToAppend = `<li>${message}</li>`;
+                notificationList.append(elementToAppend);
+            }
+            else if(status === "start_game") {
+                myHand = JSON.parse(backendResponse.serializedPlayer).hand;
+                topCard = JSON.parse(backendResponse.topCard);
+                {#console.log(myHand);#}
+                for(let card of myHand) {
+                    {#console.log(card);#}
+                    myHandList.append(`<li>Category: ${card.category} Number: ${card.number}`);
+                }
+
+                topCardElem.html(`Category: ${topCard.category} Number: ${topCard.number}`);
+            }
+            else if(status === "end_game") {
+                myHandList.empty();
+                topCardElem.html('');
+            }
+        }); // CHaNGE
+
+        socket.onerror = function (e) {
+            console.log("error", e);
+        };
+
+        socket.onclose = function (e) {
+            console.log("close", e);
+        };
+    </script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+<script>
+    /*
+                var url = "";
                 var data = {
                     "status": "broadcast_notification",
                     "message": "Game is being started."
@@ -169,78 +302,35 @@
                         console.log(xhr);
                     }
                 });
+                */
 
-            });
 
-            // When End Game Button is clicked
-            endGameButton.click(function () {
-                var url = "{% url 'end_game' game_room.unique_game_id %}";
-                $.ajax({
-                    url: url,
-                    type: "GET",
-                    success: function (json) {
-                        console.log(json);
-                        var status = json.status;
-                        if(status === SUCCESS) {
-                            var data = {
-                                "status": "broadcast_notification",
-                                "message": "Current Game has ended. You can either leave the room or wait for another game to start."
-                            };
-                            response = {
-                                "type": "broadcast.notification",
-                                "text": data
-                            };
-                            socket.send(JSON.stringify(response));
-                        }
-                        else if(status === ERROR) {
-                            alert(json.message);
-                        }
-                    },
-                    error: function (xhr) {
-                        console.log(xhr);
-                    }
-                });
-            });
-        };
 
-        socket.onmessage = function (e) {
-            console.log("message", e);
-            var backendData = JSON.parse(e.data);
-            var status = backendData.status;
-            var username, pk, notificationMessage, elementToAppend;
-
-            if(status === "connected") {
-                username = backendData.username;
-                pk = backendData.pk;
-                if(!isConnected.includes(username)) {
-                    isConnected.push(username);
-                    var appendIt = `<li id="id_connected_players_${pk}_{{ game_room.pk }}">${username}</li>`;
-                    connectedList.append(appendIt);
-                }
-            }
-            else if(status === "disconnected") {
-                username = backendData.username;
-                pk = backendData.pk;
-                if(isConnected.includes(username)) {
-                    isConnected.splice(isConnected.indexOf(username), 1);
-                    var elemId = `#id_connected_players_${pk}_{{ game_room.pk }}`;
-                    var elem = $(elemId);
-                    elem.remove();
-                }
-            }
-            else if(status === "broadcast_notification") {
-                notificationMessage = backendData.message;
-                elementToAppend = `<li>${notificationMessage}</li>`;
-                notificationList.append(elementToAppend);
-            }
-        };
-
-        socket.onerror = function (e) {
-            console.log("error", e);
-        };
-
-        socket.onclose = function (e) {
-            console.log("close", e);
-        };
-    </script>
-{% endblock %}
+     {#var url = "{% url 'end_game' game_room.unique_game_id %}";#}
+                {#$.ajax({#}
+                {#    url: url,#}
+                {#    type: "GET",#}
+                {#    success: function (json) {#}
+                {#        console.log(json);#}
+                {#        var status = json.status;#}
+                {#        if(status === SUCCESS) {#}
+                {#            var data = {#}
+                {#                "status": "broadcast_notification",#}
+                {#                "message": "Current Game has ended. You can either leave the room or wait for another game to start."#}
+                {#                "data": {}#}
+                {#            };#}
+                {#            response = {#}
+                {#                "type": "broadcast.notification",#}
+                {#                "text": data#}
+                {#            };#}
+                {#            socket.send(JSON.stringify(response));#}
+                {#        }#}
+                {#        else if(status === ERROR) {#}
+                {#            alert(json.message);#}
+                {#        }#}
+                {#    },#}
+                {#    error: function (xhr) {#}
+                {#        console.log(xhr);#}
+                {#    }#}
+                {# });#}
+</script>

@@ -4,17 +4,22 @@ class Scene1 extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("table", `${generatePath("table.jpg")}`);
+        this.load.image("table", `${generatePath("images", "table.jpg")}`);
 
-        this.load.spritesheet("cardBack", `${generatePath("back.png")}`, {
+        this.load.spritesheet("cardBack", `${generatePath("images", "back.png")}`, {
             frameWidth: 93,
             frameHeight: 140
         });
 
-        this.load.spritesheet("cardFront", `${generatePath("outl.png")}`, {
+        this.load.spritesheet("cardFront", `${generatePath("images", "outl.png")}`, {
             frameWidth: 93,
             frameHeight: 140
         });
+
+        this.load.spritesheet("uno", `${generatePath("spritesheets", "uno_game.jpeg")}`, {
+            frameWidth: 57,
+            frameHeight: 86
+        })
     }
 
     create() {
@@ -25,5 +30,16 @@ class Scene1 extends Phaser.Scene {
 
         this.add.text(20, 20, "Loading Game...");
         this.scene.start("playGame");
+
+        var sno = getImagePoint(RED, NINE);
+        this.anims.create({
+			key: "uno_anim",
+			frames: this.anims.generateFrameNumbers("uno", {
+			    start: sno,
+                end: sno
+            }),
+			frameRate: 7,
+			repeat: 0
+		})
     }
 }

@@ -1,5 +1,7 @@
 import asyncio
+import random
 import json
+from json import JSONEncoder
 from django.contrib.auth import get_user_model
 from channels.consumer import AsyncConsumer
 from channels.db import database_sync_to_async
@@ -7,6 +9,156 @@ from channels.exceptions import StopConsumer
 from .models import GameRoom, Player, Card, GameRoomDeckCard
 
 User = get_user_model()
+
+
+def delete_object(object_):
+    del object_
+
+
+class CustomEncoder(JSONEncoder):
+    def default(self, o):
+        return o.__dict__
+
+
+class CardServer:
+    def __init__(self, category, number):
+        self.category = category
+        self.number = number
+
+    def show(self):
+        return f"{self.number} of {self.category}"
+
+
+class DeckServer:
+
+    def __init__(self):
+        self.cards = []
+        self.build()
+
+    def build(self):
+        """
+        Method to build the Deck of Cards or Populate the Deck with Cards.
+        :return:
+        """
+        for category in [Card.BLUE, Card.GREEN, Card.YELLOW, Card.RED]:
+            self.cards.append(CardServer(category=category, number=Card.ZERO))
+
+            for number in [Card.ONE, Card.TWO, Card.THREE, Card.FOUR, Card.FIVE, Card.SIX, Card.SEVEN, Card.EIGHT,
+                           Card.NINE, Card.SKIP, Card.REVERSE, Card.DRAW_TWO]:
+                self.cards.append(CardServer(category=category, number=number))
+                self.cards.append(CardServer(category=category, number=number))
+
+        for i in range(4):
+            self.cards.append(CardServer(category=Card.WILD, number=Card.NONE))
+            self.cards.append(CardServer(category=Card.WILD_FOUR, number=Card.NONE))
+
+    def shuffle(self):
+        """
+        Method to Shuffle the Cards present in the Deck using Fisher Yates Shuffle algorithm.
+        :return:
+        """
+        for i in range(int(len(self.cards)) - 1, 0, -1):
+            r = random.randint(0, i)
+            self.cards[i], self.cards[r] = self.cards[r], self.cards[i]
+
+    def deal(self):
+        """
+        Method to draw a card
+        :return:
+        """
+        return self.cards.pop()
+
+    def show(self):
+        for card in self.cards:
+            card.show()
+
+
+class PlayerServer:
+    def __init__(self, username):
+        self.username = username
+        self.hand = []
+
+    def draw(self, deck):
+        self.hand.append(deck.deal())
+        return self
+
+    def __str__(self):
+        return f"{self.username}"
+
+
+class GameServer:
+    current_games = []
+
+    def __init__(self, unique_id, player):
+        self.unique_id = unique_id
+        self.players = []
+        self.players.append(player)
+        self.deck = DeckServer()
+        self.topcard = None
+
+    def __del__(self):
+        print(f"Game with unique ID {self.unique_id} is deleted.")
+
+    @classmethod
+    def create_new_game(cls, unique_id, player):
+        for game in cls.current_games:
+            if game.unique_id == unique_id:
+                print("Returning Existing Game.")
+                game.players.append(player)
+                return game
+        print("Creating New Game.")
+        new_game = GameServer(unique_id, player)
+        cls.current_games.append(new_game)
+        return new_game
+
+    def deal_hands(self, cards_per_player=7):
+        """
+        Method to deal hands to all the connected players from the deck of this Game.
+        :param cards_per_player:
+        :return:
+        """
+        for i in range(int(cards_per_player)):
+            for player in self.players:
+                player.draw(self.deck)
+
+    def start_game(self):
+        """
+        Method to be called at the start of the game to shuffle and deal hands.
+        :return:
+        """
+        self.deck.shuffle()
+        self.deal_hands()
+        self.topcard = self.deck.deal()
+
+    def end_game(self):
+        """
+        Method to be called at the end of the game to clear the hands of player and topcard of Game.
+        :return:
+        """
+        for player in self.players:
+            if player.hand:
+                self.deck.cards.extend(player.hand)
+                player.hand.clear()
+
+        if self.topcard:
+            self.deck.cards.append(self.topcard)
+            self.topcard = None
+
+    def leave_game(self, player):
+        """
+        Method to be called in websocket_disconnect().
+        :param player:
+        :return:
+        """
+        print(f"{player.username} is Leaving the Game.")
+        self.players.remove(player)
+        del player
+        if len(self.players) == 0:
+            GameServer.current_games.remove(self)
+            delete_object(self)
+
+    def get_top_card(self):
+        return self.topcard
 
 
 class GameRoomConsumer(AsyncConsumer):
@@ -17,7 +169,7 @@ class GameRoomConsumer(AsyncConsumer):
     async def websocket_connect(self, event):
         print("connected", event)
         unique_id = self.scope['url_route']['kwargs']['unique_id']
-
+        self.me = self.scope['user']
         game_room_obj = await self.get_game_room(unique_id=unique_id)
 
         self.game_room_obj = game_room_obj
@@ -31,6 +183,11 @@ class GameRoomConsumer(AsyncConsumer):
         game_room_id = f"game_room_{unique_id}"
         self.game_room_id = game_room_id
 
+        self.player_server_obj = PlayerServer(username=self.me.username)
+        self.game = GameServer.create_new_game(unique_id, self.player_server_obj)
+        print(self.game)
+        print(self.game.players)
+
         await self.channel_layer.group_add(
             game_room_id,
             self.channel_name
@@ -42,7 +199,19 @@ class GameRoomConsumer(AsyncConsumer):
     async def websocket_receive(self, event):
         """
             Example event:
-            event = {'type': 'websocket.receive', 'text': '{"type":"enter.room","text":{"status":"connected","username":"pirateksh","pk":"1"}}'}
+            event = {
+                'type': 'websocket.receive',
+                'text': '{
+                    "type":"enter.room",
+                    "text":{
+                        "status":"connected",
+                        "message": "<some_message>",
+                        "data": {
+                            // Some data
+                        }
+                    }
+                }'
+            }
         """
         print("received", event)
         front_text = event.get('text', None)
@@ -51,12 +220,29 @@ class GameRoomConsumer(AsyncConsumer):
             type_of_event = loaded_dict_data['type']
             text_of_event = loaded_dict_data['text']
 
+            if type_of_event == "start.game":
+                print(f"Before Broadcasting: Going to call start.game")
+                self.game.start_game()
+                print(f"Deck and Hands are Ready")
+                await self.set_is_game_running_true()
+            elif type_of_event == "end.game":
+                self.game.end_game()
+                await self.set_is_game_running_false()
+
+            response = {
+                "status": text_of_event['status'],
+                "message": text_of_event['message'],
+                "data": text_of_event['data'],
+                "topCard": json.dumps(self.game.get_top_card(), cls=CustomEncoder),
+                # "serializedGame": json.dumps(self.game, cls=CustomEncoder),
+            }
+
             # Broadcasts the enter_room event to be sent
             await self.channel_layer.group_send(
                 self.game_room_id,
                 {
                     "type": type_of_event,
-                    "text": json.dumps(text_of_event)
+                    "text": json.dumps(response)
                 }
             )
 
@@ -73,26 +259,43 @@ class GameRoomConsumer(AsyncConsumer):
             "text": event['text']
         })
 
-    # async def start_game(self, event):
-    #     await self.send({
-    #         "type": "websocket.send",
-    #         "text": event['text']
-    #     })
-    #
-    # async def end_game(self, event):
-    #     await self.send({
-    #         "type": "websocket.send",
-    #         "text": event['text']
-    #     })
+    async def start_game(self, event):
+        text = event.get('text', None)
+        if text:
+            loaded_dict_data = json.loads(text)
+            extra_data = {
+                "serializedPlayer": json.dumps(self.player_server_obj, cls=CustomEncoder),
+            }
+            loaded_dict_data.update(extra_data)
+            await self.send({
+                "type": "websocket.send",
+                "text": json.dumps(loaded_dict_data)
+            })
+
+    async def end_game(self, event):
+        await self.send({
+            "type": "websocket.send",
+            "text": event['text']
+        })
 
     async def websocket_disconnect(self, event):
         print("disconnected", event)
         await self.set_is_online_false()
-        me = self.scope['user']
+        me = self.me
+
+        # Leaving current Game
+        if len(self.game.players) == 1:
+            await self.set_is_game_running_false()
+        self.game.leave_game(self.player_server_obj)
+        del self.player_server_obj
+
         response = {
             "status": "disconnected",
-            "username": me.username,
-            "pk": me.pk,
+            "message": "Disconnecting...",
+            "data": {
+                "username": me.username,
+                "pk": me.pk,
+            },
         }
         await self.channel_layer.group_send(
             self.game_room_id,
@@ -129,7 +332,19 @@ class GameRoomConsumer(AsyncConsumer):
         return GameRoom.objects.get(unique_game_id=unique_id)
 
     @database_sync_to_async
+    def set_is_game_running_true(self):
+        game_room_obj = self.game_room_obj
+        game_room_obj.is_game_running = True
+        game_room_obj.save()
+
+    @database_sync_to_async
+    def set_is_game_running_false(self):
+        game_room_obj = self.game_room_obj
+        game_room_obj.is_game_running = False
+        game_room_obj.save()
+
+    @database_sync_to_async
     def get_player_obj(self):
-        me = self.scope['user']
+        me = self.me
         game_room_obj = self.game_room_obj
         return Player.objects.get(player=me, game_room=game_room_obj)
