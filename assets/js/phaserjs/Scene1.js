@@ -30,16 +30,5 @@ class Scene1 extends Phaser.Scene {
 
         this.add.text(20, 20, "Loading Game...");
         this.scene.start("playGame");
-
-        var sno = getImagePoint(RED, NINE);
-        this.anims.create({
-			key: "uno_anim",
-			frames: this.anims.generateFrameNumbers("uno", {
-			    start: sno,
-                end: sno
-            }),
-			frameRate: 7,
-			repeat: 0
-		})
     }
 }

@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from channels.consumer import AsyncConsumer
 from channels.db import database_sync_to_async
 from channels.exceptions import StopConsumer
-from .models import GameRoom, Player, Card, GameRoomDeckCard
+from .models import GameRoom, Player
 
 User = get_user_model()
 
@@ -20,7 +20,19 @@ class CustomEncoder(JSONEncoder):
         return o.__dict__
 
 
-class CardServer:
+class Card:
+    """
+    A class to represent Cards in UNO.
+    """
+    # Possible categories
+    RED, BLUE, GREEN, YELLOW = "R", "B", "G", "Y"
+    WILD, WILD_FOUR = "W", "WF"
+
+    # Possible Numbers
+    ZERO, ONE, TWO, THREE, FOUR = 0, 1, 2, 3, 4
+    FIVE, SIX, SEVEN, EIGHT, NINE = 5, 6, 7, 8, 9
+    SKIP, REVERSE, DRAW_TWO, NONE = 10, 11, 12, 13
+
     def __init__(self, category, number):
         self.category = category
         self.number = number
@@ -29,7 +41,7 @@ class CardServer:
         return f"{self.number} of {self.category}"
 
 
-class DeckServer:
+class Deck:
 
     def __init__(self):
         self.cards = []
@@ -41,16 +53,16 @@ class DeckServer:
         :return:
         """
         for category in [Card.BLUE, Card.GREEN, Card.YELLOW, Card.RED]:
-            self.cards.append(CardServer(category=category, number=Card.ZERO))
+            self.cards.append(Card(category=category, number=Card.ZERO))
 
             for number in [Card.ONE, Card.TWO, Card.THREE, Card.FOUR, Card.FIVE, Card.SIX, Card.SEVEN, Card.EIGHT,
                            Card.NINE, Card.SKIP, Card.REVERSE, Card.DRAW_TWO]:
-                self.cards.append(CardServer(category=category, number=number))
-                self.cards.append(CardServer(category=category, number=number))
+                self.cards.append(Card(category=category, number=number))
+                self.cards.append(Card(category=category, number=number))
 
         for i in range(4):
-            self.cards.append(CardServer(category=Card.WILD, number=Card.NONE))
-            self.cards.append(CardServer(category=Card.WILD_FOUR, number=Card.NONE))
+            self.cards.append(Card(category=Card.WILD, number=Card.NONE))
+            self.cards.append(Card(category=Card.WILD_FOUR, number=Card.NONE))
 
     def shuffle(self):
         """
@@ -82,6 +94,19 @@ class PlayerServer:
         self.hand.append(deck.deal())
         return self
 
+    def sort_hand(self):
+        self.hand.sort(key=lambda x: x.category, reverse=True)
+
+    def show(self):
+        print(f"Username: {self.username}")
+        for card in self.hand:
+            card.show()
+
+    def is_card_in_hand(self, card):
+        if card in self.hand:
+            return True
+        return False
+
     def __str__(self):
         return f"{self.username}"
 
@@ -92,9 +117,14 @@ class GameServer:
     def __init__(self, unique_id, player):
         self.unique_id = unique_id
         self.players = []
+        self.player_usernames = []
         self.players.append(player)
-        self.deck = DeckServer()
+        self.player_usernames.append(player.username)
+        self.deck = Deck()
         self.topcard = None
+        self.is_game_running = False
+        self.direction = "+"
+        self.current_player_index = 0
 
     def __del__(self):
         print(f"Game with unique ID {self.unique_id} is deleted.")
@@ -105,6 +135,7 @@ class GameServer:
             if game.unique_id == unique_id:
                 print("Returning Existing Game.")
                 game.players.append(player)
+                game.player_usernames.append(player.username)
                 return game
         print("Creating New Game.")
         new_game = GameServer(unique_id, player)
@@ -121,28 +152,36 @@ class GameServer:
             for player in self.players:
                 player.draw(self.deck)
 
+        for player in self.players:
+            player.sort_hand()
+
     def start_game(self):
         """
         Method to be called at the start of the game to shuffle and deal hands.
         :return:
         """
-        self.deck.shuffle()
-        self.deal_hands()
-        self.topcard = self.deck.deal()
+        if not self.is_game_running:
+            self.deck.shuffle()
+            self.deal_hands()
+            self.topcard = self.deck.deal()
+            self.is_game_running = True
 
     def end_game(self):
         """
         Method to be called at the end of the game to clear the hands of player and topcard of Game.
         :return:
         """
-        for player in self.players:
-            if player.hand:
-                self.deck.cards.extend(player.hand)
-                player.hand.clear()
+        if self.is_game_running:
+            for player in self.players:
+                if player.hand:
+                    self.deck.cards.extend(player.hand)
+                    player.hand.clear()
 
-        if self.topcard:
-            self.deck.cards.append(self.topcard)
-            self.topcard = None
+            if self.topcard:
+                self.deck.cards.append(self.topcard)
+                self.topcard = None
+
+            self.is_game_running = False
 
     def leave_game(self, player):
         """
@@ -152,6 +191,7 @@ class GameServer:
         """
         print(f"{player.username} is Leaving the Game.")
         self.players.remove(player)
+        self.player_usernames.remove(player.username)
         del player
         if len(self.players) == 0:
             GameServer.current_games.remove(self)
@@ -159,6 +199,22 @@ class GameServer:
 
     def get_top_card(self):
         return self.topcard
+
+    def get_current_player(self):
+        return self.players[self.current_player_index]
+
+    def prepare_client_data(self):
+        """
+        Method to return data to be sent to Client Side.
+        :return: dictionary containing data to be sent to Client Side.
+        """
+        return {
+            "uniqueId": self.unique_id,
+            "players": self.player_usernames,
+            "topCard": self.topcard,
+            "direction": self.direction,
+            "currentPlayerIndex": self.current_player_index
+        }
 
 
 class GameRoomConsumer(AsyncConsumer):
@@ -228,13 +284,41 @@ class GameRoomConsumer(AsyncConsumer):
             elif type_of_event == "end.game":
                 self.game.end_game()
                 await self.set_is_game_running_false()
+            elif type_of_event == "play.card":
+                data = text_of_event['data']
+                card = data['card']
+                index = data['index']
+                username = data['username']
+                card_obj = Card(card['category'], card['number'])
+                current_player = self.game.get_current_player()
+                if current_player.username != username or username != self.me.username:
+                    print(f"Handle Cheating of {self.me.username}")
+                if not current_player.is_card_in_hand(card_obj):
+                    print(f"Handle Cheating of {self.me.username}")
+
+                # Valid Move: Write this in a function
+                self.game.deck.cards.insert(0, self.game.topcard)
+                self.game.topcard = card_obj
+                self.game.players[self.game.current_player_index].hand.pop(index)
+                if card_obj.number == Card.REVERSE:
+                    if self.game.direction == '+':
+                        self.game.direction = '-'
+                    else:
+                        self.game.direction = '+'
+                if self.game.direction == "+":
+                    self.game.current_player_index += 1
+                    if self.game.current_player_index == len(self.game.players):
+                        self.game.current_player_index = 0
+                else:
+                    self.game.current_player_index -= 1
+                    if self.game.current_player_index == -1:
+                        self.game.current_player_index = len(self.game.players) - 1
 
             response = {
                 "status": text_of_event['status'],
                 "message": text_of_event['message'],
                 "data": text_of_event['data'],
-                "topCard": json.dumps(self.game.get_top_card(), cls=CustomEncoder),
-                # "serializedGame": json.dumps(self.game, cls=CustomEncoder),
+                "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder),
             }
 
             # Broadcasts the enter_room event to be sent
@@ -245,6 +329,12 @@ class GameRoomConsumer(AsyncConsumer):
                     "text": json.dumps(response)
                 }
             )
+
+    async def play_card(self, event):
+        await self.send({
+            "type": "websocket.send",
+            "text": event['text']
+        })
 
     async def enter_room(self, event):
         # This method actually sends the message
