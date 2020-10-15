@@ -2,11 +2,11 @@ const RED = "R", YELLOW = "Y", GREEN = "G", BLUE = "B", WILD = "W", WILD_FOUR = 
 const ZERO = 0, ONE = 1, TWO = 2, THREE = 3, FOUR = 4, FIVE = 5, SIX = 6, SEVEN = 7, EIGHT = 8, NINE = 9;
 const SKIP = 10, REVERSE = 11, DRAW_TWO = 12;
 const NONE = 13;
-var game, gameDetails;
-var currentAnimKeys = [];
+let game, gameDetails;
+let currentAnimKeys = [];
 
 window.onload = function () {
-	var width = 700, height = 600;
+	let width = 700, height = 600;
 
 	gameDetails = {
 		deckX: width/2 - 200,
@@ -14,12 +14,12 @@ window.onload = function () {
 		topCardX: width/2,
 		topCardY: height/2,
         myHandScale: 1.61,
-        oppHandScale: 1,
+        oppHandScale: 0.35,
 		oppHandX: width/2,
 		oppHandY: height/2 - 200
 	};
 
-	var config = {
+	let config = {
 		width: width,
 		height: height,
 		backgroundColor: 0xff0000,
@@ -43,7 +43,7 @@ function generatePath(folderName, fileName) {
 }
 
 function getImagePoint(category, number) {
-	var point = 0, mul = 14;
+	let point = 0, mul = 14;
 	if (category === "W") return 13;
 	else if (category === "WF") return 69;
 	if (category === "R") {
