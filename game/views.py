@@ -129,9 +129,9 @@ def enter_game_room(request, unique_id):
             raise Http404(error_message)
 
         # If Game has already started in the Game Room. In this case Player won't be allowed to join it.from
-        if game_room.is_game_running:
-            error_message = f"A Game has started/is running in this Game Room (Unique ID: {unique_id}). Wait for it to end or join another Game Room."
-            raise Http404(error_message)
+        # if game_room.is_game_running and online_player_qs[0].game_room != game_room:
+        #     error_message = f"A Game has started/is running in this Game Room (Unique ID: {unique_id}). Wait for it to end or join another Game Room."
+        #     raise Http404(error_message)
 
         """
             The functionality implemented by below commented code is currently being done in the consumers.py.

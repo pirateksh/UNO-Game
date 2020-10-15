@@ -19,7 +19,12 @@ class Scene1 extends Phaser.Scene {
         this.load.spritesheet("uno", `${generatePath("spritesheets", "uno_game.jpeg")}`, {
             frameWidth: 57,
             frameHeight: 86
-        })
+        });
+
+        this.load.spritesheet("oppHand", `${generatePath("images", "opp_hand.jpg")}`, {
+            frameWidth: 260,
+            frameHeight: 146
+        });
     }
 
     create() {
