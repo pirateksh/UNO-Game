@@ -1,4 +1,10 @@
 {% load static %}
+{% comment %}
+    Context Variables:
+    context = {
+        "form": form,
+    }
+{% endcomment %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,7 +15,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
    <link rel="stylesheet" href="{% static "fonts/font-awesome.min.css"%}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}"
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
     <canvas></canvas>
@@ -41,16 +47,30 @@
                             <div class="text-center">
                                 <h4 class="text-dark mb-4">Create an Account!</h4>
                             </div>
-                            <form class="user">
-                                <div class="form-group row">
-                                    <div class="col-sm-6 mb-3 mb-sm-0"><input class="form-control form-control-user" type="text" id="exampleFirstName" placeholder="First Name" name="first_name"></div>
-                                    <div class="col-sm-6"><input class="form-control form-control-user" type="text" id="exampleLastName" placeholder="Last Name" name="last_name"></div>
-                                </div>
-                                <div class="form-group"><input class="form-control form-control-user" type="email" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Email Address" name="email"></div>
-                                <div class="form-group row">
-                                    <div class="col-sm-6 mb-3 mb-sm-0"><input class="form-control form-control-user" type="password" id="examplePasswordInput" placeholder="Password" name="password"></div>
-                                    <div class="col-sm-6"><input class="form-control form-control-user" type="password" id="exampleRepeatPasswordInput" placeholder="Repeat Password" name="password_repeat"></div>
-                                </div><button class="btn btn-primary btn-block text-white btn-user" type="submit">Register Account</button>
+                            <form class="user" method="post" action="{% url 'signup' %}">
+                                {% csrf_token %}
+                                {{ form.as_p }}
+                                {# TODO: Uncomment below fields after managing the classes in django forms. #}
+{#                                <div class="form-group row">#}
+{#                                    <div class="col-sm-6 mb-3 mb-sm-0">#}
+{#                                        <input class="form-control form-control-user" type="text" id="exampleFirstName" placeholder="First Name" name="first_name">#}
+{#                                    </div>#}
+{#                                    <div class="col-sm-6">#}
+{#                                        <input class="form-control form-control-user" type="text" id="exampleLastName" placeholder="Last Name" name="last_name">#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <input class="form-control form-control-user" type="email" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Email Address" name="email">#}
+{#                                </div>#}
+{#                                <div class="form-group row">#}
+{#                                    <div class="col-sm-6 mb-3 mb-sm-0">#}
+{#                                        <input class="form-control form-control-user" type="password" id="examplePasswordInput" placeholder="Password" name="password">#}
+{#                                    </div>#}
+{#                                    <div class="col-sm-6">#}
+{#                                        <input class="form-control form-control-user" type="password" id="exampleRepeatPasswordInput" placeholder="Repeat Password" name="password_repeat">#}
+{#                                    </div>#}
+{#                                </div>#}
+                                <button class="btn btn-primary btn-block text-white btn-user" type="submit">Register Account</button>
                                 <hr>
                                 <a class="btn btn-danger btn-block text-white btn-user" role="button"><i class="fa fa-google-plus fa-fw"></i>&nbsp; Register with Google</a>
                                 <a class="btn btn-info btn-block text-white btn-user" role="button"><i class="fa fa-facebook fa-fw"></i>&nbsp; Register with Facebook</a>
@@ -58,7 +78,7 @@
                                 <hr>
                             </form>
                             <div class="text-center"><a class="small" href="forgot-password.html">Forgot Password?</a></div>
-                            <div class="text-center"><a class="small" href="login.html">Already have an account? Login!</a></div>
+                            <div class="text-center"><a class="small" href="{% url 'login' %}">Already have an account? Login!</a></div>
                         </div>
                     </div>
                 </div>
