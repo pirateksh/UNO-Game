@@ -106,8 +106,14 @@
         }
 
         class Hand {
-            constructor(cards) {
-                this.cards = cards;
+            constructor() {
+                this.cards = [];
+                this.cardSprites = []; // Sprites corresponding to cards
+            }
+
+            emptyHand() {
+                this.cardSprites = [];
+                this.cards = [];
             }
 
             getCount() {
@@ -122,17 +128,19 @@
                 }
             }
 
-            removeCardAt(i) {
+            getCardSpriteAt(i) {
+                if(i < this.getCount()) {
+                    return this.cardSprites[i];
+                }
+            }
+            removeCardAndCardSpriteAt(i) {
                 this.cards.splice(i, 1);
+                this.cardSprites.splice(i, 1);
             }
 
-            addCard(card) {
+            addCardAndCardSprite(card, cardSprite) {
                 this.cards.push(card);
-            }
-
-            emptyHand() {
-                let count = this.getCount();
-                this.cards.splice(0, count);
+                this.cardSprites.push(cardSprite);
             }
         }
 
@@ -151,7 +159,8 @@
             }
 
             copyData(gameData) {
-                this.topCard = gameData.topCard;
+                console.log(gameData);
+                this.topCard = new Card(gameData.topCard.category, gameData.topCard.number);
                 this.topColor = gameData.topColor;
                 this.direction = gameData.direction;
                 this.currentPlayerIndex = gameData.currentPlayerIndex;
@@ -183,10 +192,8 @@
                 }
             }
 
-            startGame(topCard) {
+            startGame() {
                 if(!this.isGameRunning) {
-                    this.setTopCard(topCard);
-                    this.topColor = topCard.category;
                     this.isGameRunning = true;
                     // Altering DOM elements accordingly.
                     startGameButton.prop("disabled", true);
@@ -295,7 +302,7 @@
         let socket = new WebSocket(endpoint);
 
         let currentGame = null;
-        let myHand = null;
+        let myHand = new Hand();
         let me = "{{ user.username }}";
 
         socket.onopen = function (e) {
@@ -329,18 +336,13 @@
             let gameData;
             if(backendResponse.gameData) {
                 gameData = JSON.parse(backendResponse.gameData);
-                console.log(gameData);
+                {#console.log(gameData);#}
                 if(currentGame == null) {
                     currentGame = new Game(gameData);
                 }
                 else {
                     currentGame.copyData(gameData);
                 }
-            }
-
-            if(backendResponse.serializedPlayer) {
-                let serializedPlayer = JSON.parse(backendResponse.serializedPlayer);
-                myHand = new Hand(serializedPlayer.hand);
             }
 
             let username, pk, elementToAppend;
@@ -360,30 +362,17 @@
                 elementToAppend = `<li>${message}</li>`;
                 notificationList.append(elementToAppend);
             }
-            else if(status === "start_game") {
-                // Calling currentGame's startGame() method.
-                currentGame.startGame(new Card(gameData.topCard.category, gameData.topCard.number));
+            else if(status === START_GAME) {
+                // This is handled in Scene2.js's create() method.
             }
-            else if(status === "end_game") {
-                // Calling currentGame's endGame() method.
-                currentGame.endGame();
+            else if(status === END_GAME) {
+                // This is handled in Scene2.js's create() method.
             }
-            else if(status === "play_card") {
-                username = data.username;
-                let card = data.card;
-                let index = data.index;
+            else if(status === PLAY_CARD) {
+                // This is handled in Scene2.js's create() method.
             }
-            else if(status === "draw_card") {
-                console.log("Draw Card Event Struck! -- from enter_game_room");
-                username = data.username;
-                let drawnCards = data.drawnCards;
-                let drawnCardCount = data.drawnCardCount;
-                if(username === me) {
-                    // Adding newly drawn card in the hand.
-                    for(let drawnCard of drawnCards) {
-                        myHand.addCard(drawnCard);
-                    }
-                }
+            else if(status === DRAW_CARD) {
+                // This is handled in Scene2.js's create() method.
             }
         });
 
