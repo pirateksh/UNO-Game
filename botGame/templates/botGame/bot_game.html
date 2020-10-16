@@ -116,15 +116,21 @@
 
             function send_card_play_request(e){
                 console.log("Click event Called on button: " + e.currentTarget.myParam);
-                response = {
-                    'card_played_value': e.currentTarget.myParam
+                let color_changed_to = "";
+                if(e.currentTarget.myParam === "13 of W" || e.currentTarget.myParam === "13 of WF"){
+                    color_changed_to = window.prompt("Set top Card Color to:\n R for 'Red', \n G for 'Green',\n B for 'Blue', \n Y for 'Yellow'");
+                }
+                let response = {
+                    'card_played_value': e.currentTarget.myParam,
+                    'color_changed_to':color_changed_to,
                 };
                 socket.send(JSON.stringify(response));
             }
 
             function send_end_game_request(e){
-                response = {
-                    'card_played_value':e.currentTarget.myParam
+                let response = {
+                    'card_played_value':e.currentTarget.myParam,
+                    'color_changed_to':"",
                 };
                 location.replace("{% url "user_profile" user%}");
                 socket.send(JSON.stringify(response));
