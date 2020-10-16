@@ -117,8 +117,19 @@
             }
 
             getCount() {
-                // Method that returns count of cards in this hand.
+                // Method that returns count of cards (including null) in this hand.
                 return this.cards.length;
+            }
+
+            getActiveCount() {
+                // Returns count of active card i.e. not null cards only.
+                let count = 0;
+                for(let card of this.cards) {
+                    if(card != null) {
+                        count++;
+                    }
+                }
+                return count;
             }
 
             getCardAt(i) {
@@ -134,8 +145,10 @@
                 }
             }
             removeCardAndCardSpriteAt(i) {
-                this.cards.splice(i, 1);
-                this.cardSprites.splice(i, 1);
+                {#this.cards.splice(i, 1);#}
+                {#this.cardSprites.splice(i, 1);#}
+                this.cards[i] = null;
+                this.cardSprites[i] = null;
             }
 
             addCardAndCardSprite(card, cardSprite) {
@@ -159,9 +172,11 @@
             }
 
             copyData(gameData) {
-                console.log(gameData);
-                this.topCard = new Card(gameData.topCard.category, gameData.topCard.number);
-                this.topColor = gameData.topColor;
+                {#console.log(gameData);#}
+                if(gameData.topCard) {
+                    this.topCard = new Card(gameData.topCard.category, gameData.topCard.number);
+                    this.topColor = gameData.topColor;
+                }
                 this.direction = gameData.direction;
                 this.currentPlayerIndex = gameData.currentPlayerIndex;
             }
@@ -199,7 +214,9 @@
                     startGameButton.prop("disabled", true);
                     endGameButton.prop("disabled", false);
                     for(let card of myHand.cards) {
-                        myHandList.append(`<li>Category: ${card.category} Number: ${card.number}`);
+                        if(card != null) {
+                            myHandList.append(`<li>Category: ${card.category} Number: ${card.number}`);
+                        }
                     }
                     topCardElem.html(`Category: ${this.topCard.category} Number: ${this.topCard.number}`);
                 }
@@ -237,6 +254,9 @@
                 else if(category === WILD_FOUR) {
                     // Logic for Wild Four Card
                     for(let handCard of myHand.cards) {
+                        if(handCard == null) {
+                            continue;
+                        }
                         if(handCard.category !== WILD_FOUR) {
                             if(this.canPlay(handCard)) {
                                 return false;
@@ -250,7 +270,8 @@
             playCard(card, index) {
                 // Method to send data to backend using socket and play a card.
                 if(me === currentGame.getCurrentPlayer()) {
-                    console.log("Playing card: ", card);
+                    console.log("Playing card: ", card, " Index: ", index);
+                    console.log(JSON.parse(JSON.stringify(myHand.cards)));
                     let nextTopColor;
                     if(card.category === WILD_FOUR || card.category === WILD) {
                         nextTopColor = prompt("Choose Next Color ('B', 'Y', 'G' or 'R')");
@@ -362,16 +383,16 @@
                 elementToAppend = `<li>${message}</li>`;
                 notificationList.append(elementToAppend);
             }
-            else if(status === START_GAME) {
+            else if(status === "start_game") {
                 // This is handled in Scene2.js's create() method.
             }
-            else if(status === END_GAME) {
+            else if(status === "end_game") {
                 // This is handled in Scene2.js's create() method.
             }
-            else if(status === PLAY_CARD) {
+            else if(status === "play_card") {
                 // This is handled in Scene2.js's create() method.
             }
-            else if(status === DRAW_CARD) {
+            else if(status === "draw_card") {
                 // This is handled in Scene2.js's create() method.
             }
         });

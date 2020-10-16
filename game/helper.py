@@ -83,14 +83,15 @@ class Deck:
             self.cards.append(Card(category=Card.WILD, number=Card.NONE))
             self.cards.append(Card(category=Card.WILD_FOUR, number=Card.NONE))
 
-    def shuffle(self):
+    def shuffle(self, times=1):
         """
         Method to Shuffle the Cards present in the Deck using Fisher Yates Shuffle algorithm.
         :return:
         """
-        for i in range(int(len(self.cards)) - 1, 0, -1):
-            r = random.randint(0, i)
-            self.cards[i], self.cards[r] = self.cards[r], self.cards[i]
+        for _ in range(int(times)):
+            for i in range(int(len(self.cards)) - 1, 0, -1):
+                r = random.randint(0, i)
+                self.cards[i], self.cards[r] = self.cards[r], self.cards[i]
 
     def deal(self):
         """
@@ -122,18 +123,45 @@ class PlayerServer:
         self.hand.append(drawn_card)
         return drawn_card
 
-    def sort_hand(self):
+    def sort_hand(self):  # TODO: Look into this. This can create bugs as now hand can have None card.
         self.hand.sort(key=lambda x: x.category, reverse=True)
 
     def show(self):
         print(f"Username: {self.username}")
         for card in self.hand:
-            card.show()
+            if card is not None:
+                card.show()
+
+    def get_hand_size(self):
+        """
+        Beware: Will also include count of None cards.
+        :return:
+        """
+        return int(len(self.hand))
+
+    def get_active_hand_size(self):
+        """
+        Calculates number of Not None cards in player's hand.
+        :return: Count of Not None cards.
+        """
+        count = 0
+        for card in self.hand:
+            if card is not None:
+                count += 1
+        return count
 
     def is_card_in_hand(self, card, card_index):
-        card_at_index = self.hand[card_index]
-        if card.is_equivalent(card_at_index):
-            return True
+        """
+        Method to check whether card is at index card_index in player's hand or not.
+        :param card: card which we want to check for.
+        :param card_index: index which we want to look at.
+        :return: true if found, otherwise false.
+        """
+        if card_index < self.get_hand_size():
+            card_at_index = self.hand[card_index]
+            if card_at_index is not None:
+                if card.is_equivalent(card_at_index):
+                    return True
         return False
 
     def __str__(self):
@@ -185,8 +213,8 @@ class GameServer:
             for player in self.players:
                 player.draw(self.deck)
 
-        for player in self.players:
-            player.sort_hand()
+        # for player in self.players:
+        #     player.sort_hand()
 
     def start_game(self):
         """
@@ -197,9 +225,7 @@ class GameServer:
             self.deck.shuffle()
             self.deal_hands()
             self.top_card = self.choose_top_card()
-            # print("Top Card is: ", self.top_card.show())
             self.top_color = self.top_card.get_category()
-            # print("Top Color set is: ", self.top_color)
             self.is_game_running = True
     
     def choose_top_card(self):
@@ -209,9 +235,10 @@ class GameServer:
         """
         chosen_card = None
         for card in self.deck.cards:
-            if card.is_number_card():
-                chosen_card = card
-                break
+            if card is not None:
+                if card.is_number_card():
+                    chosen_card = card
+                    break
         self.deck.cards.remove(chosen_card)
         return chosen_card
 
@@ -223,8 +250,10 @@ class GameServer:
         if self.is_game_running:
             for player in self.players:
                 if player.hand:
-                    self.deck.cards.extend(player.hand)
-                    player.hand.clear()
+                    for card in player.hand:
+                        if card is not None:
+                            self.deck.cards.append(card)
+                            player.hand.clear()
 
             if self.top_card:
                 self.deck.cards.append(self.top_card)
@@ -246,10 +275,9 @@ class GameServer:
         :param player:
         :return:
         """
-        # print(f"{player.username} is Leaving the Game.")
         self.players.remove(player)
         self.player_usernames.remove(player.username)
-        del player
+        delete_object(player)
         if len(self.players) == 0:
             GameServer.current_games.remove(self)
             delete_object(self)
@@ -355,6 +383,8 @@ class GameServer:
             # Fetching players hand.
             hand = player.get_hand()
             for hand_card in hand:
+                if hand_card is None:
+                    continue
                 if hand_card.category != Card.WILD_FOUR:
                     if self.can_play_over_top(player=player, card=hand_card):
                         return False
@@ -422,7 +452,8 @@ class GameServer:
         print()
 
         # Removing played card from the player's hand.
-        self.players[self.current_player_index].hand.pop(client_card_index)
+        # self.players[self.current_player_index].hand.pop(client_card_index)
+        self.players[self.current_player_index].hand[client_card_index] = None
 
         # Putting current top card back in deck.
         self.deck.back_to_deck(card=self.top_card)
@@ -473,3 +504,4 @@ class GameServer:
             print(player, json.dumps(player.hand, cls=CustomEncoder))
             print()
         return response
+        # TODO: 3 player's game not working properly. Fix it. -- Kshitiz

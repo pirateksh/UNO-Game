@@ -125,21 +125,23 @@ class GameRoomConsumer(AsyncConsumer):
             print("\n\n\n\n")
 
     async def draw_card(self, event):
-        text = json.loads(event['text'])
-        data = json.loads(text['data'])
-        print("Draw Card called.")
-        print(data)
-        username = data['username']
-        if username != self.me.username:
-            data['drawnCards'] = []
-        response = {
-            "status": text['status'],
-            "message": text['message'],
-            "data": json.dumps(data),
-        }
+        # TODO: Draw card event is taking so much time. Look into this. -- Kshitiz
+        # text = json.loads(event['text'])
+        # data = json.loads(text['data'])
+        # print("Draw Card called.")
+        # print(data)
+        # username = data['username']
+        # if username != self.me.username:
+        #     data['drawnCards'] = []
+        # response = {
+        #     "status": text['status'],
+        #     "message": text['message'],
+        #     "data": json.dumps(data),
+        # }
         await self.send({
             "type": "websocket.send",
-            "text": json.dumps(response)
+            # "text": json.dumps(response)
+            "text": event['text']
         })
 
     async def play_card(self, event):
