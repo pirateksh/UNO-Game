@@ -128,6 +128,7 @@ def enter_game_room(request, unique_id):
             error_message = "You are not a member of this Room. Join the room and then try to enter."
             raise Http404(error_message)
 
+        # TODO: Uncomment this -- Kshitiz
         # If Game has already started in the Game Room. In this case Player won't be allowed to join it.from
         # if game_room.is_game_running and online_player_qs[0].game_room != game_room:
         #     error_message = f"A Game has started/is running in this Game Room (Unique ID: {unique_id}). Wait for it to end or join another Game Room."
