@@ -21,6 +21,7 @@
         <h3>Your Game Rooms</h3>
         <a href="{% url 'create_game_room' %}">Create New Room</a>
         <br/>
+        <a href="{% url 'bot_game' %}">Start a Game With Bot</a>
         <br/>
         {% if user_game_rooms %}
             <table border="1">

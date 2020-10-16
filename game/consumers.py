@@ -7,6 +7,7 @@ from channels.consumer import AsyncConsumer
 from channels.db import database_sync_to_async
 from channels.exceptions import StopConsumer
 from .models import GameRoom, Player, Card, GameRoomDeckCard
+from botGame.consumers import UnoCard
 
 User = get_user_model()
 
@@ -51,6 +52,50 @@ class DeckServer:
         for i in range(4):
             self.cards.append(CardServer(category=Card.WILD, number=Card.NONE))
             self.cards.append(CardServer(category=Card.WILD_FOUR, number=Card.NONE))
+
+    def shuffle(self):
+        """
+        Method to Shuffle the Cards present in the Deck using Fisher Yates Shuffle algorithm.
+        :return:
+        """
+        for i in range(int(len(self.cards)) - 1, 0, -1):
+            r = random.randint(0, i)
+            self.cards[i], self.cards[r] = self.cards[r], self.cards[i]
+
+    def deal(self):
+        """
+        Method to draw a card
+        :return:
+        """
+        return self.cards.pop()
+
+    def show(self):
+        for card in self.cards:
+            card.show()
+
+
+class UnoDeckServer:
+
+    def __init__(self):
+        self.cards = []
+        self.build()
+
+    def build(self):
+        """
+        Method to build the Deck of Cards or Populate the Deck with Cards.
+        :return:
+        """
+        for category in [Card.BLUE, Card.GREEN, Card.YELLOW, Card.RED]:
+            self.cards.append(UnoCard(category=category, number=Card.ZERO))
+
+            for number in [Card.ONE, Card.TWO, Card.THREE, Card.FOUR, Card.FIVE, Card.SIX, Card.SEVEN, Card.EIGHT,
+                           Card.NINE, Card.SKIP, Card.REVERSE, Card.DRAW_TWO]:
+                self.cards.append(UnoCard(category=category, number=number))
+                self.cards.append(UnoCard(category=category, number=number))
+
+        for i in range(4):
+            self.cards.append(UnoCard(category=Card.WILD, number=Card.NONE))
+            self.cards.append(UnoCard(category=Card.WILD_FOUR, number=Card.NONE))
 
     def shuffle(self):
         """
@@ -348,3 +393,5 @@ class GameRoomConsumer(AsyncConsumer):
         me = self.me
         game_room_obj = self.game_room_obj
         return Player.objects.get(player=me, game_room=game_room_obj)
+
+

@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'chitchat',
+    'botGame',
     # Social Media Login
     'social_django',
 ]
