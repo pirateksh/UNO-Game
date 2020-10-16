@@ -5,8 +5,9 @@ from game.models import GameRoom, Player
 
 User = get_user_model()
 
-
 def user_profile_view(request, username):
+    if request.user.username != username:
+        return HttpResponse(f"Other Profile Access try for user: {username}, by user: {request.user.username}")
     user = get_object_or_404(User, username=username)
     if user.is_authenticated:
         user_game_room_qs = GameRoom.objects.filter(admin=user)

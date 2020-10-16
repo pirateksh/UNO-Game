@@ -18,6 +18,19 @@
 		    left: 70%;
 		    transform: translate(-50%, -50%);
 		}
+    #VideoGrid{
+        border: black dotted 2px;
+        width: 40%;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, 300px);
+        grid-auto-rows: 300px;
+    }
+    video{
+        width: 50%;
+        height: 50%;
+        object-fit: cover;
+    }
+
     </style>
 {% endblock %}
 
@@ -69,6 +82,15 @@
                 </ul>
             </div>
         </div>
+
+        <div id="VideoGrid">
+{#            <video >#}
+{#                <source src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">#}
+{#                Your browser does not support HTML video.#}
+{#            </video>#}
+        </div>
+
+
     {% endif %}
 {% endblock %}
 
@@ -298,7 +320,44 @@
         let myHand = null;
         let me = "{{ user.username }}";
 
+        VideoGrid = document.getElementById('VideoGrid');
+        const VideoContainer = document.createElement('div');
+        const VideoLabel = document.createElement('p');
+        VideoLabel.innerHTML = "{{ user }}";
+        const Video = document.createElement('video');
+
+        Video.muted = true;
         socket.onopen = function (e) {
+
+            navigator.mediaDevices.getUserMedia({
+                video: false,
+                audio: false
+            }).then(stream => {
+                addVideoStream(Video, stream); // custom function to handle adding the myVideo video element to the dom.
+            });
+
+            // to tell myVideo element to use the stream
+            function addVideoStream(Video, stream) {
+                Video.srcObject = stream; // adding the stream as the src of the video to our myVideo video Element
+                Video.addEventListener('loadedmetadata', () => {
+                    Video.play()
+                });
+                VideoGrid.append(VideoContainer);
+                VideoContainer.append(VideoLabel);
+                VideoContainer.append(Video);
+                {#VideoGrid.append(Video) // appending the myVideo video element to the video-grid#}
+                /*
+                    We will now get the stream of all the other user on the same room.
+                    This is done as soon as the new-user-connected event will be emiited.
+                */
+            }
+
+
+            let client_data = {"username": "{{ user.username }}", "game_room_unique_id": "{{ game_room.unique_game_id }}"};
+            let client_response = {"type": "user.new", "text": client_data};
+            {#console.log("Client is sending ", client_response);#}
+            socket.send(JSON.stringify(client_response));
+
             console.log("open");
             // Entering the Game Room (when socket connection opens).
             let data = {"status": "connected", "message": "Connecting...", "data": {"username": "{{ user.username }}", "pk": "{{ user.pk }}",}};
@@ -327,6 +386,11 @@
             let message = backendResponse.message;
             let data = backendResponse.data;
             let gameData;
+            if(backendResponse.username && backendResponse.game_room_unique_id){
+                let var_username = backendResponse.username;
+                let var_game_room_unique_id = backendResponse.game_room_unique_id;
+                {#console.log("Mai hu {{ user }} abhi video " + backendResponse.username + ", " +  backendResponse.game_room_unique_id + " Stream maangta hu aur apni Stream uske pass Bhejta hu...");#}
+            }
             if(backendResponse.gameData) {
                 gameData = JSON.parse(backendResponse.gameData);
                 console.log(gameData);
@@ -344,7 +408,6 @@
             }
 
             let username, pk, elementToAppend;
-
 
             if(status === "connected") {
                 username = data.username;
