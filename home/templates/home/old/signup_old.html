@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Signup
+{% endblock %}
+
+{% block content %}
+    <div class="ui container center_ms" style="margin-top: 10em; text-align: center;">
+        <div class="div ui segment raised padded very compact">
+            <div class="ui header huge">Signup</div>
+            <form class="ui big form segment" method="post" style="text-align: left;">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button class="ui button submit large positive" type="submit">Sign up</button>
+            </form>
+            <div class="ui grid">
+                {% comment %} for wide screen {% endcomment %}
+                <div class="computer only row" style="padding-left:4em;">
+                    <div class="ui buttons large">
+                        <button class="button basic black ui column">
+                            <a style="color:black;" href="{% url 'social:begin' 'github' %}"> <i class="icon github black"></i> Signup with GitHub</a>
+                        </button>
+                        <div class="or"></div>
+                        <button class="ui basic red button column">
+                            <a style="color:red;" href="{% url 'social:begin' 'google-oauth2' %}"> <i class="icon google red"></i> Signup with Google</a>
+                        </button>
+                        <div class="or"></div>
+                        <button class="ui basic blue button column">
+                            <a href="{% url 'social:begin' 'facebook' %}"> <i class="icon facebook"></i> <span class="ui text black">Signup with Facebook</span></a>
+                        </button>
+                    </div>
+                </div>
+                {% comment %} for small screen {% endcomment %}
+                <div class="tablet mobile only three column row">
+                    
+                        <button class="ui button basic black">
+                            <a style="color:black;" href="{% url 'social:begin' 'github' %}"> <i class="icon github black"></i> Signup with GitHub</a>
+                        </button>
+                        <button class="ui basic button red">
+                            <a style="color:red;" href="{% url 'social:begin' 'google-oauth2' %}"> <i class="icon google red"></i> Signup with Google</a>
+                        </button>
+                        <button class="ui basic blue button ">
+                            <a href="{% url 'social:begin' 'facebook' %}"> <i class="icon facebook"></i> <span class="ui text black">Signup with Facebook</span></a>
+                        </button>
+                    
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+
+{% endblock %}

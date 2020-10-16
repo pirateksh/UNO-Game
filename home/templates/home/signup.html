@@ -1,55 +1,53 @@
-{% extends 'base.html' %}
-
-{% block title %}
-    Signup
-{% endblock %}
-
-{% block content %}
-    <div class="ui container center_ms" style="margin-top: 10em; text-align: center;">
-        <div class="div ui segment raised padded very compact">
-            <div class="ui header huge">Signup</div>
-            <form class="ui big form segment" method="post" style="text-align: left;">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button class="ui button submit large positive" type="submit">Sign up</button>
-            </form>
-            <div class="ui grid">
-                {% comment %} for wide screen {% endcomment %}
-                <div class="computer only row" style="padding-left:4em;">
-                    <div class="ui buttons large">
-                        <button class="button basic black ui column">
-                            <a style="color:black;" href="{% url 'social:begin' 'github' %}"> <i class="icon github black"></i> Signup with GitHub</a>
-                        </button>
-                        <div class="or"></div>
-                        <button class="ui basic red button column">
-                            <a style="color:red;" href="{% url 'social:begin' 'google-oauth2' %}"> <i class="icon google red"></i> Signup with Google</a>
-                        </button>
-                        <div class="or"></div>
-                        <button class="ui basic blue button column">
-                            <a href="{% url 'social:begin' 'facebook' %}"> <i class="icon facebook"></i> <span class="ui text black">Signup with Facebook</span></a>
-                        </button>
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Sign-up Page</title>
+    <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+    <link rel="stylesheet" href="{% static "fonts/fontawesome-all.min.css"%}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+</head>
+<body class="bg-gradient-primary">
+    <div class="container">
+        <div class="card shadow-lg o-hidden border-0 my-5">
+            <div class="card-body jello animated p-0">
+                <div class="row">
+                    <div class="col-lg-5 d-none d-lg-flex">
+                        <div class="flex-grow-1 bg-register-image" style="background-image: url({%static "img/image.jpg"%});"></div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="p-5">
+                            <div class="text-center">
+                                <h4 class="text-dark mb-4">Create an Account!</h4>
+                            </div>
+                            <form class="user">
+                                <div class="form-group row">
+                                    <div class="col-sm-6 mb-3 mb-sm-0"><input class="form-control form-control-user" type="text" id="exampleFirstName" placeholder="First Name" name="first_name"></div>
+                                    <div class="col-sm-6"><input class="form-control form-control-user" type="text" id="exampleLastName" placeholder="Last Name" name="last_name"></div>
+                                </div>
+                                <div class="form-group"><input class="form-control form-control-user" type="email" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Email Address" name="email"></div>
+                                <div class="form-group row">
+                                    <div class="col-sm-6 mb-3 mb-sm-0"><input class="form-control form-control-user" type="password" id="examplePasswordInput" placeholder="Password" name="password"></div>
+                                    <div class="col-sm-6"><input class="form-control form-control-user" type="password" id="exampleRepeatPasswordInput" placeholder="Repeat Password" name="password_repeat"></div>
+                                </div><button class="btn btn-primary btn-block text-white btn-user" type="submit">Register Account</button>
+                                <hr><a class="btn btn-danger btn-block text-white btn-google btn-user" role="button"><i class="fab fa-google"></i>&nbsp; Register with Google</a><a class="btn btn-info btn-block text-white btn-facebook btn-user" role="button"><i class="fab fa-facebook-f"></i>&nbsp; Register with Facebook</a>
+                                <hr>
+                            </form>
+                            <div class="text-center"><a class="small" href="forgot-password.html">Forgot Password?</a></div>
+                            <div class="text-center"><a class="small" href="login.html">Already have an account? Login!</a></div>
+                        </div>
                     </div>
                 </div>
-                {% comment %} for small screen {% endcomment %}
-                <div class="tablet mobile only three column row">
-                    
-                        <button class="ui button basic black">
-                            <a style="color:black;" href="{% url 'social:begin' 'github' %}"> <i class="icon github black"></i> Signup with GitHub</a>
-                        </button>
-                        <button class="ui basic button red">
-                            <a style="color:red;" href="{% url 'social:begin' 'google-oauth2' %}"> <i class="icon google red"></i> Signup with Google</a>
-                        </button>
-                        <button class="ui basic blue button ">
-                            <a href="{% url 'social:begin' 'facebook' %}"> <i class="icon facebook"></i> <span class="ui text black">Signup with Facebook</span></a>
-                        </button>
-                    
-                </div>
             </div>
-
         </div>
     </div>
-{% endblock %}
+    <script src=" {% static 'js/jquery.min.js' %} "></script>
+    <script src=" {% static 'bootstrap/js/bootstrap.min.js' %} "></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
+    <script src=" {% static 'js/theme.js' %} "></script>
+</body>
 
-{% block javascript %}
-
-{% endblock %}
+</html>
