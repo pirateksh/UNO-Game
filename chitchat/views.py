@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import Http404, HttpResponseForbidden
+from django.http import Http404, HttpResponse
 
 # Model related imports
 from django.contrib.auth.models import User

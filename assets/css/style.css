@@ -1,3 +1,8 @@
-body {
-    background-color: aqua;
+
+div.ui.container.center_ms {
+    display: flex !important;
+    align-items: center;
+    justify-content: center !important;
+    margin-top: 10em;
+    text-align: center;
 }

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,13 +8,21 @@
             Base
         {% endblock %}
     </title>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.css"/>
-    
-    <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'semantic/_dist_/semantic.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}"/>
+    <script
+    src="https://code.jquery.com/jquery-3.1.1.min.js"
+    integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+    crossorigin="anonymous"></script>
 
+    <script type="text/javascript" src=" {% static 'semantic/_dist_/semantic.min.js' %}"></script>
+
+
+{#    <script src="https://cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser-arcade-physics.min.js"></script>#}
+    <script type="text/javascript" src="{% static 'js/phaserjs/phaser.min.js' %}"></script>
 
     {% block styles %}
 

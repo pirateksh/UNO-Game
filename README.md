@@ -5,9 +5,8 @@
 * Make a virtual environment `python -m venv <envname>`
 * If you are using Linux, run `source <envname>/bin/activate` to activate the virtual environment.
 * Run `pip install -r requirements.txt` to install the dependencies.
-* Run `python manage.py migrate`.
 * Run `python manage.py makemigrations`.
-* Again run `python manage.py migrate`.
+* Run `python manage.py migrate`.
 * Now you are good to go. Run `python manage.py runserver` to start the server.
 
 ## How to Contribute?

@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block content %}
+<div>
+    <h1> Let's Play with Bot. You are Playing with bot: {{ bot }} </h1>
+        <div>
+            <div id="div_bs">
+                <b>Bot State:</b>
+                <ol id="bot_state"></ol>
+            </div>
+            <div id="div_bpc">
+                <b> Bot Played Cards: </b>
+                <ol id="bot_played_cards"></ol>
+            </div>
+            <div id="div_ps">
+                <b> Player State: </b>
+                <ol id="player_state"></ol>
+            </div>
+            <div id="div_tc">
+                <b> Top Card: </b>
+                <ol id="bot_game_state"></ol>
+            </div>
+            <div id="div_pc">
+                <b> Playable Cards: </b>
+                <ol id="playable_cards"></ol>
+            </div>
+            <div id="end_game">
+                 <button id="END_GAME">End Game</button>
+            </div>
+
+
+        </div>
+
+</div>
+{%endblock content%}
+
+{% block javascript %}
+{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js"></script>#}
+    <script>
+        var loc = window.location;
+        var host = loc.host;
+        var pathname = loc.pathname;
+
+        var wsStart = 'ws://';
+        if(loc.protocol == 'https:'){
+            wsStart = 'wss://';
+        }
+
+        const endpoint = wsStart + host + pathname;
+        console.log("Request For Websocket Connection Sent to Server at endpoint: " + endpoint);
+        var socket = new WebSocket(endpoint);
+        {#var socket = new ReconnectingWebSocket(endpoint);#}
+
+        var id_bot_state = $("#bot_state");
+        var id_player_state = $("#player_state");
+        var id_bot_game_state = $('#bot_game_state');
+        var id_playable_cards = $('#playable_cards');
+        var id_bot_played_cards = $('#bot_played_cards');
+
+        socket.onopen = function (e) {
+            console.log("The Connection has been Opened from Both Sides Now.", e);
+        };
+
+        socket.onmessage = function (e) {
+            var server_response = JSON.parse(e.data);
+            {#console.log("The Message sent by the Server is: ", server_response);#}
+
+            var var_bot_state = JSON.parse("[" + server_response.bot_state + "]")[0];
+            var var_player_state = JSON.parse("[" + server_response.player_state + "]")[0];
+            var var_bot_game_state = JSON.parse("[" + server_response.bot_game_state + "]");
+            var var_playable_cards = server_response.playable_cards;
+            var var_bot_played_cards = server_response.bot_played_cards;
+
+            id_bot_state.empty();
+            id_player_state.empty();
+            id_bot_game_state.empty();
+            id_playable_cards.empty();
+
+            id_playable_cards.append("<button id='DRAW_CARD'>" + "Draw Card" + "</button>");
+
+            var draw_card_button = document.getElementById('DRAW_CARD');
+            draw_card_button.addEventListener('click', send_card_play_request, false);
+            draw_card_button.myParam = "DRAW_CARD";
+            var end_game_button = document.getElementById('END_GAME');
+            end_game_button.addEventListener('click', send_end_game_request, false);
+            end_game_button.myParam = "END_GAME";
+
+            for(let i=0;i < var_bot_state.length;i++){
+                id_bot_state.append("<li>" + var_bot_state[i] + "</li>");
+            }
+            for(let i=0;i < var_bot_played_cards.length;i++){
+                id_bot_played_cards.append("<li><button disabled>" + var_bot_played_cards[i] + "</button></li>");
+            }
+            for(let i=0;i < var_player_state.length;i++){
+                id_player_state.append("<li>" + var_player_state[i] + "</li>");
+            }
+            for(let i=0;i < var_bot_game_state.length;i++){
+                {#console.log(var_bot_game_state[i]);#}
+                id_bot_game_state.append("<li>" + var_bot_game_state[i] + "</li>");
+            }
+
+            for(let i=0;i < var_player_state.length;i++){
+                {#console.log("Checking Card " + var_player_state[i]);#}
+                if(var_playable_cards.includes(var_player_state[i])){
+                    {#console.log("An allowed Card " + var_player_state[i]);#}
+                    id_playable_cards.append(function(){
+                        return $("<button style='margin: 10px' id="+i+" >" + var_player_state[i] + "</button>");
+                    });
+
+                    var current_button = document.getElementById(i);
+                    var text = current_button.innerHTML;
+                    {#console.log("text is :" + text);#}
+                    current_button.addEventListener('click', send_card_play_request, false);
+                    current_button.myParam = text;
+                }
+            }
+
+            function send_card_play_request(e){
+                console.log("Click event Called on button: " + e.currentTarget.myParam);
+                response = {
+                    'card_played_value': e.currentTarget.myParam
+                };
+                socket.send(JSON.stringify(response));
+            }
+
+            function send_end_game_request(e){
+                response = {
+                    'card_played_value':e.currentTarget.myParam
+                };
+                location.replace("{% url "user_profile" user%}");
+                socket.send(JSON.stringify(response));
+            }
+        };
+
+        socket.onerror = function (e) {
+            console.log("error", e);
+        };
+        socket.onclose = function (e) {
+            console.log("The Connection has been Closed from the Server End", e);
+        };
+    </script>
+
+{% endblock %}
+
+
+{% block styles %}
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+        #div_bs{
+            border: #0f0f10 dotted 5px;
+            width: 25%;
+            float: left;
+        }
+        #div_ps{
+            border: #0f0f10 dotted 5px;
+            width: 25%;
+            float: right;
+        }
+        #div_tc{
+            border: #0f0f10 dotted 5px;
+            padding: 10px;
+            width: 200px;
+            margin-left: 600px;
+            position: auto;
+        }
+        #div_pc{
+            border: #0f0f10 dotted 5px;
+            left: 10px;
+            margin-top: 200px;
+            bottom: 0;
+        }
+        #end_game{
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+        #div_bpc{
+            text-align: left;
+            border: #0f0f10 solid 2px;
+            float: left;
+            width: 200px;
+        }
+    </style>
+{% endblock %}
