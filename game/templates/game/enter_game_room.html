@@ -34,7 +34,7 @@
                     Start Game
                 </button>
                 <br/>
-                <button id="id_end_game_{{ game_room.pk }}">
+                <button id="id_end_game_{{ game_room.pk }}" disabled>
                     End Game
                 </button>
             {% endif %}
@@ -45,11 +45,11 @@
             <div style="display: inline-block; border-style: dotted; margin-right: 50px;">
                 <p>Connected Players</p>
                 <ul id="id_connected_players_{{ game_room.pk }}">
-                    {% for player in players %}
-                        {% if player.is_online %}
-                            <li id="id_connected_players_{{ player.player.pk }}_{{ game_room.pk }}">{{ player.player.username }}</li>
-                        {% endif %}
-                    {% endfor %}
+{#                    {% for player in players %}#}
+{#                        {% if player.is_online %}#}
+{#                            <li id="id_connected_players_{{ player.player.pk }}_{{ game_room.pk }}">{{ player.player.username }}</li>#}
+{#                        {% endif %}#}
+{#                    {% endfor %}#}
                 </ul>
             </div>
             <div style="display: inline-block; border-style: dotted;">
@@ -76,180 +76,323 @@
     <script type="text/javascript" src="{% static 'js/phaserjs/game.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/phaserjs/Scene1.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/phaserjs/Scene2.js' %}"></script>
+
+    <script>
+        // This script tag contains only DOM elements picked using jQuery.
+        let connectedList = $("#id_connected_players_{{ game_room.pk }}");
+        let connectedListChildren = connectedList.children();
+        let startGameButton = $('#id_start_game_{{ game_room.pk }}');
+        let endGameButton = $('#id_end_game_{{ game_room.pk }}');
+        let notificationList = $('#id_game_room_notifications_{{ game_room.pk }}');
+        let myHandList = $("#id_hand_{{ user.username }}_{{ game_room.unique_game_id }}");
+        let topCardElem = $("#id_top_card_{{ game_room.unique_game_id }}");
+    </script>
+
+    <script>
+
+        /*
+            This script tag contains only classes defined in this file.
+            Following classes have been defined so far:
+            1. Card
+            2. Hand
+            3. Game
+        */
+
+        class Card {
+            constructor(category, number) {
+                this.category = category;
+                this.number = number;
+            }
+        }
+
+        class Hand {
+            constructor(cards) {
+                this.cards = cards;
+            }
+
+            getCount() {
+                // Method that returns count of cards in this hand.
+                return this.cards.length;
+            }
+
+            getCardAt(i) {
+                // Method to return card at ith index in this hand.
+                if(i < this.getCount()) {
+                    return this.cards[i];
+                }
+            }
+
+            removeCardAt(i) {
+                this.cards.splice(i, 1);
+            }
+
+            addCard(card) {
+                this.cards.push(card);
+            }
+
+            emptyHand() {
+                let count = this.getCount();
+                this.cards.splice(0, count);
+            }
+        }
+
+        class Game {
+            constructor(gameData) {
+                {#console.log(gameData);#}
+                this.uniqueId = gameData.uniqueId;
+                this.players = gameData.players;
+                this.topCard = gameData.topCard;
+                this.topColor = gameData.topColor;
+                this.direction = gameData.direction;
+                this.currentPlayerIndex = gameData.currentPlayerIndex;
+                this.isGameRunning = false;
+                // Adding Players to DOM.
+                Game.addPlayersToDOM(this.players);
+            }
+
+            copyData(gameData) {
+                this.topCard = gameData.topCard;
+                this.topColor = gameData.topColor;
+                this.direction = gameData.direction;
+                this.currentPlayerIndex = gameData.currentPlayerIndex;
+            }
+
+            getTopCard() {
+                return this.topCard;
+            }
+
+            getCurrentPlayer() {
+                return this.players[this.currentPlayerIndex];
+            }
+
+            setTopCard(card) {
+                this.topCard = card;
+            }
+
+            connectPlayer(username) {
+                if(!this.players.includes(username)) {
+                    this.players.push(username);
+                    Game.addPlayersToDOM([username]);
+                }
+            }
+
+            disconnectPlayer(username) {
+                if(this.players.includes(username)) {
+                    this.players.splice(this.players.indexOf(username), 1);
+                    Game.removePlayersFromDOM([username]);
+                }
+            }
+
+            startGame(topCard) {
+                if(!this.isGameRunning) {
+                    this.setTopCard(topCard);
+                    this.topColor = topCard.category;
+                    this.isGameRunning = true;
+                    // Altering DOM elements accordingly.
+                    startGameButton.prop("disabled", true);
+                    endGameButton.prop("disabled", false);
+                    for(let card of myHand.cards) {
+                        myHandList.append(`<li>Category: ${card.category} Number: ${card.number}`);
+                    }
+                    topCardElem.html(`Category: ${this.topCard.category} Number: ${this.topCard.number}`);
+                }
+            }
+
+            endGame() {
+                if(this.isGameRunning) {
+                    this.setTopCard(null);
+                    this.isGameRunning = false;
+                    myHand.emptyHand();
+
+                    // Altering DOM elements accordingly.
+                    startGameButton.prop("disabled", false);
+                    endGameButton.prop("disabled", true);
+                    myHandList.empty();
+                    topCardElem.html('');
+                }
+            }
+
+            canPlay(card) {
+                // Method to determine whether player can play card on top of currentGame.topCard.
+
+                // If player is currentPlayer
+                if(me !== currentGame.getCurrentPlayer()) {
+                    return false;
+                }
+
+                let category = card.category, number = card.number;
+                let topCategory = this.topCard.category, topNumber = this.topCard.number;
+
+                if(category !== WILD_FOUR) {
+                    // If color is same OR number is same OR card is WILD card.
+                    return category === this.topColor || number === topNumber || category === WILD;
+                }
+                else if(category === WILD_FOUR) {
+                    // Logic for Wild Four Card
+                    for(let handCard of myHand.cards) {
+                        if(handCard.category !== WILD_FOUR) {
+                            if(this.canPlay(handCard)) {
+                                return false;
+                            }
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            playCard(card, index) {
+                // Method to send data to backend using socket and play a card.
+                if(me === currentGame.getCurrentPlayer()) {
+                    console.log("Playing card: ", card);
+                    let nextTopColor;
+                    if(card.category === WILD_FOUR || card.category === WILD) {
+                        nextTopColor = prompt("Choose Next Color ('B', 'Y', 'G' or 'R')");
+                    }
+                    else {
+                        nextTopColor = card.category;
+                    }
+                    let data = {"status": "play_card", "message": "A player played a card.", "data": {"username": this.getCurrentPlayer(), "card": card, "index": index, "next_top_color": nextTopColor,}};
+                    let response = {"type": "play.card", "text": data};
+                    socket.send(JSON.stringify(response));
+                }
+                else {
+                    alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
+                }
+            }
+
+            static addPlayersToDOM(players) {
+                for (let player of players) {
+                    let appendIt = `<li id="id_connected_players_${player}_{{ game_room.pk }}">${player}</li>`;
+                    connectedList.append(appendIt);
+                }
+            }
+
+            static removePlayersFromDOM(players) {
+                for (let player of players) {
+                    let removeID = `#id_connected_players_${player}_{{ game_room.pk }}`;
+                    $(removeID).remove();
+                }
+            }
+
+        }
+    </script>
+
     <script>
         // Constants
         const ERROR = "error";
         const SUCCESS = "success";
 
         // Fetching Endpoint
-        var loc = window.location;
-        var wsStart = 'ws://';
+        let loc = window.location;
+        let wsStart = 'ws://';
         if(loc.protocol === 'https:') {
             // To make it Production Ready
             wsStart = 'wss://'
         }
-        var endpoint = wsStart + loc.host + loc.pathname;
-
+        let endpoint = wsStart + loc.host + loc.pathname;
         // Making WebSocket Object
-        // var socket = new ReconnectingWebSocket(endpoint);
-        var socket = new WebSocket(endpoint);
+        // let socket = new ReconnectingWebSocket(endpoint);
+        let socket = new WebSocket(endpoint);
 
-
-        var connectedList = $("#id_connected_players_{{ game_room.pk }}");
-        var connectedListChildren = connectedList.children();
-        var isConnected = [];
-        for(var i = 0; i < connectedListChildren.length; ++i) {
-            if(!isConnected.includes(connectedListChildren[i].innerText)) {
-                isConnected.push(connectedListChildren[i].innerText);
-            }
-        }
-
-        var startGameButton = $('#id_start_game_{{ game_room.pk }}');
-        var endGameButton = $('#id_end_game_{{ game_room.pk }}');
-
-        var notificationList = $('#id_game_room_notifications_{{ game_room.pk }}');
-
-        var myHand = [];
-        var topCard;
-        var myHandList = $("#id_hand_{{ user.username }}_{{ game_room.unique_game_id }}");
-        var topCardElem = $("#id_top_card_{{ game_room.unique_game_id }}");
+        let currentGame = null;
+        let myHand = null;
+        let me = "{{ user.username }}";
 
         socket.onopen = function (e) {
-            console.log("open", e);
+            console.log("open");
             // Entering the Game Room (when socket connection opens).
-            var data = {
-                "status": "connected",
-                "message": "Connecting...",
-                "data": {
-                    "username": "{{ user.username }}",
-                    "pk": "{{ user.pk }}",
-                }
-            };
-
-            var response = {
-                "type": "enter.room",
-                "text": data
-            };
+            let data = {"status": "connected", "message": "Connecting...", "data": {"username": "{{ user.username }}", "pk": "{{ user.pk }}",}};
+            let response = {"type": "enter.room", "text": data};
             socket.send(JSON.stringify(response));
             
             // When start game Button is clicked
             startGameButton.click(function () {
-                var data = {
-                    "status": "broadcast_notification",
-                    "message": "Game is being started.",
-                    "data": {}
-                };
-                response = {
-                    "type": "broadcast.notification",
-                    "text": data
-                };
+                let data = {"status": "start_game", "message": "Game is being started.", "data": {}};
+                response = {"type": "start.game", "text": data};
                 socket.send(JSON.stringify(response));
-
-                var data = {
-                    "status": "start_game",
-                    "message": "Game is being started.",
-                    "data": {}
-                };
-                response = {
-                    "type": "start.game",
-                    "text": data
-                };
-                socket.send(JSON.stringify(response));
-
-
             });
 
             // When End Game Button is clicked
             endGameButton.click(function () {
-                var data = {
-                    "status": "broadcast_notification",
-                    "message": "Game is being ended.",
-                    "data": {}
-                };
-                response = {
-                    "type": "broadcast.notification",
-                    "text": data
-                };
+                let data = {"status": "end_game", "message": "Game is being ended.", "data": {}};
+                response = {"type": "end.game", "text": data};
                 socket.send(JSON.stringify(response));
-
-                var data = {
-                    "status": "end_game",
-                    "message": "Game is being ended.",
-                    "data": {}
-                };
-                response = {
-                    "type": "end.game",
-                    "text": data
-                };
-                socket.send(JSON.stringify(response));
-
             });
         };
 
         socket.addEventListener("message", function (e) {
+            {#console.log("message");#}
+            let backendResponse = JSON.parse(e.data);
+            let status = backendResponse.status;
+            let message = backendResponse.message;
+            let data = backendResponse.data;
+            let gameData;
+            if(backendResponse.gameData) {
+                gameData = JSON.parse(backendResponse.gameData);
+                console.log(gameData);
+                if(currentGame == null) {
+                    currentGame = new Game(gameData);
+                }
+                else {
+                    currentGame.copyData(gameData);
+                }
+            }
 
-        {# });#}
-        {#socket.onmessage = function (e) {#}
-            console.log("message from enter_game_room", e);
-            var backendResponse = JSON.parse(e.data);
-            var status = backendResponse.status;
-            var message = backendResponse.message;
-            var data = backendResponse.data;
-            var username, pk, elementToAppend;
-            {#if(backendResponse.serializedGame) {#}
-            {#    console.log(JSON.parse(backendResponse.serializedGame));#}
-            {# }#}
-            {#if(backendResponse.serializedPlayer) {#}
-            {#    console.log(JSON.parse(backendResponse.serializedPlayer));#}
-            {# }#}
+            if(backendResponse.serializedPlayer) {
+                let serializedPlayer = JSON.parse(backendResponse.serializedPlayer);
+                myHand = new Hand(serializedPlayer.hand);
+            }
+
+            let username, pk, elementToAppend;
 
 
             if(status === "connected") {
                 username = data.username;
                 pk = data.pk;
-                if(!isConnected.includes(username)) {
-                    isConnected.push(username);
-                    var appendIt = `<li id="id_connected_players_${pk}_{{ game_room.pk }}">${username}</li>`;
-                    connectedList.append(appendIt);
-                }
+                currentGame.connectPlayer(username);
             }
             else if(status === "disconnected") {
                 username = data.username;
                 pk = data.pk;
-                if(isConnected.includes(username)) {
-                    isConnected.splice(isConnected.indexOf(username), 1);
-                    var elemId = `#id_connected_players_${pk}_{{ game_room.pk }}`;
-                    var elem = $(elemId);
-                    elem.remove();
-                }
+                currentGame.disconnectPlayer(username);
             }
             else if(status === "broadcast_notification") {
                 elementToAppend = `<li>${message}</li>`;
                 notificationList.append(elementToAppend);
             }
             else if(status === "start_game") {
-                myHand = JSON.parse(backendResponse.serializedPlayer).hand;
-                topCard = JSON.parse(backendResponse.topCard);
-                {#console.log(myHand);#}
-                for(let card of myHand) {
-                    {#console.log(card);#}
-                    myHandList.append(`<li>Category: ${card.category} Number: ${card.number}`);
-                }
-
-                topCardElem.html(`Category: ${topCard.category} Number: ${topCard.number}`);
+                // Calling currentGame's startGame() method.
+                currentGame.startGame(new Card(gameData.topCard.category, gameData.topCard.number));
             }
             else if(status === "end_game") {
-                myHandList.empty();
-                topCardElem.html('');
+                // Calling currentGame's endGame() method.
+                currentGame.endGame();
             }
-        }); // CHaNGE
+            else if(status === "play_card") {
+                username = data.username;
+                let card = data.card;
+                let index = data.index;
+            }
+            else if(status === "draw_card") {
+                console.log("Draw Card Event Struck! -- from enter_game_room");
+                username = data.username;
+                let drawnCards = data.drawnCards;
+                let drawnCardCount = data.drawnCardCount;
+                if(username === me) {
+                    // Adding newly drawn card in the hand.
+                    for(let drawnCard of drawnCards) {
+                        myHand.addCard(drawnCard);
+                    }
+                }
+            }
+        });
 
         socket.onerror = function (e) {
-            console.log("error", e);
+            console.log("error");
         };
 
         socket.onclose = function (e) {
-            console.log("close", e);
+            console.log("close");
         };
     </script>
 {% endblock %}
@@ -266,8 +409,8 @@
 
 <script>
     /*
-                var url = "";
-                var data = {
+                let url = "";
+                let data = {
                     "status": "broadcast_notification",
                     "message": "Game is being started."
                 };
@@ -281,9 +424,9 @@
                     type: "GET",
                     success: function (json) {
                         console.log(json);
-                        var status = json.status;
+                        let status = json.status;
                         if(status === SUCCESS) {
-                            var data = {
+                            let data = {
                                 "status": "broadcast_notification",
                                 "message": "Game has been started. Deck is ready. Waiting for hands to be distributed."
                             };
@@ -305,15 +448,15 @@
 
 
 
-     {#var url = "{% url 'end_game' game_room.unique_game_id %}";#}
+     {#let url = "{% url 'end_game' game_room.unique_game_id %}";#}
                 {#$.ajax({#}
                 {#    url: url,#}
                 {#    type: "GET",#}
                 {#    success: function (json) {#}
                 {#        console.log(json);#}
-                {#        var status = json.status;#}
+                {#        let status = json.status;#}
                 {#        if(status === SUCCESS) {#}
-                {#            var data = {#}
+                {#            let data = {#}
                 {#                "status": "broadcast_notification",#}
                 {#                "message": "Current Game has ended. You can either leave the room or wait for another game to start."#}
                 {#                "data": {}#}
