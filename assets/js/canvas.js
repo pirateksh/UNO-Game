@@ -1,4 +1,3 @@
-
 var canvas = document.querySelector('canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -47,8 +46,8 @@ var mouse = {
     y:undefined,
 }
 
-let maxRad = 40;
-// let minRad = 2;
+var maxRad = 40;
+var minRad = 0;
 
 var colArr = [ 
     '#F2F0D8',
