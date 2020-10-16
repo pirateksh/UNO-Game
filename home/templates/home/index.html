@@ -9,8 +9,29 @@
 {% block content %}
 
     <canvas></canvas>
+    {% comment %} meteor {% endcomment %}
+    <img style="z-index:2" alt="" 
+        id="text1" src="{% static 'img/meteor.png' %}"
+            width="80">
+    <img style="z-index:2" alt="" 
+        id="text4" src="{% static 'img/meteor.png' %}"
+            width="80">
+    <img style="z-index:2" alt="" 
+        id="text2" src="{% static 'img/meteor_t.png' %}"
+            width="80">
+    <img style="z-index:2" alt="" 
+        id="text3" src="{% static 'img/meteor_t.png' %}"
+            width="80">
+
+
+
     <nav class="navbar navbar-light navbar-expand-lg fixed-top bg-secondary bounce animated text-uppercase" id="mainNav">
-        <div class="container"><a class="navbar-brand js-scroll-trigger" href="#page-top">Uno</a>
+        <div class="container">
+            {% if user.is_authenticated %}
+                <a class="navbar-brand js-scroll-trigger" href="#page-top">Hi, {{ user.username }}!</a>
+            {% else %}
+                <a class="navbar-brand js-scroll-trigger" href="#page-top">Uno</a>
+            {% endif %}
             <button data-toggle="collapse" data-target="#navbarResponsive" class="navbar-toggler navbar-toggler-right text-uppercase bg-primary text-white rounded" aria-controls="navbarResponsive"
                 aria-expanded="false" aria-label="Toggle navigation">
                 <i class="fa fa-bars"></i>
@@ -19,8 +40,14 @@
                 <ul class="nav navbar-nav ml-auto">
                     <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#portfolio">Rules</a></li>
                     <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#about">About UNO<sup>®</sup></a></li>
-                    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#sign-in">Sign In</a></li>
-                    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#">Log In</a></li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'user_profile' user.username %}">Profile</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'logout' %}">Log Out</a></li>
+                    {% else %}
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'signup' %}">Sign In</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'login' %}">Log In</a></li>
+                    {% endif %}
+
                 </ul>
             </div>
         </div>
@@ -344,7 +371,7 @@
                         <div class="row">
                             <div class="col-lg-8 mx-auto">
                                 <h2 class="text-uppercase text-secondary mb-0">Project Name</h2>
-                                <hr class="star-dark mb-5"><img class="img-fluid mb-5" src="{% static "img/portfolio/safe.png" %}">
+                                <hr class="star-dark mb-5">
                                 <p class="mb-5">
                                     If you forget to say, "UNO" before your card touches the DISCARD pile, but you "catch"
                                      yourself before any other player catches you, you are safe and not subject to the 4- card penalty.
@@ -366,7 +393,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer pb-5"><a class="btn btn-primary btn-lg mx-auto rounded-pill portfolio-modal-dismiss" role="button" href="#"><i class="fa fa-close"></i>&nbsp;Close Project</a></div>
+                {% comment %} <div class="modal-footer pb-5"><a class="btn btn-primary btn-lg mx-auto rounded-pill portfolio-modal-dismiss" role="button" href="#"><i class="fa fa-close"></i>&nbsp;Close Project</a></div> {% endcomment %}
             </div>
         </div>
     </div>
@@ -391,7 +418,7 @@
         </div>
     </div> -->
 
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.2.0/aos.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
     <script src="{%  static "js/freelancer.js" %}"></script>
