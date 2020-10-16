@@ -92,7 +92,6 @@ class Card(models.Model):
     def __str__(self):
         return f"{self.category}_{self.number}"
 
-
 # class Deck(models.Model):
 #     """
 #         Model Representing a Deck specific to particular Game Room.
@@ -103,18 +102,18 @@ class Card(models.Model):
 #         return f"deck_{self.game_room.unique_game_id}"
 
 
-class GameRoomDeckCard(models.Model):
-    """
-        Model storing the Card specific to a GameRoom's Deck.
-    """
-    # deck = models.ForeignKey(Deck, on_delete=models.CASCADE, verbose_name="Deck")
-    game_room = models.ForeignKey(GameRoom, on_delete=models.CASCADE, verbose_name="Game Room")
-
-    card = models.ForeignKey(Card, on_delete=models.CASCADE, verbose_name="Card")
-
-    def __str__(self):
-        # return f"deckcard_{self.card}_{self.deck}"
-        return f"gameroomcard_{self.card}"
+# class GameRoomDeckCard(models.Model):
+#     """
+#         Model storing the Card specific to a GameRoom's Deck.
+#     """
+#     # deck = models.ForeignKey(Deck, on_delete=models.CASCADE, verbose_name="Deck")
+#     game_room = models.ForeignKey(GameRoom, on_delete=models.CASCADE, verbose_name="Game Room")
+#
+#     card = models.ForeignKey(Card, on_delete=models.CASCADE, verbose_name="Card")
+#
+#     def __str__(self):
+#         # return f"deckcard_{self.card}_{self.deck}"
+#         return f"gameroomcard_{self.card}"
 
 
 # class Hand(models.Model):
@@ -127,15 +126,15 @@ class GameRoomDeckCard(models.Model):
 #         return f"hand_{self.player}"
 
 
-class PlayerHandCard(models.Model):
-    """
-        Model Representing Card specific to a Player's Hand.
-    """
-    # hand = models.ForeignKey(Hand, on_delete=models.CASCADE, verbose_name="Hand")
-    player = models.ForeignKey(Player, on_delete=models.CASCADE, verbose_name="Player")
-
-    card = models.ForeignKey(Card, on_delete=models.CASCADE, verbose_name="Card")
-
-    def __str__(self):
-        # return f"handcard_{self.hand}_{self.card}"
-        return f"playerhandcard_{self.player}_{self.card}"
+# class PlayerHandCard(models.Model):
+#     """
+#         Model Representing Card specific to a Player's Hand.
+#     """
+#     # hand = models.ForeignKey(Hand, on_delete=models.CASCADE, verbose_name="Hand")
+#     player = models.ForeignKey(Player, on_delete=models.CASCADE, verbose_name="Player")
+#
+#     card = models.ForeignKey(Card, on_delete=models.CASCADE, verbose_name="Card")
+#
+#     def __str__(self):
+#         # return f"handcard_{self.hand}_{self.card}"
+#         return f"playerhandcard_{self.player}_{self.card}"

@@ -1,13 +1,24 @@
-{% extends 'base.html' %}
-{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Home - Brand</title>
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=ABeeZee">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Aclonica">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Acme">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
+    <link rel="stylesheet" href="assets/fonts/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.2.0/aos.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
 
-
-{% block title %}
-    Index Page
-{% endblock %}
-
-{% block content %}
-
+<body id="page-top">
     <canvas></canvas>
     <nav class="navbar navbar-light navbar-expand-lg fixed-top bg-secondary bounce animated text-uppercase" id="mainNav">
         <div class="container"><a class="navbar-brand js-scroll-trigger" href="#page-top">Uno</a>
@@ -26,7 +37,7 @@
         </div>
     </nav>
     <header class="masthead text-white text-center">
-        <div class="container"><img class="img-fluid d-block mx-auto mb-5" data-aos="zoom-in" data-aos-duration="500" data-aos-delay="100" src="{% static "img/uno.png" %}">
+        <div class="container"><img class="img-fluid d-block mx-auto mb-5" data-aos="zoom-in" data-aos-duration="500" data-aos-delay="100" src="assets/img/uno.png">
             <h1 data-aos="flip-left">Welcome to UNO Game</h1>
             <hr data-aos="flip-left" class="star-dark">
             <div data-aos="flip-left" class="text-center mt-4"><a class="btn btn-outline-light btn-xl" role="button" href="#"><span>Play Now!</span></a></div>
@@ -41,37 +52,37 @@
                     <a class="d-block mx-auto portfolio-item" data-toggle="modal" href="#portfolio-modal-1">
                         <div class="d-flex portfolio-item-caption position-absolute h-100 w-100" style="background-color: transparent;">
                             <div class="my-auto portfolio-item-caption-content w-100 text-center text-white"><i class="fa fa-search-plus fa-3x"></i></div>
-                        </div><img class="img-fluid" src="{% static "img/portfolio/compo.png" %}"><img class="img-fluid" src="{% static "img/portfolio/nents.png" %}"></a>
+                        </div><img class="img-fluid" src="assets/img/portfolio/compo.png"><img class="img-fluid" src="assets/img/portfolio/nents.png"></a>
                 </div>
                 <div class="col-md-6 col-lg-4 top-pad-5">
                     <a class="d-block mx-auto portfolio-item" data-toggle="modal" href="#portfolio-modal-2">
                         <div class="d-flex portfolio-item-caption position-absolute h-100 w-100">
                             <div class="my-auto portfolio-item-caption-content w-100 text-center text-white"><i class="fa fa-search-plus fa-3x"></i></div>
-                        </div><img class="img-fluid" src="{% static "img/portfolio/setup.png" %}"></a>
+                        </div><img class="img-fluid" src="assets/img/portfolio/setup.png"></a>
                 </div>
                 <div class="col-md-6 col-lg-4 top-pad-5">
                     <a class="d-block mx-auto portfolio-item" data-toggle="modal" href="#portfolio-modal-3">
                         <div class="d-flex portfolio-item-caption position-absolute h-100 w-100">
                             <div class="my-auto portfolio-item-caption-content w-100 text-center text-white"><i class="fa fa-search-plus fa-3x"></i></div>
-                        </div><img class="img-fluid" src="{% static "img/portfolio/special.png" %}"><img class="img-fluid" src="{% static "img/portfolio/cards.png" %}"></a>
+                        </div><img class="img-fluid" src="assets/img/portfolio/special.png"><img class="img-fluid" src="assets/img/portfolio/cards.png"></a>
                 </div>
                 <div class="col-md-6 col-lg-4 top-pad-5">
                     <a class="d-block mx-auto portfolio-item" data-toggle="modal" href="#portfolio-modal-4">
                         <div class="d-flex portfolio-item-caption position-absolute h-100 w-100">
                             <div class="my-auto portfolio-item-caption-content w-100 text-center text-white"><i class="fa fa-search-plus fa-3x"></i></div>
-                        </div><img class="img-fluid" src="{% static "img/portfolio/game.png" %}"><img class="img-fluid" src="{% static "img/portfolio/play.png" %}"></a>
+                        </div><img class="img-fluid" src="assets/img/portfolio/game.png"><img class="img-fluid" src="assets/img/portfolio/play.png"></a>
                 </div>
                 <div class="col-md-6 col-lg-4 top-pad-5">
                     <a class="d-block mx-auto portfolio-item" data-toggle="modal" href="#portfolio-modal-5">
                         <div class="d-flex portfolio-item-caption position-absolute h-100 w-100">
                             <div class="my-auto portfolio-item-caption-content w-100 text-center text-white"><i class="fa fa-search-plus fa-3x"></i></div>
-                        </div><img class="img-fluid" src="{% static "img/portfolio/going.png" %}"><img class="img-fluid" src="{% static "img/portfolio/out.png" %}"></a>
+                        </div><img class="img-fluid" src="assets/img/portfolio/going.png"><img class="img-fluid" src="assets/img/portfolio/out.png"></a>
                 </div>
                 <!-- <div class="col-md-6 col-lg-4">
                     <a class="d-block mx-auto portfolio-item" data-toggle="modal" href="#portfolio-modal-6">
                         <div class="d-flex portfolio-item-caption position-absolute h-100 w-100">
                             <div class="my-auto portfolio-item-caption-content w-100 text-center text-white"><i class="fa fa-search-plus fa-3x"></i></div>
-                        </div><img class="img-fluid" src="{% static "img/portfolio/submarine.png"%}"></a>
+                        </div><img class="img-fluid" src="assets/img/portfolio/submarine.png"></a>
                 </div> -->
             </div>
         </div>
@@ -223,7 +234,7 @@
                                         </thead>
                                         <tbody>
                                             <tr class="table-success text-dark">
-                                                <th><img src="{% static "img/portfolio/+2.jpg" %}"></th>
+                                                <th><img src="assets/img/portfolio/+2.jpg"></th>
                                                 <th>
                                                     <h3>Draw Two Cards</h3>
                                                     <p>
@@ -237,7 +248,7 @@
                                             </tr>
                                             <tr class="table-info text-dark">
                                                 <td>
-                                                    <img src="{% static "img/portfolio/reverse.jpg" %}">
+                                                    <img src="assets/img/portfolio/reverse.jpg"> 
                                                 </td>
                                                 <td>
                                                     <h3>Reverse Card</h3>
@@ -251,7 +262,7 @@
                                             </tr>
                                             <tr class="table-danger text-dark">
                                                 <th>
-                                                    <img src="{% static "img/portfolio/skip.jpg" %}" alt="" class="src">
+                                                    <img src="assets/img/portfolio/skip.jpg" alt="" class="src">
                                                 </th>
                                                 <th>
                                                     <h3>Skip Card</h3>
@@ -263,7 +274,7 @@
                                                 </th>
                                             </tr>
                                             <tr class="table-warning text-dark">
-                                                <th><img src="{% static "img/portfolio/wild.jpg" %}" alt="" class="src"></th>
+                                                <th><img src="assets/img/portfolio/wild.jpg" alt="" class="src"></th>
                                                 <th>
                                                     <h3>Wild Card</h3>
                                                     <p>
@@ -276,7 +287,7 @@
                                                 </th>
                                             </tr>
                                             <tr class="table-primary text-dark">
-                                                <th><img src="{% static "img/portfolio/wild4.jpg" %}" alt=""></th>
+                                                <th><img src="assets/img/portfolio/wild4.jpg" alt=""></th>
                                                 <th>
                                                     <p>This card allows you to call the next color played and requires the next player to pick 4 cards from the
                                                          DRAW pile and forfeit his/her turn. However, there is a hitch!
@@ -344,7 +355,7 @@
                         <div class="row">
                             <div class="col-lg-8 mx-auto">
                                 <h2 class="text-uppercase text-secondary mb-0">Project Name</h2>
-                                <hr class="star-dark mb-5"><img class="img-fluid mb-5" src="{% static "img/portfolio/safe.png" %}">
+                                <hr class="star-dark mb-5"><img class="img-fluid mb-5" src="assets/img/portfolio/safe.png">
                                 <p class="mb-5">
                                     If you forget to say, "UNO" before your card touches the DISCARD pile, but you "catch"
                                      yourself before any other player catches you, you are safe and not subject to the 4- card penalty.
@@ -379,7 +390,7 @@
                         <div class="row">
                             <div class="col-lg-8 mx-auto">
                                 <h2 class="text-uppercase text-secondary mb-0">Project Name</h2>
-                                <hr class="star-dark mb-5"><img class="img-fluid mb-5" src="{% static "img/portfolio/submarine.png" %}">
+                                <hr class="star-dark mb-5"><img class="img-fluid mb-5" src="assets/img/portfolio/submarine.png">
                                 <p class="mb-5">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Mollitia neque assumenda ipsam nihil, molestias magnam, recusandae quos quis inventore quisquam velit asperiores, vitae? Reprehenderit soluta, eos quod consequuntur
                                     itaque. Nam.</p>
                             </div>
@@ -392,9 +403,14 @@
     </div> -->
 
 
+
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/js/bs-init.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.2.0/aos.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
-    <script src="{%  static "js/freelancer.js" %}"></script>
-    <script src="{%  static "js/canvas.js" %}"></script>
+    <script src="assets/js/freelancer.js"></script>
+    <script src="assets/js/canvas.js"></script>
+</body>
 
-{% endblock content %}
+</html>

@@ -19,7 +19,12 @@ class Scene1 extends Phaser.Scene {
         this.load.spritesheet("uno", `${generatePath("spritesheets", "uno_game.jpeg")}`, {
             frameWidth: 57,
             frameHeight: 86
-        })
+        });
+
+        this.load.spritesheet("oppHand", `${generatePath("images", "opp_hand.jpg")}`, {
+            frameWidth: 260,
+            frameHeight: 146
+        });
     }
 
     create() {
@@ -30,16 +35,5 @@ class Scene1 extends Phaser.Scene {
 
         this.add.text(20, 20, "Loading Game...");
         this.scene.start("playGame");
-
-        var sno = getImagePoint(RED, NINE);
-        this.anims.create({
-			key: "uno_anim",
-			frames: this.anims.generateFrameNumbers("uno", {
-			    start: sno,
-                end: sno
-            }),
-			frameRate: 7,
-			repeat: 0
-		})
     }
 }

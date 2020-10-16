@@ -10,8 +10,7 @@ from channels.db import database_sync_to_async
 
 # from the models
 from .models import Bot
-from game.models import GameRoom, Player, Card, GameRoomDeckCard
-
+from game.models import Card
 
 class CustomEncoder(JSONEncoder):
     def default(self, o):
