@@ -27,6 +27,11 @@ var c = canvas.getContext('2d');
 // c.arc(600, 600, 30, 0, Math.PI *2, false);
 // c.stroke();
 
+gsap.fromTo('#text2', {x:Math.abs(Math.random()-0.5)*innerWidth, y:-80}, {x:innerWidth, y:innerHeight+80, duration:6, repeat:-1, ease:'linear'})
+gsap.fromTo('#text3', {x:Math.abs(Math.random()-0.5)*innerWidth, y:-80}, {x:innerWidth, y:innerHeight+80, duration:6, repeat:-1, ease:'linear'})
+gsap.fromTo('#text1', {x:Math.random()*innerWidth, y:-80}, {y:innerHeight+40, duration:6, repeat:-1, ease:'linear'})
+gsap.fromTo('#text4', {x:Math.random()*innerWidth, y:-80}, {y:innerHeight+40, duration:6, repeat:-1, ease:'linear'})
+
 // for (var i =0; i<100; i++){
 //     var x = Math.random()*window.innerWidth;
 //     var y = Math.random()*window.innerHeight;

@@ -14,6 +14,22 @@
 </head>
 <body>
     <canvas></canvas>
+    {% comment %} meteor {% endcomment %}
+    <img style="z-index:2" alt="" 
+        id="text1" src="{% static 'img/meteor.png' %}"
+            width="80">
+    <img style="z-index:2" alt="" 
+        id="text4" src="{% static 'img/meteor.png' %}"
+            width="80">
+    <img style="z-index:2" alt="" 
+        id="text2" src="{% static 'img/meteor_t.png' %}"
+            width="80">
+    <img style="z-index:2" alt="" 
+        id="text3" src="{% static 'img/meteor_t.png' %}"
+            width="80">
+
+
+
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-9 col-lg-12 col-xl-10">
@@ -57,6 +73,7 @@
     <script src=" {% static 'js/jquery.min.js' %} "></script>
     <script src=" {% static 'bootstrap/js/bootstrap.min.js' %} "></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
    <script src=" {% static 'js/theme.js' %} "></script>
    <script src="{%  static "js/canvas.js" %}"></script>
 </body>

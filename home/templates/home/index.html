@@ -9,6 +9,22 @@
 {% block content %}
 
     <canvas></canvas>
+    {% comment %} meteor {% endcomment %}
+    <img style="z-index:2" alt="" 
+        id="text1" src="{% static 'img/meteor.png' %}"
+            width="80">
+    <img style="z-index:2" alt="" 
+        id="text4" src="{% static 'img/meteor.png' %}"
+            width="80">
+    <img style="z-index:2" alt="" 
+        id="text2" src="{% static 'img/meteor_t.png' %}"
+            width="80">
+    <img style="z-index:2" alt="" 
+        id="text3" src="{% static 'img/meteor_t.png' %}"
+            width="80">
+
+
+
     <nav class="navbar navbar-light navbar-expand-lg fixed-top bg-secondary bounce animated text-uppercase" id="mainNav">
         <div class="container"><a class="navbar-brand js-scroll-trigger" href="#page-top">Uno</a>
             <button data-toggle="collapse" data-target="#navbarResponsive" class="navbar-toggler navbar-toggler-right text-uppercase bg-primary text-white rounded" aria-controls="navbarResponsive"
@@ -366,7 +382,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer pb-5"><a class="btn btn-primary btn-lg mx-auto rounded-pill portfolio-modal-dismiss" role="button" href="#"><i class="fa fa-close"></i>&nbsp;Close Project</a></div>
+                {% comment %} <div class="modal-footer pb-5"><a class="btn btn-primary btn-lg mx-auto rounded-pill portfolio-modal-dismiss" role="button" href="#"><i class="fa fa-close"></i>&nbsp;Close Project</a></div> {% endcomment %}
             </div>
         </div>
     </div>
@@ -391,7 +407,7 @@
         </div>
     </div> -->
 
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.2.0/aos.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
     <script src="{%  static "js/freelancer.js" %}"></script>
