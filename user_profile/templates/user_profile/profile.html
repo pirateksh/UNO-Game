@@ -1,4 +1,6 @@
+
 {% extends 'base.html' %}
+{% load static %}
 {% comment %}
     context = {
         'user_game_rooms': user_game_room_qs,
@@ -11,83 +13,142 @@
 {% endblock %}
 
 {% block content %}
+    <canvas></canvas>
     {% if user.is_authenticated %}
-        <a href="{% url 'home' %}">Back to Home</a>
-        <br/>
-        <a href="{% url 'logout' %}">Logout</a>
-        <br/>
-        Hello, {{ user.username }}
-        <br/>
-        <h3>Your Game Rooms</h3>
-        <a href="{% url 'create_game_room' %}">Create New Room</a>
-        <br/>
-        <a href="{% url 'bot_game' %}">Start a Game With Bot</a>
-        <br/>
+    <nav class="navbar navbar-light navbar-expand-lg fixed-top bg-secondary bounce animated text-uppercase" id="mainNav">
+        <div class="container">
+            {% if user.is_authenticated %}
+                <a class="navbar-brand js-scroll-trigger" href="#page-top">Hi, {{ user.username }}!</a>
+            {% else %}
+                <a class="navbar-brand js-scroll-trigger" href="#page-top">Uno</a>
+            {% endif %}
+            <button data-toggle="collapse" data-target="#navbarResponsive" class="navbar-toggler navbar-toggler-right text-uppercase bg-primary text-white rounded" aria-controls="navbarResponsive"
+                aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fa fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="nav navbar-nav ml-auto">
+                    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'home' %}">Back to Home</a></li>
+                    {% comment %} <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#">About UNO<sup>®</sup></a></li> {% endcomment %}
+                    {% if user.is_authenticated %}
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'user_profile' user.username %}">Profile</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'logout' %}">Log Out</a></li>
+                    {% else %}
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'signup' %}">Sign In</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'login' %}">Log In</a></li>
+                    {% endif %}
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <section class="text-light text-center" style="margin-top: 5rem;">
+        <div class="container">
+            <div data-aos="flip-left" class="text-center mt-4">
+                <a class="btn btn-outline-light btn-xl" data-bs-hover-animate="tada" role="button" href="{% url 'create_game_room' %}"><span>Create New Room</span></a>
+                <a class="btn btn-outline-light btn-xl" data-bs-hover-animate="tada" role="button" href="{% url 'bot_game' %}"><span>Start BOT Game</span></a>
+            </div>
+            <hr data-aos="flip-left" class="star-dark">
+        </div>
+    </section> 
+    <div class="text-light text-center">
+        <h1 data-aos="slide-left">YOUR GAME ROOMS</h1>
+        
+        <div class="container" data-aos="slide-left" data-aos-duration="500" data-aos-delay="250">
         {% if user_game_rooms %}
-            <table border="1">
+            <div class="table-responsive">
+            <table class="table table-bordered table-light table-hover">
+                <thead>
                 <tr>
                     <th>Serial Number</th>
                     <th>Unique Game ID</th>
                     <th>Enter Button</th>
                 </tr>
+                </thead>
                 {% for user_game_room in user_game_rooms %}
+                <tbody>
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td>{{ user_game_room.unique_game_id }}</td>
                         <td><a href="{% url 'enter_game_room' user_game_room.unique_game_id %}">Enter</a></td>
                     </tr>
+                    </tbody>
                 {% endfor %}
             </table>
+            </div>
         {% else %}
-            You haven't created any game rooms yet.
+            <p> You haven't created any game rooms yet. </p>
         {% endif %}
+        </div>
 
-        <h3>Other Game Rooms</h3>
+        <h1 data-aos="slide-up">OTHER GAME ROOMS</h1>
+        <div class="container" data-aos="slide-up" data-aos-duration="500" data-aos-delay="250">
         {% if other_game_rooms %}
-            <table border="1">
-            <tr>
-                <th>Serial Number</th>
-                <th>Unique Game ID</th>
-                <th>Admin</th>
-                <th>Join Button</th>
-            </tr>
+            <table class="table table-bordered table-light table-hover">
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>Unique Game ID</th>
+                        <th>Admin</th>
+                        <th>Join Button</th>
+                    </tr>
+                </thead>
             {% for other_game_room in other_game_rooms %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ other_game_room.unique_game_id }}</td>
-                    <td>{{ other_game_room.admin }}</td>
-                    <td><a href="{% url 'join_game_room' other_game_room.unique_game_id %}">Join</a></td>
-                </tr>
+                <tbody>
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ other_game_room.unique_game_id }}</td>
+                        <td>{{ other_game_room.admin }}</td>
+                        <td><a href="{% url 'join_game_room' other_game_room.unique_game_id %}">Join</a></td>
+                    </tr>
+                </tbody>
             {% endfor %}
             </table>
         {% else %}
-            Alas! No Other Game Rooms are available at this moment.
+            <h4> Alas! No Other Game Rooms are available at this moment. </h4>
         {% endif %}
+        </div>
 
-        <h3>Joined Game Rooms</h3>
+        <h1 data-aos="slide-right">JOINED GAME ROOMS</h1>
+        <div class="container" data-aos="slide-right" data-aos-duration="500" data-aos-delay="250">
         {% if joined_game_rooms %}
-            <table border="1">
-                <tr>
-                    <th>Serial Number</th>
-                    <th>Unique Game ID</th>
-                    <th>Admin</th>
-                    <th>Enter Button</th>
-                </tr>
+            <table class="table table-bordered table-light table-hover">
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>Unique Game ID</th>
+                        <th>Admin</th>
+                        <th>Enter Button</th>
+                    </tr>
+                </thead>
             {% for joined_game_room in joined_game_rooms %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ joined_game_room.unique_game_id }}</td>
-                    <td>{{ joined_game_room.admin }}</td>
-                    <td><a href="{% url 'enter_game_room' joined_game_room.unique_game_id %}">Enter</a></td>
-                </tr>
+                <tbody>
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ joined_game_room.unique_game_id }}</td>
+                        <td>{{ joined_game_room.admin }}</td>
+                        <td><a href="{% url 'enter_game_room' joined_game_room.unique_game_id %}">Enter</a></td>
+                    </tr>
+                </tbody>
             {% endfor %}
 
             </table>
         {% else %}
-            You have not joined any Game Room Yet.
+            <h2>You have not joined any Game Room Yet.<h2>
         {% endif %}
+        </div>
+    </div>
 
     {% else %}
-        Hey! How did you get in here. You are not logged in!
+        <h1>Hey! How did you get in here. You are not logged in!<h1>
     {% endif %}
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.2.0/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+    <script src="{%  static "js/freelancer.js" %}"></script>
+    <script src="{%  static "js/canvas.js" %}"></script>
+    <script src="{% static 'js/bs-init.js' %}"></script>
+    
 {% endblock %}

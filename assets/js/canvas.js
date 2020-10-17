@@ -27,12 +27,23 @@ var c = canvas.getContext('2d');
 // c.arc(600, 600, 30, 0, Math.PI *2, false);
 // c.stroke();
 
-var i = Math.abs( Math.random() -0.2)*innerWidth;
+
+var i = undefined;
+var j = undefined;
+var k = undefined;
+window.addEventListener('resize', () => {
+    console.log(innerWidth);
+    i = Math.abs( Math.random() -0.3)*innerWidth;
+    j = Math.abs( Math.random() -0.3)*innerWidth;
+    k = Math.abs( Math.random() -0.3)*innerWidth;
+    
+})
 gsap.fromTo('#text1', {x:i, y:0}, {x:i, y:innerHeight, duration:6, repeat:-1, ease:'linear'})
-i = Math.abs( Math.random() -0.2)*innerWidth;
-gsap.fromTo('#text2', {x:i, y:0}, {x:i, y:innerHeight, delay: Math.random()*3, duration:6, repeat:-1, ease:'linear'})
-i = Math.abs( Math.random() -0.2)*innerWidth;
-gsap.fromTo('#text3', {x:i, y:0}, {x:i, y:innerHeight, delay: Math.random()*3, duration:6, repeat:-1, ease:'linear'})
+    
+    gsap.fromTo('#text2', {x:i, y:0}, {x:i, y:innerHeight, delay: Math.random()*3, duration:6, repeat:-1, ease:'linear'})
+    
+    gsap.fromTo('#text3', {x:i, y:0}, {x:i, y:innerHeight, delay: Math.random()*3, duration:6, repeat:-1, ease:'linear'})
+
 
 // for (var i =0; i<100; i++){
 //     var x = Math.random()*window.innerWidth;
