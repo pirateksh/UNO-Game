@@ -2,7 +2,6 @@ const RED = "R", YELLOW = "Y", GREEN = "G", BLUE = "B", WILD = "W", WILD_FOUR = 
 const ZERO = 0, ONE = 1, TWO = 2, THREE = 3, FOUR = 4, FIVE = 5, SIX = 6, SEVEN = 7, EIGHT = 8, NINE = 9;
 const SKIP = 10, REVERSE = 11, DRAW_TWO = 12;
 const NONE = 13;
-const START_GAME = "start_game", PLAY_CARD = "play_card", DRAW_CARD = "draw_card", END_GAME = "end_game";
 let game, gameDetails;
 let currentAnimKeys = [];
 
@@ -12,6 +11,9 @@ window.onload = function () {
 	gameDetails = {
 		deckX: width/2 - 200,
 		deckY: height/2,
+		myHandStartX: width/2 - 200,
+		myHandEndX: width/2 + 200,
+		myHandY: height/2 + 200,
 		topCardX: width/2,
 		topCardY: height/2,
         myHandScale: 1.61,

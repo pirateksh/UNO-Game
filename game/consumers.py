@@ -64,7 +64,8 @@ class GameRoomConsumer(AsyncConsumer):
         """
         # print("received", event)
         front_text = event.get('text', None)
-        skipped_data = None
+        forced_draw_data = None  # If some player had to draw cards due to DRAW_TWO or WILD_FOUR.
+        voluntary_draw_data = None  # When player voluntary drew a card.
         if front_text:
             loaded_dict_data = json.loads(front_text)
             type_of_event = loaded_dict_data['type']
@@ -83,12 +84,20 @@ class GameRoomConsumer(AsyncConsumer):
                 server_data = {
                     "username": self.me.username,
                 }
-                if self.game.is_valid_move(client_data=client_data, server_data=server_data):
-                    skipped_data = self.game.play_card(client_data=client_data)
-                    print("Skipped Data", skipped_data)
+                if self.game.is_valid_play_move(client_data=client_data, server_data=server_data):
+                    forced_draw_data = self.game.play_card(client_data=client_data)
                 else:
                     # Handle Cheating
-                    # print(f"This is NOT a valid move.")
+                    pass
+            elif type_of_event == "voluntary_draw_card":  # When current player clicked on deck to draw the card.
+                client_data = text_of_event['data']
+                server_data = {
+                    "username": self.me.username,
+                }
+                if self.game.is_valid_draw_move(client_data=client_data, server_data=server_data):
+                    voluntary_draw_data = self.game.draw_card(client_data=client_data)
+                else:
+                    # Handle Cheating
                     pass
 
             response = {
@@ -98,7 +107,12 @@ class GameRoomConsumer(AsyncConsumer):
                 "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder),
             }
 
-            # Broadcasts the enter_room event to be sent
+            if voluntary_draw_data:
+                extra_data = {
+                    "voluntaryDrawData": voluntary_draw_data,
+                }
+                response.update(extra_data)
+
             await self.channel_layer.group_send(
                 self.game_room_id,
                 {
@@ -107,12 +121,12 @@ class GameRoomConsumer(AsyncConsumer):
                 }
             )
 
-            if skipped_data:
+            if forced_draw_data:
                 print("Should call Draw Card.")
                 response_ = {
                     "status": "draw_card",
                     "message": "Card(s) have been drawn.",
-                    "data": json.dumps(skipped_data, cls=CustomEncoder),
+                    "data": json.dumps(forced_draw_data, cls=CustomEncoder),
                 }
 
                 await self.channel_layer.group_send(
@@ -124,8 +138,28 @@ class GameRoomConsumer(AsyncConsumer):
                 )
             print("\n\n\n\n")
 
+    async def voluntary_draw_card(self, event):
+        text = json.loads(event['text'])
+        voluntary_draw_data = text['voluntaryDrawData']
+        username = voluntary_draw_data['username']
+        if username != self.me.username:
+            # Hiding drawn card if this is not the player who drew the card.
+            voluntary_draw_data['drawnCard'] = None
+        response = {
+            "status": text['status'],
+            "message": text['message'],
+            "data": text['data'],
+            "gameData": text['gameData'],
+            "voluntaryDrawData": voluntary_draw_data,
+        }
+        await self.send({
+            "type": "websocket.send",
+            "text": json.dumps(response),
+        })
+
     async def draw_card(self, event):
         # TODO: Draw card event is taking so much time. Look into this. -- Kshitiz
+        #      Freezes after draw card. Probably error is in client side.
         # text = json.loads(event['text'])
         # data = json.loads(text['data'])
         # print("Draw Card called.")

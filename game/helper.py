@@ -390,7 +390,7 @@ class GameServer:
                         return False
             return True
 
-    def is_valid_move(self, client_data, server_data):
+    def is_valid_play_move(self, client_data, server_data):
 
         # Segregating Client Side Data
         client_card, client_card_index = client_data['card'], client_data['index']
@@ -505,3 +505,43 @@ class GameServer:
             print()
         return response
         # TODO: 3 player's game not working properly. Fix it. -- Kshitiz
+
+    def is_valid_draw_move(self, client_data, server_data):
+        # Segregating Client Side Data
+        client_username = client_data['username']
+
+        # Segregating Server Side Data
+        server_username = server_data['username']
+
+        # Fetching current player as stored on the server
+        server_current_player = self.get_current_player()
+        if server_current_player.username != client_username:
+            print(
+                f"Cheating: ServerCurrentPlayer({server_current_player.username}) != ClientPlayer({client_username})!")
+            return False
+
+        if client_username != server_username:
+            print(f"Cheating: ServerPlayer({server_username}) != ClientPlayer({client_username})!")
+            return False
+
+        return True
+
+    def draw_card(self, client_data):
+        # Segregating Client Side Data
+        client_username = client_data['username']
+
+        # Fetching current player as stored on the server
+        server_current_player = self.get_current_player()
+
+        # Draw the card.
+        drawn_card = server_current_player.draw(self.deck)
+
+        # Directly Moving to next player if this card cannot be played.
+        if not self.can_play_over_top(player=server_current_player, card=drawn_card):
+            self.current_player_index = self.increment_or_decrement_current_player_index(amount=1)
+
+        response = {
+            "username": client_username,
+            "drawnCard": json.dumps(drawn_card, cls=CustomEncoder),
+        }
+        return response
