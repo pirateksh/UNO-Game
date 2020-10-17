@@ -493,7 +493,7 @@ class GameServer:
         if skipped_player is not None:
             response = {
                 "username": skipped_player.username,
-                "drawnCards": drawn_cards,
+                "drawnCards": json.dumps(drawn_cards, cls=CustomEncoder),
                 "drawnCardCount": int(len(drawn_cards)),
             }
         else:
