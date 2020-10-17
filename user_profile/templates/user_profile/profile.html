@@ -45,7 +45,7 @@
     <section class="text-light text-center" style="margin-top: 5rem;">
         <div class="container">
             <div data-aos="flip-left" class="text-center mt-4">
-                <a class="btn btn-outline-light btn-xl" data-toggle="modal" href="#portfolio-modal" data-bs-hover-animate="tada" role="button" href="{% url 'create_game_room' %}"><span>Create New Room</span></a>
+                <a class="btn btn-outline-light btn-xl" data-bs-hover-animate="tada" role="button" href="{% url 'create_game_room' %}"><span>Create New Room</span></a>
                 <a class="btn btn-outline-light btn-xl" data-bs-hover-animate="tada" role="button" href="{% url 'bot_game' %}"><span>Start BOT Game</span></a>
             </div>
             <hr data-aos="flip-left" class="star-dark">
@@ -72,7 +72,7 @@
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td>{{ user_game_room.unique_game_id }}</td>
-                        <td><a href="{% url 'enter_game_room' user_game_room.unique_game_id %}">Enter</a></td>
+                        <td><a data-toggle="modal" href="#portfolio-modal" href="{% url 'enter_game_room' user_game_room.unique_game_id %}">Enter</a></td>
                     </tr>
                     </tbody>
                 {% endfor %}
