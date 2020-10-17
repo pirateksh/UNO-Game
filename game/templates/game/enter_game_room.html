@@ -181,6 +181,7 @@
                 this.direction = gameData.direction;
                 this.currentPlayerIndex = gameData.currentPlayerIndex;
                 this.isGameRunning = false;
+                this.canDrawCard = false;
                 // Adding Players to DOM.
                 Game.addPlayersToDOM(this.players);
             }
@@ -286,8 +287,6 @@
                 // If the move is valid, server will respond.
                 if(me === currentGame.getCurrentPlayer()) {
                     if(this.canPlay(card)) {
-                        console.log("Playing card: ", card, " Index: ", index);
-                        console.log(JSON.parse(JSON.stringify(myHand.cards)));
                         let nextTopColor;
                         if(card.category === WILD_FOUR || card.category === WILD) {
                             nextTopColor = prompt("Choose Next Color ('B', 'Y', 'G' or 'R')");
@@ -307,6 +306,24 @@
                     alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
                 }
             }
+
+            drawCardRequest() {
+                if(me === currentGame.getCurrentPlayer()) {
+                    if(this.canDrawCard) {
+                        this.canDrawCard = false;
+                        let data = {"status": "voluntary_draw_card", "message": "A player drew a card.", "data": {"username": this.getCurrentPlayer() }};
+                        let response = {"type": "voluntary_draw_card", "text": data};
+                        socket.send(JSON.stringify(response));
+                    }
+                    else {
+                        alert("You have already drawn a card for this move!");
+                    }
+                }
+                else {
+                    alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
+                }
+            }
+
 
             static addPlayersToDOM(players) {
                 for (let player of players) {
