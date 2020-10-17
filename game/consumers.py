@@ -113,6 +113,14 @@ class GameRoomConsumer(AsyncConsumer):
                 }
                 response.update(extra_data)
 
+            if forced_draw_data:
+                extra_data = {
+                    "forcedDrawData": forced_draw_data,
+                }
+                response.update(extra_data)
+                response['status'] = "forced_draw_card"
+                type_of_event = "forced_draw_card"
+
             await self.channel_layer.group_send(
                 self.game_room_id,
                 {
@@ -121,21 +129,21 @@ class GameRoomConsumer(AsyncConsumer):
                 }
             )
 
-            if forced_draw_data:
-                print("Should call Draw Card.")
-                response_ = {
-                    "status": "draw_card",
-                    "message": "Card(s) have been drawn.",
-                    "data": json.dumps(forced_draw_data, cls=CustomEncoder),
-                }
-
-                await self.channel_layer.group_send(
-                    self.game_room_id,
-                    {
-                        "type": "draw.card",
-                        "text": json.dumps(response_),
-                    }
-                )
+            # if forced_draw_data:
+            #     print("Should call Draw Card.")
+            #     response_ = {
+            #         "status": "draw_card",
+            #         "message": "Card(s) have been drawn.",
+            #         "data": json.dumps(forced_draw_data, cls=CustomEncoder),
+            #     }
+            #
+            #     await self.channel_layer.group_send(
+            #         self.game_room_id,
+            #         {
+            #             "type": "draw.card",
+            #             "text": json.dumps(response_),
+            #         }
+            #     )
             print("\n\n\n\n")
 
     async def voluntary_draw_card(self, event):
@@ -157,25 +165,29 @@ class GameRoomConsumer(AsyncConsumer):
             "text": json.dumps(response),
         })
 
-    async def draw_card(self, event):
+    async def forced_draw_card(self, event):
         # TODO: Draw card event is taking so much time. Look into this. -- Kshitiz
         #      Freezes after draw card. Probably error is in client side.
-        # text = json.loads(event['text'])
-        # data = json.loads(text['data'])
-        # print("Draw Card called.")
-        # print(data)
-        # username = data['username']
-        # if username != self.me.username:
-        #     data['drawnCards'] = []
-        # response = {
-        #     "status": text['status'],
-        #     "message": text['message'],
-        #     "data": json.dumps(data),
-        # }
+        text = json.loads(event['text'])
+        forced_draw_data = text['forcedDrawData']
+        username = forced_draw_data['username']
+        print("Draw Card called.")
+        print(forced_draw_data)
+        if username != self.me.username:
+            # Hiding drawn card if this is not the player who drew the card.
+            forced_draw_data['drawnCards'] = None
+
+        response = {
+            "status": text['status'],
+            "message": text['message'],
+            "data": text['data'],
+            "gameData": text['gameData'],
+            "forcedDrawData": forced_draw_data,
+        }
         await self.send({
             "type": "websocket.send",
-            # "text": json.dumps(response)
-            "text": event['text']
+            "text": json.dumps(response)
+            # "text": event['text']
         })
 
     async def play_card(self, event):

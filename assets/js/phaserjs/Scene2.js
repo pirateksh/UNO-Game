@@ -80,37 +80,22 @@ class Scene2 extends Phaser.Scene {
                 _this.endGame();
             }
             else if(status === "play_card") {
-                currentGame.copyData(gameData);
-                let username_ = data.username;
-                let playedCard = data.card; // Used if opponent has played the card.
-                let index = data.index; // Used if current player has played the card.
-                let playedCardObject = new Card(playedCard.category, playedCard.number);
-
-                if(username_ === me) {
-                    // Current Player plays a card.
-                    console.log(JSON.parse(JSON.stringify(myHand.cards)));
-                    console.log("Index of played card in create(): ", index);
-                    _this.playCardSelf(index);
-                } else {
-                    // Opponent plays a card.
-                    _this.playCardOpp(playedCardObject);
-                }
-
-                if(currentGame.getCurrentPlayer() === me) {
-                    // Making Hand Interactive for current Player.
-                    console.log("Making top deck card interactive for draw card.", me);
-                    currentGame.canDrawCard = true;
-                    _this.topDeckCard.setInteractive();
-                    console.log("Making hand interactive for: ", me);
-                    _this.makeHandInteractive();
-                }
+                _this.playCardEventConsumer(gameData, data);
             }
-            else if(status === "draw_card") { // always preceded by play_card event.
+            else if(status === "forced_draw_card") {
+                // When someone played DRAW TWO or WILD FOUR card.
+
+                // Play the Card.
+                _this.playCardEventConsumer(gameData, data);
+
+                // Draw card for next player.
                 // TODO: Bug when cards are drawn.
-                data = JSON.parse(data);
-                let username = data.username;
-                let drawnCards = data.drawnCards;
+                let forcedDrawData = backendResponse.forcedDrawData;
+                let username = forcedDrawData.username;
+                let drawnCards = JSON.parse(forcedDrawData.drawnCards);
                 let drawnCardCount = data.drawnCardCount;
+
+                console.log("Drawn Cards are:", drawnCards);
                 if(username === me) {
                     for(let drawnCard of drawnCards) {
                         let category = drawnCard.category, number = drawnCard.number;
@@ -122,8 +107,10 @@ class Scene2 extends Phaser.Scene {
                         myHand.addCardAndCardSprite(drawnCardObject, drawnCardSprite);
                         _this.drawCardSelf(drawnCardObject, drawnCardSprite, depth, index);
                     }
+
                     // Adjusting cards in hand on the table.
                     _this.adjustSelfHandOnTable();
+
                 }
                 else {
                     for(let i = 0; i < drawnCardCount; ++i) {
@@ -132,6 +119,7 @@ class Scene2 extends Phaser.Scene {
                 }
             }
             else if(status === "voluntary_draw_card") {
+                // TODO: Bug when player drew WILD FOUR. Look into it.
                 console.log("Card drawn verified by the server.");
                 currentGame.copyData(gameData);
                 let voluntaryDrawData = backendResponse.voluntaryDrawData;
@@ -177,6 +165,35 @@ class Scene2 extends Phaser.Scene {
                 }
             }
         });
+    }
+
+    playCardEventConsumer(gameData, data) {
+        let _this = this;
+        // Called when play_card event is encountered.
+        currentGame.copyData(gameData);
+        let username_ = data.username;
+        let playedCard = data.card; // Used if opponent has played the card.
+        let index = data.index; // Used if current player has played the card.
+        let playedCardObject = new Card(playedCard.category, playedCard.number);
+
+        if(username_ === me) {
+            // Current Player plays a card.
+            console.log(JSON.parse(JSON.stringify(myHand.cards)));
+            console.log("Index of played card in create(): ", index);
+            _this.playCardSelf(index);
+        } else {
+            // Opponent plays a card.
+            _this.playCardOpp(playedCardObject);
+        }
+
+        if(currentGame.getCurrentPlayer() === me) {
+            // Making Hand Interactive for current Player.
+            console.log("Making top deck card interactive for draw card.", me);
+            currentGame.canDrawCard = true;
+            _this.topDeckCard.setInteractive();
+            console.log("Making hand interactive for: ", me);
+            _this.makeHandInteractive();
+        }
     }
 
     giveOptionToPlayOrKeep(drawnCardObject, drawnCardSprite, depth, index) {
@@ -346,6 +363,7 @@ class Scene2 extends Phaser.Scene {
 
     endGame() {
         let _this = this;
+        _this.topDeckCard.disableInteractive();
 
         if(_this.topCardSprite) {
             _this.topCardSprite.disableBody(true, true);//.destroy();
