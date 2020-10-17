@@ -12,6 +12,9 @@ window.onload = function () {
 	gameDetails = {
 		deckX: width/2 - 200,
 		deckY: height/2,
+		myHandStartX: width/2 - 200,
+		myHandEndX: width/2 + 200,
+		myHandY: height/2 + 200,
 		topCardX: width/2,
 		topCardY: height/2,
         myHandScale: 1.61,
