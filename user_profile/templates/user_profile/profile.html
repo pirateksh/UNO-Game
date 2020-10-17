@@ -45,12 +45,14 @@
     <section class="text-light text-center" style="margin-top: 5rem;">
         <div class="container">
             <div data-aos="flip-left" class="text-center mt-4">
-                <a class="btn btn-outline-light btn-xl" data-bs-hover-animate="tada" role="button" href="{% url 'create_game_room' %}"><span>Create New Room</span></a>
+                <a class="btn btn-outline-light btn-xl" data-toggle="modal" href="#portfolio-modal" data-bs-hover-animate="tada" role="button" href="{% url 'create_game_room' %}"><span>Create New Room</span></a>
                 <a class="btn btn-outline-light btn-xl" data-bs-hover-animate="tada" role="button" href="{% url 'bot_game' %}"><span>Start BOT Game</span></a>
             </div>
             <hr data-aos="flip-left" class="star-dark">
         </div>
     </section> 
+
+
     <div class="text-light text-center">
         <h1 data-aos="slide-left">YOUR GAME ROOMS</h1>
         
@@ -142,6 +144,52 @@
     {% else %}
         <h1>Hey! How did you get in here. You are not logged in!<h1>
     {% endif %}
+
+
+     <div class="modal text-center" role="dialog" tabindex="-1" id="portfolio-modal">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>
+                <div class="modal-body">
+                    <div class="container text-center">
+                        <div class="row">
+                            <div class="col-lg-8 mx-auto">
+                                <h2 class="text-uppercase text-secondary mb-0">Game Lobby</h2>
+                                <hr class="star-dark mb-5">
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="2">
+                                                <h3 class="text-secondary">Players Joined</h3>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <img src="" alt="Profile pic 1">
+                                            </td>
+                                            <td>
+                                                Name 1
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <img src="" alt="Profile pic 2">
+                                            </td>
+                                            <td>
+                                                Name 2
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
