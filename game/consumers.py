@@ -64,11 +64,14 @@ class GameRoomConsumer(AsyncConsumer):
         """
         # print("received", event)
         front_text = event.get('text', None)
-        skipped_data = None
+        forced_draw_data = None  # If some player had to draw cards due to DRAW_TWO or WILD_FOUR.
+        voluntary_draw_data = None  # When player voluntary drew a card.
+        won_data = None  # When player has played all his cards.
         if front_text:
             loaded_dict_data = json.loads(front_text)
             type_of_event = loaded_dict_data['type']
             text_of_event = loaded_dict_data['text']
+
             if type_of_event == "user.new":
                 # Now we need to broadcast an event that this user has joined the room
                 print(text_of_event, "is sent by the Client")
@@ -96,13 +99,47 @@ class GameRoomConsumer(AsyncConsumer):
                 server_data = {
                     "username": self.me.username,
                 }
-                if self.game.is_valid_move(client_data=client_data, server_data=server_data):
-                    skipped_data = self.game.play_card(client_data=client_data)
-                    print("Skipped Data", skipped_data)
+                returned_data = None
+                if self.game.is_valid_play_move(client_data=client_data, server_data=server_data):
+                    returned_data = self.game.play_card(client_data=client_data)
+                    if returned_data:
+                        if returned_data['status'] == "won":
+                            won_data = returned_data
+                            won_username = won_data['username']
+                            won_score = int(won_data['score'])
+                            if won_score >= GameServer.WINNING_SCORE:
+                                text_of_event['status'] = "won_game"
+                                type_of_event = "won_game"
+                                await self.set_is_game_running_false()
+                                print(f"End Game. {won_username} has scored winning points.")
+                            else:
+                                text_of_event['status'] = "won_round"
+                                type_of_event = "won_round"
+                                print(f"This round ended. Get ready for next round.")
+
+                        elif returned_data['status'] == "skipped":
+                            forced_draw_data = returned_data
                 else:
                     # Handle Cheating
-                    # print(f"This is NOT a valid move.")
                     pass
+            elif type_of_event == "voluntary_draw_card":  # When current player clicked on deck to draw the card.
+                client_data = text_of_event['data']
+                server_data = {
+                    "username": self.me.username,
+                }
+                if self.game.is_valid_draw_move(client_data=client_data, server_data=server_data):
+                    voluntary_draw_data = self.game.draw_card()
+                else:
+                    # Handle Cheating
+                    pass
+            elif type_of_event == "keep.card":  # Player kept the card after drawing.
+                client_data = text_of_event['data']
+                server_data = {
+                    "username": self.me.username,
+                }
+                # Note: Here is_valid_draw_move will work fine to check if this is valid person.
+                if self.game.is_valid_draw_move(client_data=client_data, server_data=server_data):
+                    self.game.keep_card()
 
             response = {
                 "status": text_of_event['status'],
@@ -111,7 +148,26 @@ class GameRoomConsumer(AsyncConsumer):
                 "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder),
             }
 
-            # Broadcasts the enter_room event to be sent
+            if won_data:
+                extra_data = {
+                    "wonData": won_data,
+                }
+                response.update(extra_data)
+
+            if voluntary_draw_data:
+                extra_data = {
+                    "voluntaryDrawData": voluntary_draw_data,
+                }
+                response.update(extra_data)
+
+            if forced_draw_data:
+                extra_data = {
+                    "forcedDrawData": forced_draw_data,
+                }
+                response.update(extra_data)
+                response['status'] = "forced_draw_card"
+                type_of_event = "forced_draw_card"
+
             await self.channel_layer.group_send(
                 self.game_room_id,
                 {
@@ -120,21 +176,6 @@ class GameRoomConsumer(AsyncConsumer):
                 }
             )
 
-            if skipped_data:
-                print("Should call Draw Card.")
-                response_ = {
-                    "status": "draw_card",
-                    "message": "Card(s) have been drawn.",
-                    "data": json.dumps(skipped_data, cls=CustomEncoder),
-                }
-
-                await self.channel_layer.group_send(
-                    self.game_room_id,
-                    {
-                        "type": "draw.card",
-                        "text": json.dumps(response_),
-                    }
-                )
             # print("\n\n\n\n")
 
     async def new_user_entered_room(self, event):
@@ -156,36 +197,71 @@ class GameRoomConsumer(AsyncConsumer):
             "text": json.dumps(response),
         })
 
-    async def user_left_room(self, event):
-        client_data_json = event.get('text')
-        client_data = json.loads(client_data_json)
-        left_user_username = client_data['left_user_username']
-        game_room_unique_id = client_data['game_room_unique_id']
+    async def won_game(self, event):
+        await self.send({
+            "type": "websocket.send",
+            "text": event['text']
+        })
+
+    async def won_round(self, event):
+        text = event.get('text', None)
+        if text:
+            loaded_dict_data = json.loads(text)
+            extra_data = {
+                "serializedPlayer": json.dumps(self.player_server_obj, cls=CustomEncoder),
+            }
+            loaded_dict_data.update(extra_data)
+            await self.send({
+                "type": "websocket.send",
+                "text": json.dumps(loaded_dict_data)
+            })
+
+    async def keep_card(self, event):
+        await self.send({
+            "type": "websocket.send",
+            "text": event['text']
+        })
+
+    async def voluntary_draw_card(self, event):
+        text = json.loads(event['text'])
+        voluntary_draw_data = text['voluntaryDrawData']
+        username = voluntary_draw_data['username']
+        if username != self.me.username:
+            # Hiding drawn card if this is not the player who drew the card.
+            voluntary_draw_data['drawnCard'] = None
         response = {
-            "left_user_username": left_user_username,
-            "game_room_unique_id": game_room_unique_id
+            "status": text['status'],
+            "message": text['message'],
+            "data": text['data'],
+            "gameData": text['gameData'],
+            "voluntaryDrawData": voluntary_draw_data,
         }
         await self.send({
             "type": "websocket.send",
             "text": json.dumps(response),
         })
 
-    async def draw_card(self, event):
+    async def forced_draw_card(self, event):
         text = json.loads(event['text'])
-        data = json.loads(text['data'])
-        print("Draw Card called.")
-        print(data)
-        username = data['username']
+        forced_draw_data = text['forcedDrawData']
+        username = forced_draw_data['username']
+        # print("Draw Card called.")
+        # print(forced_draw_data)
         if username != self.me.username:
-            data['drawnCards'] = []
+            # Hiding drawn card if this is not the player who drew the card.
+            forced_draw_data['drawnCards'] = None
+
         response = {
             "status": text['status'],
             "message": text['message'],
-            "data": json.dumps(data),
+            "data": text['data'],
+            "gameData": text['gameData'],
+            "forcedDrawData": forced_draw_data,
         }
         await self.send({
             "type": "websocket.send",
             "text": json.dumps(response)
+            # "text": event['text']
         })
 
     async def play_card(self, event):
@@ -265,6 +341,20 @@ class GameRoomConsumer(AsyncConsumer):
             self.game_room_id,
             self.channel_name
         )
+
+    async def user_left_room(self, event):
+        client_data_json = event.get('text')
+        client_data = json.loads(client_data_json)
+        left_user_username = client_data['left_user_username']
+        game_room_unique_id = client_data['game_room_unique_id']
+        response = {
+            "left_user_username": left_user_username,
+            "game_room_unique_id": game_room_unique_id
+        }
+        await self.send({
+            "type": "websocket.send",
+            "text": json.dumps(response),
+        })
 
     async def leave_room(self, event):
         await self.send({
