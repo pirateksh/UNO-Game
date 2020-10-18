@@ -27,8 +27,8 @@
     }
     video{
         {#display: inline-block;#}
-        width: 25%;
-        height: 25%;
+        width: 100%;
+        height: 100%;
         object-fit: cover;
     }
 
@@ -144,6 +144,17 @@
                 return this.cards.length;
             }
 
+            getActiveCount() {
+                // Returns count of active card i.e. not null cards only.
+                let count = 0;
+                for(let card of this.cards) {
+                    if(card != null) {
+                        count++;
+                    }
+                }
+                return count;
+            }
+
             getCardAt(i) {
                 // Method to return card at ith index in this hand.
                 if(i < this.getCount()) {
@@ -156,14 +167,31 @@
                     return this.cardSprites[i];
                 }
             }
+
             removeCardAndCardSpriteAt(i) {
-                this.cards.splice(i, 1);
-                this.cardSprites.splice(i, 1);
+                {#this.cards.splice(i, 1);#}
+                {#this.cardSprites.splice(i, 1);#}
+                this.cards[i] = null;
+                this.cardSprites[i] = null;
             }
 
             addCardAndCardSprite(card, cardSprite) {
                 this.cards.push(card);
                 this.cardSprites.push(cardSprite);
+            }
+
+            getDepth(cardSprite) {
+                // Getting depth of the card.
+                let depth = 1;
+                for(let i = 0; i < this.getCount(); ++i) {
+                    let thisCardSprite = this.getCardSpriteAt(i);
+                    if(thisCardSprite != null) {
+                        if(JSON.stringify(cardSprite) === JSON.stringify(thisCardSprite)) {
+                            return depth;
+                        }
+                        depth += 1;
+                    }
+                }
             }
         }
 
@@ -177,14 +205,17 @@
                 this.direction = gameData.direction;
                 this.currentPlayerIndex = gameData.currentPlayerIndex;
                 this.isGameRunning = false;
+                this.canDrawCard = false;
                 // Adding Players to DOM.
                 Game.addPlayersToDOM(this.players);
             }
 
             copyData(gameData) {
-                console.log(gameData);
-                this.topCard = new Card(gameData.topCard.category, gameData.topCard.number);
-                this.topColor = gameData.topColor;
+                {#console.log(gameData);#}
+                if(gameData.topCard) {
+                    this.topCard = new Card(gameData.topCard.category, gameData.topCard.number);
+                    this.topColor = gameData.topColor;
+                }
                 this.direction = gameData.direction;
                 this.currentPlayerIndex = gameData.currentPlayerIndex;
             }
@@ -194,7 +225,12 @@
             }
 
             getCurrentPlayer() {
-                return this.players[this.currentPlayerIndex];
+                if(this.currentPlayerIndex >= 0) {
+                    return this.players[this.currentPlayerIndex];
+                }
+                else {
+                    return null;
+                }
             }
 
             setTopCard(card) {
@@ -222,7 +258,9 @@
                     startGameButton.prop("disabled", true);
                     endGameButton.prop("disabled", false);
                     for(let card of myHand.cards) {
-                        myHandList.append(`<li>Category: ${card.category} Number: ${card.number}`);
+                        if(card != null) {
+                            myHandList.append(`<li>Category: ${card.category} Number: ${card.number}`);
+                        }
                     }
                     topCardElem.html(`Category: ${this.topCard.category} Number: ${this.topCard.number}`);
                 }
@@ -260,6 +298,9 @@
                 else if(category === WILD_FOUR) {
                     // Logic for Wild Four Card
                     for(let handCard of myHand.cards) {
+                        if(handCard == null) {
+                            continue;
+                        }
                         if(handCard.category !== WILD_FOUR) {
                             if(this.canPlay(handCard)) {
                                 return false;
@@ -270,19 +311,52 @@
                 }
             }
 
-            playCard(card, index) {
+            playCardRequest(card, index) {
                 // Method to send data to backend using socket and play a card.
+                // If the move is valid, server will respond.
                 if(me === currentGame.getCurrentPlayer()) {
-                    console.log("Playing card: ", card);
-                    let nextTopColor;
-                    if(card.category === WILD_FOUR || card.category === WILD) {
-                        nextTopColor = prompt("Choose Next Color ('B', 'Y', 'G' or 'R')");
+                    if(this.canPlay(card)) {
+                        let nextTopColor;
+                        if(card.category === WILD_FOUR || card.category === WILD) {
+                            nextTopColor = prompt("Choose Next Color ('B', 'Y', 'G' or 'R')");
+                        }
+                        else {
+                            nextTopColor = card.category;
+                        }
+                        let data = {"status": "play_card", "message": "A player played a card.", "data": {"username": this.getCurrentPlayer(), "card": card, "index": index, "next_top_color": nextTopColor,}};
+                        let response = {"type": "play.card", "text": data};
+                        socket.send(JSON.stringify(response));
                     }
                     else {
-                        nextTopColor = card.category;
+                        alert("You cannot play this card!");
                     }
-                    let data = {"status": "play_card", "message": "A player played a card.", "data": {"username": this.getCurrentPlayer(), "card": card, "index": index, "next_top_color": nextTopColor,}};
-                    let response = {"type": "play.card", "text": data};
+                }
+                else {
+                    alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
+                }
+            }
+
+            drawCardRequest() {
+                if(me === currentGame.getCurrentPlayer()) {
+                    if(this.canDrawCard) {
+                        this.canDrawCard = false;
+                        let data = {"status": "voluntary_draw_card", "message": "A player drew a card.", "data": {"username": this.getCurrentPlayer() }};
+                        let response = {"type": "voluntary_draw_card", "text": data};
+                        socket.send(JSON.stringify(response));
+                    }
+                    else {
+                        alert("You have already drawn a card for this move!");
+                    }
+                }
+                else {
+                    alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
+                }
+            }
+
+            keepCardAfterDrawingRequest() {
+                if(me === currentGame.getCurrentPlayer()) {
+                    let data = {"status": "keep_card", "message": "The player kept the card after drawing.", "data": {"username": this.getCurrentPlayer() }};
+                    let response = {"type": "keep.card", "text": data};
                     socket.send(JSON.stringify(response));
                 }
                 else {
@@ -297,6 +371,11 @@
                 }
             }
 
+            static addScoreToDOM(player, score) {
+                let editElem = $(`#id_connected_players_${player}_{{ game_room.pk }}`);
+                editElem.html(`${player} (${score})`);
+            }
+
             static removePlayersFromDOM(players) {
                 for (let player of players) {
                     let removeID = `#id_connected_players_${player}_{{ game_room.pk }}`;
@@ -305,8 +384,10 @@
             }
         }
     </script>
+
     <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.3.1/peerjs.min.js"></script>
+
     <script>
         // Constants
         {#navigator.mediaDevices.getUserMedia = navigator.mediaDevices.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;#}
@@ -314,6 +395,7 @@
         const SUCCESS = "success";
         const STREAM = navigator.mediaDevices.getUserMedia({video: true, audio: true});
         const peers = {};
+
         // Fetching Endpoint
         let loc = window.location;
         let wsStart = 'ws://';
@@ -384,7 +466,7 @@
         });
 
         VideoGrid = document.getElementById('VideoGrid');
-        const Video = document.createElement('video'); // This video Element will contain users own video
+        let Video = document.createElement('video'); // This video Element will contain users own video
 
         function addVideoStream(Video, stream, label="Some user in Room") {
             console.log("Used to Add own stream on open and then for the other users.");
@@ -393,11 +475,18 @@
                 Video.play()
             });
             console.log("Video is Playing...");
+            let NewVideoCont = document.createElement('div');
+            NewVideoCont.style.display = "inline-block";
+            NewVideoCont.style.boxSizing = "border-box";
+            NewVideoCont.style.width = "100px";
             let NewVideoLabel = document.createElement('p');
             NewVideoLabel.innerHTML = label;
-            VideoGrid.append(NewVideoLabel);
+            VideoGrid.append(NewVideoCont);
+            NewVideoCont.append(NewVideoLabel);
+            NewVideoCont.id = "div_" + label;
             NewVideoLabel.id = label;
-            VideoGrid.append(Video);
+            Video.id = "vid_" + label;
+            NewVideoCont.append(Video);
             console.log(label, " is the label");
             if(label === "{{ user.username }}"){
                 Video.muted = true;
@@ -476,6 +565,12 @@
                     console.log("Aur tha bhi");
                     peers[left_user_username].close();
                     delete peers[left_user_username];
+                     if(document.getElementById("div_" + left_user_username)){
+                        document.getElementById("div_" + left_user_username).remove();
+                     }
+                     if(document.getElementById("vid_" + left_user_username)){
+                        document.getElementById("vid_" + left_user_username).remove();
+                     }
                 }
                 else{
                     console.log("Tha hi nhi");
@@ -491,14 +586,12 @@
                 {#console.log("Mai hu {{ user }} abhi peer_id_mili hai server se: " + backendResponse.unique_peer_id + ", " +  backendResponse.game_room_unique_id + ", is bnde ko call karunga...");#}
                 connectToNewUser(var_unique_peer_id, var_new_user_username);
             }
+
             if(backendResponse.gameData) {
                 gameData = JSON.parse(backendResponse.gameData);
-                console.log(gameData);
+                {#console.log(gameData);#}
                 if(currentGame == null) {
                     currentGame = new Game(gameData);
-                }
-                else {
-                    currentGame.copyData(gameData);
                 }
             }
 
@@ -518,16 +611,16 @@
                 elementToAppend = `<li>${message}</li>`;
                 notificationList.append(elementToAppend);
             }
-            else if(status === START_GAME) {
+            else if(status === "start_game") {
                 // This is handled in Scene2.js's create() method.
             }
-            else if(status === END_GAME) {
+            else if(status === "end_game") {
                 // This is handled in Scene2.js's create() method.
             }
-            else if(status === PLAY_CARD) {
+            else if(status === "play_card") {
                 // This is handled in Scene2.js's create() method.
             }
-            else if(status === DRAW_CARD) {
+            else if(status === "draw_card") {
                 // This is handled in Scene2.js's create() method.
             }
 
@@ -543,16 +636,6 @@
 
     </script>
 {% endblock %}
-
-
-
-
-
-
-
-
-
-
 
 <script>
     /*
