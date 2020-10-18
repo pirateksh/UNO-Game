@@ -19,15 +19,16 @@
 		    transform: translate(-50%, -50%);
 		}
     #VideoGrid{
-        border: black dotted 2px;
+        border: red dotted 2px;
         width: 40%;
-        display: grid;
+        {#display: grid;#}
         grid-template-columns: repeat(auto-fill, 300px);
         grid-auto-rows: 300px;
     }
     video{
-        width: 50%;
-        height: 50%;
+        {#display: inline-block;#}
+        width: 25%;
+        height: 25%;
         object-fit: cover;
     }
 
@@ -302,15 +303,17 @@
                     $(removeID).remove();
                 }
             }
-
         }
     </script>
-
+    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.3.1/peerjs.min.js"></script>
     <script>
         // Constants
+        {#navigator.mediaDevices.getUserMedia = navigator.mediaDevices.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;#}
         const ERROR = "error";
         const SUCCESS = "success";
-
+        const STREAM = navigator.mediaDevices.getUserMedia({video: true, audio: true});
+        const peers = {};
         // Fetching Endpoint
         let loc = window.location;
         let wsStart = 'ws://';
@@ -321,56 +324,50 @@
         let endpoint = wsStart + loc.host + loc.pathname;
         // Making WebSocket Object
         // let socket = new ReconnectingWebSocket(endpoint);
+
         let socket = new WebSocket(endpoint);
 
         let currentGame = null;
         let myHand = new Hand();
         let me = "{{ user.username }}";
 
-        VideoGrid = document.getElementById('VideoGrid');
-        const VideoContainer = document.createElement('div');
-        const VideoLabel = document.createElement('p');
-        VideoLabel.innerHTML = "{{ user }}";
-        const Video = document.createElement('video');
+        const my_peer = new Peer(undefined, { // making available a Peer Object from peerjs library to work on the root path
+            host: '/',
+            port: '8001'
+        });
 
-        Video.muted = true;
-        socket.onopen = function (e) {
-
-            navigator.mediaDevices.getUserMedia({
-                video: false,
-                audio: false
-            }).then(stream => {
-                addVideoStream(Video, stream); // custom function to handle adding the myVideo video element to the dom.
+        const get_my_peer_id = new Promise(resolve => {
+            my_peer.on('open', (uid) => {
+                console.log("My peer ID is: ", uid);
+                    resolve({"unique_peer_id": uid});
             });
+        });
 
-            // to tell myVideo element to use the stream
-            function addVideoStream(Video, stream) {
-                Video.srcObject = stream; // adding the stream as the src of the video to our myVideo video Element
-                Video.addEventListener('loadedmetadata', () => {
-                    Video.play()
-                });
-                VideoGrid.append(VideoContainer);
-                VideoContainer.append(VideoLabel);
-                VideoContainer.append(Video);
-                {#VideoGrid.append(Video) // appending the myVideo video element to the video-grid#}
-                /*
-                    We will now get the stream of all the other user on the same room.
-                    This is done as soon as the new-user-connected event will be emiited.
-                */
-            }
+        const open_socket = new Promise(resolve => {
+            socket.addEventListener("open", (e) => {
+                resolve({"open_socket_state": socket.readyState});
+            });
+        });
 
+        Promise.all([get_my_peer_id, open_socket]).then(result => {
+             console.log("open");
+             {#console.log(result);#}
+             MY_UNIQUE_PEER_ID = result[0].unique_peer_id;
+             let client_data = {"new_user_username" : "{{ user.username }}", "unique_peer_id": result[0].unique_peer_id, "game_room_unique_id": "{{ game_room.unique_game_id }}"};
+             let client_response = {"type": "user.new", "text": client_data};
+             console.log("Sending: ", client_data);
+             console.log(socket.readyState);
+             socket.send(JSON.stringify(client_response));
 
-            let client_data = {"username": "{{ user.username }}", "game_room_unique_id": "{{ game_room.unique_game_id }}"};
-            let client_response = {"type": "user.new", "text": client_data};
-            {#console.log("Client is sending ", client_response);#}
-            socket.send(JSON.stringify(client_response));
+             STREAM.then(stream => {
+                addVideoStream(Video, stream, "{{user.username}}");
+             });
 
-            console.log("open");
             // Entering the Game Room (when socket connection opens).
             let data = {"status": "connected", "message": "Connecting...", "data": {"username": "{{ user.username }}", "pk": "{{ user.pk }}",}};
             let response = {"type": "enter.room", "text": data};
             socket.send(JSON.stringify(response));
-            
+
             // When start game Button is clicked
             startGameButton.click(function () {
                 let data = {"status": "start_game", "message": "Game is being started.", "data": {}};
@@ -384,23 +381,119 @@
                 response = {"type": "end.game", "text": data};
                 socket.send(JSON.stringify(response));
             });
-        };
+        });
+
+        VideoGrid = document.getElementById('VideoGrid');
+        const Video = document.createElement('video'); // This video Element will contain users own video
+
+        function addVideoStream(Video, stream, label="Some user in Room") {
+            console.log("Used to Add own stream on open and then for the other users.");
+            Video.srcObject = stream; // adding the stream as the src of the video to our myVideo video Element
+            Video.addEventListener('loadedmetadata', () => {
+                Video.play()
+            });
+            console.log("Video is Playing...");
+            let NewVideoLabel = document.createElement('p');
+            NewVideoLabel.innerHTML = label;
+            VideoGrid.append(NewVideoLabel);
+            NewVideoLabel.id = label;
+            VideoGrid.append(Video);
+            console.log(label, " is the label");
+            if(label === "{{ user.username }}"){
+                Video.muted = true;
+            }
+        }
+
+        function connectToNewUser(other_unique_peer_id, var_new_user_username){
+            if(MY_UNIQUE_PEER_ID === other_unique_peer_id){
+                console.log("No Need to Call Yourself...");
+                return ;
+            }
+            console.log("Called Connect to new user");
+            STREAM.then(stream => {
+                console.log("Calling... Peer", var_new_user_username, "at id:", other_unique_peer_id);
+                setTimeout(()=>{
+                    const call = my_peer.call(other_unique_peer_id, stream, {metadata: {"username": "{{user.username}}"}}); // Calling the Newly Connected peer
+                    console.log("Called Peer");
+                    const Video = document.createElement('video');
+                    console.log("video Element Created.");
+                    call.on('stream', remoteStream => { // adding the others video element to video-grid on our page.
+                        console.log("tung");
+                        console.log(peers[var_new_user_username]);
+                        if(peers[var_new_user_username] !== undefined){
+                            console.log("Second Call");
+                        }
+                        else{
+                            console.log("First Call");
+                            console.log("Receiving the Answer");
+                            addVideoStream(Video, remoteStream, var_new_user_username);
+                            console.log("Steam of guy whom i called:",var_new_user_username, "is Added");
+                            peers[var_new_user_username] = call;
+                        }
+                    });
+                    call.on('close', () => {
+                        Video.remove();
+                        console.log("Removed from close");
+                    });
+                }, 2000);
+            });
+        }
+
+        STREAM.then((stream) => {
+            my_peer.on('call', (call) => { // Someone is Calling me
+                var caller = call.metadata.username;
+                console.log("Someone Just Called Me.", caller);
+                console.log("Answering the Call...");
+
+                call.answer(stream); // Answer the call with an A/V stream.
+                console.log("Answered the Call...");
+                const othersVideo = document.createElement('video');
+                call.on('stream', (remoteStream) => {
+                     if(peers[caller] !== undefined){ // Already Answered Once
+                        console.log("Second Answer");
+                     }
+                     else{
+                         console.log("First Answer");
+                         peers[caller] = call;
+                         console.log("For user who just Called me adding his Stream.");
+                         addVideoStream(othersVideo, remoteStream, caller);
+                     }
+                 });
+            });
+        });
 
         socket.addEventListener("message", function (e) {
-            {#console.log("message");#}
+            {# console.log("message");#}
             let backendResponse = JSON.parse(e.data);
             let status = backendResponse.status;
             let message = backendResponse.message;
             let data = backendResponse.data;
             let gameData;
-            if(backendResponse.username && backendResponse.game_room_unique_id){
-                let var_username = backendResponse.username;
+            let left_user_username = backendResponse.left_user_username;
+            if(left_user_username){
+                console.log(left_user_username, "Disconnect Ho gya...");
+                if (peers[left_user_username]){
+                    console.log("Aur tha bhi");
+                    peers[left_user_username].close();
+                    delete peers[left_user_username];
+                }
+                else{
+                    console.log("Tha hi nhi");
+                }
+                if(document.getElementById(left_user_username)){
+                    document.getElementById(left_user_username).remove();
+                }
+            }
+            else if(backendResponse.unique_peer_id && backendResponse.game_room_unique_id){
                 let var_game_room_unique_id = backendResponse.game_room_unique_id;
-                {#console.log("Mai hu {{ user }} abhi video " + backendResponse.username + ", " +  backendResponse.game_room_unique_id + " Stream maangta hu aur apni Stream uske pass Bhejta hu...");#}
+                let var_unique_peer_id = backendResponse.unique_peer_id;
+                let var_new_user_username = backendResponse.new_user_username;
+                {#console.log("Mai hu {{ user }} abhi peer_id_mili hai server se: " + backendResponse.unique_peer_id + ", " +  backendResponse.game_room_unique_id + ", is bnde ko call karunga...");#}
+                connectToNewUser(var_unique_peer_id, var_new_user_username);
             }
             if(backendResponse.gameData) {
                 gameData = JSON.parse(backendResponse.gameData);
-                {#console.log(gameData);#}
+                console.log(gameData);
                 if(currentGame == null) {
                     currentGame = new Game(gameData);
                 }
@@ -437,6 +530,7 @@
             else if(status === DRAW_CARD) {
                 // This is handled in Scene2.js's create() method.
             }
+
         });
 
         socket.onerror = function (e) {
@@ -446,6 +540,7 @@
         socket.onclose = function (e) {
             console.log("close");
         };
+
     </script>
 {% endblock %}
 
