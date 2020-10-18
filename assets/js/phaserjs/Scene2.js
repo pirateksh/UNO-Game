@@ -2,7 +2,12 @@ class Scene2 extends Phaser.Scene {
     constructor() {
         super("playGame");
     }
-
+    /*
+    * TODO: -- Kshitiz.
+    *  1. Implement Illegal Wild Four Draw / Challenging when a Wild Four is Drawn.
+    *  2. Implement calling UNO / Challenging if UNO is not called by player left with 1 card.
+    *
+    * */
     create() {
         let _this = this;
         _this.config = game.config;
@@ -12,6 +17,7 @@ class Scene2 extends Phaser.Scene {
         _this.table.setOrigin(0,0);
 
         _this.deck = _this.physics.add.group();
+        _this.discardedTopCards = _this.physics.add.group();
 
         let initialPosX = 200, initialPosY = 0;
         _this.deckX = config.width/2 - initialPosX;
@@ -52,41 +58,29 @@ class Scene2 extends Phaser.Scene {
             let status = backendResponse.status;
             let message = backendResponse.message;
             let data = backendResponse.data;
-            let gameData, serializedPlayer, serverHand;
+            let gameData;
             if(backendResponse.gameData) {
                 gameData = JSON.parse(backendResponse.gameData);
             }
-            if(backendResponse.serializedPlayer) {
-                serializedPlayer = JSON.parse(backendResponse.serializedPlayer);
-                serverHand = serializedPlayer.hand;
-                // myHand = new Hand(serializedPlayer.hand);
-            }
+
 
             if(status === "start_game") {
                 currentGame.copyData(gameData);
-                // Adding cards to player's Hand.
-                for(let i = 0; i < serverHand.length; ++i) {
-                    let cardInHand = serverHand[i];
-                    let category = cardInHand.category, number = cardInHand.number;
-                    let cardObject = new Card(category, number);
-                    let x  = gameDetails.deckX, y = gameDetails.deckY;
-                    let depth = i+1, scale = gameDetails.myHandScale;
-                    let cardSprite = _this.getCardSprite(cardObject, x, y, depth, scale);
-                    myHand.addCardAndCardSprite(cardObject, cardSprite);
-                }
-                _this.startGame();
+                _this.startGameEventConsumer(backendResponse.serializedPlayer);
             }
             else if (status === "end_game") {
                 _this.endGame();
             }
             else if(status === "play_card") {
-                _this.playCardEventConsumer(gameData, data);
+                currentGame.copyData(gameData);
+                _this.playCardEventConsumer(data);
             }
             else if(status === "forced_draw_card") {
                 // When someone played DRAW TWO or WILD FOUR card.
 
                 // Play the Card.
-                _this.playCardEventConsumer(gameData, data);
+                currentGame.copyData(gameData);
+                _this.playCardEventConsumer(data);
 
                 // Draw card for next player.
                 // TODO: Bug when cards are drawn.
@@ -162,15 +156,82 @@ class Scene2 extends Phaser.Scene {
                     _this.topDeckCard.setInteractive();
                     console.log("Making hand interactive for: ", me);
                     _this.makeHandInteractive();
+
+                    alert("It's your turn!");
                 }
+            }
+            else if(status === "keep_card") {
+                currentGame.copyData(gameData);
+                if(currentGame.getCurrentPlayer() === me) {
+                    // Making Hand Interactive for current Player.
+                    console.log("Making top deck card interactive for draw card.", me);
+                    currentGame.canDrawCard = true;
+                    _this.topDeckCard.setInteractive();
+                    console.log("Making hand interactive for: ", me);
+                    _this.makeHandInteractive();
+
+                    alert("It's your turn!");
+                }
+            }
+            else if(status === "won_round") {
+                _this.playCardEventConsumer(data);
+                let wonData = backendResponse.wonData;
+                let wonUsername = wonData.username;
+                let wonScore = wonData.score;
+                Game.addScoreToDOM(wonUsername, wonScore);
+                alert(`${wonUsername} won with score = ${wonScore}. New round is going to start.`);
+
+                // Emptying Hands.
+                for(let i = 0; i < myHand.getCount(); ++i) {
+                    let cardSprite = myHand.getCardSpriteAt(i);
+                    if(cardSprite != null) {
+                        let toX = gameDetails.deckX, toY = gameDetails.deckY, duration = 500;
+                        _this.addTween(cardSprite, toX, toY, duration);
+                        cardSprite.disableBody(true, true);
+                    }
+                }
+                myHand.emptyHand();
+
+                // Destroying previous round's top card.
+                _this.discardedTopCards.clear(true, true);
+
+                // Starting new round.
+                currentGame.copyData(gameData);
+                if(backendResponse.serializedPlayer) {
+                    _this.startGameEventConsumer(backendResponse.serializedPlayer);
+                }
+            }
+            else if(status === "won_game") {
+                _this.endGame();
+                let wonData = backendResponse.wonData;
+                let wonUsername = wonData.username;
+                let wonScore = wonData.score;
+                Game.addScoreToDOM(wonUsername, wonScore);
+                alert(`${wonUsername} won with score = ${wonScore}. Start a new game or leave the room.`);
             }
         });
     }
 
-    playCardEventConsumer(gameData, data) {
+    startGameEventConsumer(strigifiedSerializedPlayer) {
+        let _this = this;
+        let serializedPlayer = JSON.parse(strigifiedSerializedPlayer);
+        let serverHand = serializedPlayer.hand;
+        for(let i = 0; i < serverHand.length; ++i) {
+            let cardInHand = serverHand[i];
+            let category = cardInHand.category, number = cardInHand.number;
+            let cardObject = new Card(category, number);
+            let x  = gameDetails.deckX, y = gameDetails.deckY;
+            let depth = i+1, scale = gameDetails.myHandScale;
+            let cardSprite = _this.getCardSprite(cardObject, x, y, depth, scale);
+            myHand.addCardAndCardSprite(cardObject, cardSprite);
+        }
+        _this.startGame();
+    }
+
+    playCardEventConsumer(data) {
         let _this = this;
         // Called when play_card event is encountered.
-        currentGame.copyData(gameData);
+
         let username_ = data.username;
         let playedCard = data.card; // Used if opponent has played the card.
         let index = data.index; // Used if current player has played the card.
@@ -193,6 +254,8 @@ class Scene2 extends Phaser.Scene {
             _this.topDeckCard.setInteractive();
             console.log("Making hand interactive for: ", me);
             _this.makeHandInteractive();
+
+            alert("It's your turn!");
         }
     }
 
@@ -201,7 +264,7 @@ class Scene2 extends Phaser.Scene {
         // drawnCardSprite.setScale(2 * gameDetails.myHandScale);
         let toX = _this.config.width/2, toY = _this.config.height/2, duration = 1000;
         _this.addTween(drawnCardSprite, toX, toY, duration);
-        let playOrKeep = prompt("Choose whether you want to play or keep!", "'P' or 'K'");
+        let playOrKeep = prompt(`You have drawn ${drawnCardObject.number} of ${drawnCardObject.category}. Choose Play or Keep ('P' or 'K')`);
         if(playOrKeep === 'P') { // Play
             currentGame.playCardRequest(drawnCardObject, index);
         }
@@ -210,12 +273,14 @@ class Scene2 extends Phaser.Scene {
             _this.drawCardSelf(drawnCardObject, drawnCardSprite, depth, index);
             // Adjusting cards in hand on the table.
             _this.adjustSelfHandOnTable();
+
+            currentGame.keepCardAfterDrawingRequest();
             // TODO: Send keep_card message to server so that it can go to next player.
         }
     }
 
 
-    adjustSelfHandOnTable() {
+    adjustSelfHandOnTable(skipIndex=-1) {
         let _this = this;
         // To adjust the positioning of cards in Hand on the Table after dealing, playing, drawing, etc.
         if(currentGame.isGameRunning) { // If the Game is Running.
@@ -225,19 +290,22 @@ class Scene2 extends Phaser.Scene {
                 let incrementValue = window / activeCardsCount;
                 let toX = gameDetails.myHandStartX, toY = gameDetails.myHandY;
                 for(let i = 0; i < myHand.getCount(); ++i) {
-                    let card = myHand.getCardAt(i);
-                    let cardSprite = myHand.getCardSpriteAt(i);
-                    let depth = i + 1;
-                    if(card != null && cardSprite != null) {
-                        let duration = 1500;
-                        _this.addTween(cardSprite, toX, toY, duration);
-                        cardSprite.depth = depth; //////////////
-                        if(me !== currentGame.getCurrentPlayer()) {
-                            // Making cards Un-Interactive if it is not this player's turn.
-                            cardSprite.disableInteractive();
+                    if(skipIndex !== i) { // If this card doesn't have to be skipped.
+                        let card = myHand.getCardAt(i);
+                        let cardSprite = myHand.getCardSpriteAt(i);
+                        let depth = i + 1;
+                        if(card != null && cardSprite != null) {
+                            console.log("Adjusting:", card);
+                            let duration = 500;
+                            _this.addTween(cardSprite, toX, toY, duration);
+                            cardSprite.depth = depth; //////////////
+                            if(me !== currentGame.getCurrentPlayer()) {
+                                // Making cards Un-Interactive if it is not this player's turn.
+                                cardSprite.disableInteractive();
+                            }
+                            depth += 1;
+                            toX += incrementValue;
                         }
-                        depth += 1;
-                        toX += incrementValue;
                     }
                 }
             }
@@ -270,6 +338,8 @@ class Scene2 extends Phaser.Scene {
             _this.topDeckCard.setInteractive();
             console.log("Making hand interactive for: ", me);
             _this.makeHandInteractive();
+
+            alert("It's your turn!");
         }
     }
 
@@ -311,13 +381,19 @@ class Scene2 extends Phaser.Scene {
         // When current player plays a card.
 
         console.log("Disabling top card body.");
-        _this.topCardSprite.disableBody(true, true);
+        _this.discardedTopCards.add(_this.topCardSprite);
+        _this.topCardSprite.depth = 0; // Testing
+        // _this.topCardSprite.disableBody(true, true);
+
 
         let playedCard = myHand.getCardAt(index);
         let playedCardSprite = myHand.getCardSpriteAt(index);
 
         if(playedCard != null && playedCardSprite != null) {
             let x = gameDetails.topCardX, y = gameDetails.topCardY, duration = 500;
+
+            playedCardSprite.depth = 1; // Testing
+
             _this.addTween(playedCardSprite, x, y, duration);
 
             playedCardSprite.disableInteractive();
@@ -332,7 +408,7 @@ class Scene2 extends Phaser.Scene {
             myHand.removeCardAndCardSpriteAt(index);
 
             // Adjusting Cards in the Hand present on table.
-            _this.adjustSelfHandOnTable();
+            _this.adjustSelfHandOnTable(index);
 
         } else {
             console.log("playedCard is null.");
@@ -345,7 +421,7 @@ class Scene2 extends Phaser.Scene {
 
             cardSprite.on("pointerover", function (pointer) {
                 // console.log("Can Play this card: ", card);
-                cardSprite.depth = 10;//myHand.getActiveCount() + 2; //// 10;
+                cardSprite.depth = 25;//myHand.getActiveCount() + 2; //// 10;
                 cardSprite.y = (gameDetails.myHandY - 15);
             });
 
@@ -368,6 +444,8 @@ class Scene2 extends Phaser.Scene {
         if(_this.topCardSprite) {
             _this.topCardSprite.disableBody(true, true);//.destroy();
         }
+
+        _this.discardedTopCards.clear(true, true);
 
         // Disabling CardSprite in Hand of Player.
         for(let i = 0; i < myHand.getCount(); ++i) {

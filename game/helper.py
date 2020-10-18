@@ -20,10 +20,13 @@ class Card:
     RED, BLUE, GREEN, YELLOW = "R", "B", "G", "Y"
     WILD, WILD_FOUR = "W", "WF"
 
-    # Possible Numbers
+    # Possible Numbers Will also be used for calculating score
     ZERO, ONE, TWO, THREE, FOUR = 0, 1, 2, 3, 4
     FIVE, SIX, SEVEN, EIGHT, NINE = 5, 6, 7, 8, 9
     SKIP, REVERSE, DRAW_TWO, NONE = 10, 11, 12, 13
+
+    # Score of Action and Wild cards.
+    WILD_SCORE, ACTION_SCORE = 50, 20
 
     def __init__(self, category, number):
         self.category = category
@@ -111,6 +114,7 @@ class Deck:
 class PlayerServer:
     def __init__(self, username):
         self.username = username
+        self.score = 0
         self.hand = []
 
     def draw(self, deck):
@@ -131,6 +135,12 @@ class PlayerServer:
         for card in self.hand:
             if card is not None:
                 card.show()
+
+    def get_score(self):
+        return int(self.score)
+
+    def update_score(self, score):
+        self.score += int(score)
 
     def get_hand_size(self):
         """
@@ -170,9 +180,17 @@ class PlayerServer:
     def get_hand(self):
         return self.hand
 
+    def empty_hand(self, deck):
+        for card in self.hand:
+            if card is not None:
+                deck.back_to_deck(card=card)
+        self.hand = []
+
 
 class GameServer:
+    WINNING_SCORE = 50
     current_games = []
+    # TODO: What will happen if deck runs out of cards. -- Kshitiz
 
     def __init__(self, unique_id, player):
         self.unique_id = unique_id
@@ -186,6 +204,7 @@ class GameServer:
         self.is_game_running = False
         self.direction = "+"
         self.current_player_index = 0
+        self.winner = None
 
     def __del__(self):
         print(f"Game with unique ID {self.unique_id} is deleted.")
@@ -216,6 +235,14 @@ class GameServer:
         # for player in self.players:
         #     player.sort_hand()
 
+    def start_new_round(self):
+        """
+        To start a new round when one player has emptied his hand.
+        :return:
+        """
+        self.is_game_running = False
+        self.start_game()
+
     def start_game(self):
         """
         Method to be called at the start of the game to shuffle and deal hands.
@@ -242,6 +269,15 @@ class GameServer:
         self.deck.cards.remove(chosen_card)
         return chosen_card
 
+    def decide_winner(self):
+        max_score = -1
+        winner = None
+        for player in self.players:
+            if player.score > max_score:
+                max_score = player.score
+                winner = player.username
+        self.winner = winner
+
     def end_game(self):
         """
         Method to be called at the end of the game to clear the hands of player and top_card of Game.
@@ -260,6 +296,8 @@ class GameServer:
                 self.top_card = None
 
             self.is_game_running = False
+
+            self.decide_winner()
 
     def get_count_of_players(self):
         return int(len(self.players))
@@ -281,6 +319,25 @@ class GameServer:
         if len(self.players) == 0:
             GameServer.current_games.remove(self)
             delete_object(self)
+
+    def calculate_score(self, player):
+        """
+        Method which calculates the score after winning ("Going Out").
+        :param player: Player who has won this round.
+        :return: Score
+        """
+        score = 0
+        for game_player in self.players:
+            if game_player != player:
+                for card in game_player.hand:
+                    if card is not None:
+                        if card.is_number_card():
+                            score += int(card.number)
+                        elif card.is_wild() or card.is_wild_four():
+                            score += int(Card.WILD_SCORE)
+                        else:
+                            score += int(Card.ACTION_SCORE)
+        return score
 
     def get_top_card(self):
         return self.top_card
@@ -436,20 +493,26 @@ class GameServer:
         client_card, client_card_index = client_data['card'], client_data['index']
         client_username, client_next_top_color = client_data['username'], client_data['next_top_color']
 
-        print("BEFORE MOVE:", json.dumps(self.prepare_client_data(), cls=CustomEncoder))
-        print()
-        for player in self.players:
-            print(player, json.dumps(player.hand, cls=CustomEncoder))
-            print()
+        # Fetching client_player_object/current_player_object
+        current_player_obj = self.get_current_player()
 
-        print("PLAYED CARD: ", client_card, client_card_index, " PLAYED BY: ", client_username)
-        print()
+        # print("BEFORE MOVE:", json.dumps(self.prepare_client_data(), cls=CustomEncoder))
+        # print()
+        # for player in self.players:
+        #     print(player, json.dumps(player.hand, cls=CustomEncoder))
+        #     print()
+        #
+        # print("PLAYED CARD: ", client_card, client_card_index, " PLAYED BY: ", client_username)
+        # print()
 
         # Making card object based on client_card
         client_card_obj = Card(client_card['category'], client_card['number'])
 
-        print("Client Card OBJ: ", client_card_obj.show())
-        print()
+        # print("Client Card OBJ: ", client_card_obj.show())
+        # print()
+
+        # Getting next player's index. To be used in case this card is Draw Two or Wild Four.
+        skipped_player_index = self.increment_or_decrement_current_player_index(amount=1)
 
         # Removing played card from the player's hand.
         # self.players[self.current_player_index].hand.pop(client_card_index)
@@ -470,13 +533,47 @@ class GameServer:
         # Updating current player index. Always To be done after updating direction.
         self.update_current_player_index(card=client_card_obj)
 
-        print(f"New current player is: {self.get_current_player().username} at index = {self.current_player_index}")
-        print()
+        # Check if this player has won the game.
+        won_data = None
+        if current_player_obj.get_active_hand_size() == 0:
+            current_player_obj.update_score(self.calculate_score(current_player_obj))
+
+            # Emptying Hands of other player.
+            for player in self.players:
+                player.empty_hand(deck=self.deck)
+
+            self.deck.shuffle(times=1)
+            self.top_card = None
+            self.top_color = None
+            self.direction = '+'
+            self.current_player_index = 0
+            if current_player_obj.get_score() >= GameServer.WINNING_SCORE:
+                self.end_game()
+                won_data = {
+                    "status": "won",
+                    "username": self.winner,
+                    "score": current_player_obj.get_score(),
+                }
+
+            else:
+                # When current player has emptied his hand.
+                won_data = {
+                    "status": "won",
+                    "username": current_player_obj.username,
+                    "score": current_player_obj.get_score(),
+                }
+                self.start_new_round()
+            print(f"{current_player_obj.username} won this round with score = {current_player_obj.get_score()}.")
+
+        # print(f"New current player is: {self.get_current_player().username} at index = {self.current_player_index}")
+        # print()
+
+        if won_data:
+            return won_data
 
         skipped_player = None
         drawn_cards = []
         if client_card_obj.is_draw_two() or client_card_obj.is_wild_four():
-            skipped_player_index = self.increment_or_decrement_current_player_index(amount=1)
             skipped_player = self.get_player_at(index=skipped_player_index)
             draw_count = 0
             # If the played card was Draw Two
@@ -492,19 +589,19 @@ class GameServer:
 
         if skipped_player is not None:
             response = {
+                "status": "skipped",
                 "username": skipped_player.username,
                 "drawnCards": json.dumps(drawn_cards, cls=CustomEncoder),
                 "drawnCardCount": int(len(drawn_cards)),
             }
         else:
             response = None
-        print("AFTER MOVE:", json.dumps(self.prepare_client_data(), cls=CustomEncoder))
-        print()
-        for player in self.players:
-            print(player, json.dumps(player.hand, cls=CustomEncoder))
-            print()
+        # print("AFTER MOVE:", json.dumps(self.prepare_client_data(), cls=CustomEncoder))
+        # print()
+        # for player in self.players:
+        #     print(player, json.dumps(player.hand, cls=CustomEncoder))
+        #     print()
         return response
-        # TODO: 3 player's game not working properly. Fix it. -- Kshitiz
 
     def is_valid_draw_move(self, client_data, server_data):
         # Segregating Client Side Data
@@ -526,9 +623,7 @@ class GameServer:
 
         return True
 
-    def draw_card(self, client_data):
-        # Segregating Client Side Data
-        client_username = client_data['username']
+    def draw_card(self):
 
         # Fetching current player as stored on the server
         server_current_player = self.get_current_player()
@@ -541,7 +636,19 @@ class GameServer:
             self.current_player_index = self.increment_or_decrement_current_player_index(amount=1)
 
         response = {
-            "username": client_username,
+            "username": server_current_player.username,
             "drawnCard": json.dumps(drawn_card, cls=CustomEncoder),
         }
         return response
+
+    def keep_card(self):
+        """
+        This method is called when a player decides to keep a card after drawing from the deck.
+        It updates the current_player_index to next player.
+        :return:
+        """
+        # Fetching current player as stored on the server
+        server_current_player = self.get_current_player()
+
+        # Set current player as the next player
+        self.current_player_index = self.increment_or_decrement_current_player_index(amount=1)

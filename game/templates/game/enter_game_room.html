@@ -201,7 +201,12 @@
             }
 
             getCurrentPlayer() {
-                return this.players[this.currentPlayerIndex];
+                if(this.currentPlayerIndex >= 0) {
+                    return this.players[this.currentPlayerIndex];
+                }
+                else {
+                    return null;
+                }
             }
 
             setTopCard(card) {
@@ -324,12 +329,28 @@
                 }
             }
 
+            keepCardAfterDrawingRequest() {
+                if(me === currentGame.getCurrentPlayer()) {
+                    let data = {"status": "keep_card", "message": "The player kept the card after drawing.", "data": {"username": this.getCurrentPlayer() }};
+                    let response = {"type": "keep.card", "text": data};
+                    socket.send(JSON.stringify(response));
+                }
+                else {
+                    alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
+                }
+            }
+
 
             static addPlayersToDOM(players) {
                 for (let player of players) {
                     let appendIt = `<li id="id_connected_players_${player}_{{ game_room.pk }}">${player}</li>`;
                     connectedList.append(appendIt);
                 }
+            }
+
+            static addScoreToDOM(player, score) {
+                let editElem = $(`#id_connected_players_${player}_{{ game_room.pk }}`);
+                editElem.html(`${player} (${score})`);
             }
 
             static removePlayersFromDOM(players) {
