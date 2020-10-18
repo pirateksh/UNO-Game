@@ -27,8 +27,8 @@
     }
     video{
         {#display: inline-block;#}
-        width: 25%;
-        height: 25%;
+        width: 100%;
+        height: 100%;
         object-fit: cover;
     }
 
@@ -466,7 +466,7 @@
         });
 
         VideoGrid = document.getElementById('VideoGrid');
-        const Video = document.createElement('video'); // This video Element will contain users own video
+        let Video = document.createElement('video'); // This video Element will contain users own video
 
         function addVideoStream(Video, stream, label="Some user in Room") {
             console.log("Used to Add own stream on open and then for the other users.");
@@ -475,11 +475,18 @@
                 Video.play()
             });
             console.log("Video is Playing...");
+            let NewVideoCont = document.createElement('div');
+            NewVideoCont.style.display = "inline-block";
+            NewVideoCont.style.boxSizing = "border-box";
+            NewVideoCont.style.width = "100px";
             let NewVideoLabel = document.createElement('p');
             NewVideoLabel.innerHTML = label;
-            VideoGrid.append(NewVideoLabel);
+            VideoGrid.append(NewVideoCont);
+            NewVideoCont.append(NewVideoLabel);
+            NewVideoCont.id = "div_" + label;
             NewVideoLabel.id = label;
-            VideoGrid.append(Video);
+            Video.id = "vid_" + label;
+            NewVideoCont.append(Video);
             console.log(label, " is the label");
             if(label === "{{ user.username }}"){
                 Video.muted = true;
@@ -558,6 +565,12 @@
                     console.log("Aur tha bhi");
                     peers[left_user_username].close();
                     delete peers[left_user_username];
+                     if(document.getElementById("div_" + left_user_username)){
+                        document.getElementById("div_" + left_user_username).remove();
+                     }
+                     if(document.getElementById("vid_" + left_user_username)){
+                        document.getElementById("vid_" + left_user_username).remove();
+                     }
                 }
                 else{
                     console.log("Tha hi nhi");

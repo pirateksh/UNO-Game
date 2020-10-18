@@ -396,4 +396,3 @@ class GameRoomConsumer(AsyncConsumer):
         game_room_obj = self.game_room_obj
         return Player.objects.get(player=me, game_room=game_room_obj)
 
-
