@@ -12,6 +12,7 @@ from channels.db import database_sync_to_async
 from .models import Bot
 from game.models import Card
 
+
 class CustomEncoder(JSONEncoder):
     def default(self, o):
         return o.__dict__
@@ -69,11 +70,12 @@ class UnoDeckServer:
         for card in self.cards:
             card.show()
 
+
 class PlayerState:
     def __init__(self, player, cards):
-        self.player = player # a string representing username of player
-        self.cards = cards # list of objects of Class UnoCard representing hand of the player
-        self.allowed_cards = [] # list of string of card values representing allowed card plays for the player as per current bot_game_state
+        self.player = player  # a string representing username of player
+        self.cards = cards  # list of objects of Class UnoCard representing hand of the player
+        self.allowed_cards = []  # list of string of card values representing allowed card plays for the player as per current bot_game_state
 
     def show_player_state(self):
         state = ''
@@ -93,12 +95,12 @@ class PlayerState:
 
 class BotGameState:
     def __init__(self, bot_game_room, bot_id, player):
-        self.bot_game_room = bot_game_room # a string representing unique game room
-        self.player = player # a string representing username of player
-        self.bot = bot_id # a string representing id of bot
-        self.deck = UnoDeckServer() # object of UnoDeckServer Class
+        self.bot_game_room = bot_game_room  # a string representing unique game room
+        self.player = player  # a string representing username of player
+        self.bot = bot_id  # a string representing id of bot
+        self.deck = UnoDeckServer()  # object of UnoDeckServer Class
         random.shuffle(self.deck.cards)
-        self.top_card = None # Object of UnoCard Class
+        self.top_card = None  # Object of UnoCard Class
         self.set_top_card()
 
     def set_top_card(self):
@@ -116,9 +118,9 @@ class BotGameState:
                 self.deck.cards.remove(card)
                 break
         if valid_deletion:
-            print("Card removed Successfully")
+            print("Card removed from Deck and Set as Top Card.")
         else:
-            print("Something went Wrong with the Card")
+            print("Something went Wrong when removing card from Deck to set as Top Card")
 
     def get_top_card(self):
         if self.top_card is not None:
@@ -147,7 +149,11 @@ def get_playable_cards(player_state, bot_game_state):
             player_state.allowed_cards.append(card.show_card())
     return player_state.allowed_cards
 
+
 def update_state_request(player_card_value, player_state, bot_game_state):
+    '''
+    This function updates the player_state[Removes the played card from hand] and the game_state[Changes the Top Card]
+    '''
     if player_card_value == "DRAW_CARD":
         if not len(bot_game_state.deck.cards):
             print("DECK EXHAUSTED!!!")
@@ -156,29 +162,85 @@ def update_state_request(player_card_value, player_state, bot_game_state):
         print("Card Drawn from the Deck is", drawn_card_object.show_card())
         player_state.cards.append(drawn_card_object)
         return
-
-    number, category = player_card_value.split(" of ")
-    valid_card = False
-
-    for card in player_state.allowed_cards:
-        if card == player_card_value:
-            player_state.allowed_cards.remove(card)
-            bot_game_state.top_card = UnoCard(category, number)
-            valid_card = True
-            break
-
-    if valid_card:
-        try:
-            # Watch out you should compare the value of the Object then remove, because objects as such wont match.
-            cards = player_state.cards
-            for card in cards:
-                if card.show_card() == bot_game_state.top_card.show_card():
-                    player_state.cards.remove(card)
-                    break
-        except:
-            print("WHOA! This should not Happen!")
     else:
-        print("WHOA! This should not Happen Too")
+        number, category = player_card_value.split(" of ")
+        valid_card = False
+        for card in player_state.allowed_cards:
+            if card == player_card_value:
+                player_state.allowed_cards.remove(card)
+                bot_game_state.top_card = UnoCard(category, number)
+                valid_card = True
+                break
+
+        if valid_card:
+            try:
+                # Watch out you should compare the value of the Object then remove, because objects as such wont match.
+                # Watch out you should compare the value of the Object then remove, because objects as such wont match.
+                cards = player_state.cards
+                for card in cards:
+                    if card.show_card() == bot_game_state.top_card.show_card():
+                        player_state.cards.remove(card)
+                        break
+            except:
+                print("WHOA! This should not Happen!")
+        else:
+            print("WHOA! This should not Happen Too")
+
+
+def update_other_player_state_only(number, other_player_state, bot_game_state):
+    '''
+    This function is used to update the other_player_state as per the card played by the player.
+    It is called only when the category of card played is either "DT" or "WF"
+    '''
+    if number == '12':  # DRAW_TWO was played by the player
+        print("DRAW_TWO was played by the player")
+        if len(bot_game_state.deck.cards) < 2:
+            print("DECK EXHAUSTED!!!")
+            return
+        # Drawing First Card
+        drawn_card_object = bot_game_state.deck.deal()
+        print("Card Drawn from the Deck is", drawn_card_object.show_card())
+        other_player_state.cards.append(drawn_card_object)
+        # Drawing Second Card
+        drawn_card_object = bot_game_state.deck.deal()
+        print("Card Drawn from the Deck is", drawn_card_object.show_card())
+        other_player_state.cards.append(drawn_card_object)
+    elif number == '13':  # DRAW_FOUR was played by the player
+        print("DRAW_FOUR was played by the player")
+        if len(bot_game_state.deck.cards) < 4:
+            print("DECK EXHAUSTED!!!")
+            return
+        # Drawing First Card
+        drawn_card_object = bot_game_state.deck.deal()
+        print("Card Drawn from the Deck is", drawn_card_object.show_card())
+        other_player_state.cards.append(drawn_card_object)
+        # Drawing Second Card
+        drawn_card_object = bot_game_state.deck.deal()
+        print("Card Drawn from the Deck is", drawn_card_object.show_card())
+        other_player_state.cards.append(drawn_card_object)
+        # Drawing Third Card
+        drawn_card_object = bot_game_state.deck.deal()
+        print("Card Drawn from the Deck is", drawn_card_object.show_card())
+        other_player_state.cards.append(drawn_card_object)
+        # Drawing Forth Card
+        drawn_card_object = bot_game_state.deck.deal()
+        print("Card Drawn from the Deck is", drawn_card_object.show_card())
+        other_player_state.cards.append(drawn_card_object)
+
+
+def update_bot_game_state_only(color_changed_to, bot_game_state):
+    '''
+    This function is used to update the bot_game_state as per the card played by the player.
+    It is called only when the category of card played is "W"
+    '''
+    valid_color = False
+    for color in ['R', 'G', 'B', 'Y']:
+        if color == color_changed_to:
+            valid_color = True
+            bot_game_state.top_card.category = color_changed_to
+            break
+    if not valid_color:
+        print("Player is a Cheater!!!")
 
 
 def bot_decide_card(bot_state):
@@ -317,16 +379,20 @@ class BotGameConsumer(AsyncConsumer):
         # When a message is received from the Websocket
         data_received_dict = json.loads(event.get('text', None))
         card_played_value = data_received_dict.get('card_played_value')
+        color_changed_to = data_received_dict.get('color_changed_to')
         print("Card played by Client is ", card_played_value)
 
         if card_played_value == 'DRAW_CARD':
-            print("DRAW_CARD was played")
+            print("Player played DRAW_CARD")
             update_state_request("DRAW_CARD", self.game.player_state, self.game.bot_game_state)
+            # Now Bot will Play its Turn
         elif card_played_value == 'END_GAME':
             BotGameServer.delete_bot_game(self.game.bot_game_state.bot_game_room)
+            # Game Ended
+            return
         else:
             number, category = card_played_value.split(" of ")
-            print("Number and Category of Card Played by Player:", number, category)
+            # Updating the State of player and bot_game
             update_state_request(card_played_value, self.game.player_state, self.game.bot_game_state)
             if number == '10' or number == '11':  # Skip or Reverse => Bot is not allowed to play
                 print("Player Played Skip")
@@ -345,6 +411,35 @@ class BotGameConsumer(AsyncConsumer):
                         'text': json.dumps(server_response)
                     }
                 )
+                # Bot Turn Skipped
+                return
+            elif number == '13' and category == 'W':
+                print("Player Played Wild Card")
+                print("Player asked to Change the Color to", color_changed_to)
+                # Updating the Game State i.e. setting the Top Card Color
+                update_bot_game_state_only(color_changed_to, self.game.bot_game_state)
+                # Now Bot will Play its Turn
+            elif number == '12' or number == '13': # DRAW_TWO/DRAW_FOUR => Bot have to draw 2/4 Cards and Player will play again
+                print("Player Played DRAW_TWO/DRAW_FOUR")
+                # Bot will need to Draw the Cards
+                update_other_player_state_only(number, self.game.bot_state, self.game.bot_game_state)
+                # Updating the Game State i.e. setting the Top Card Color
+                update_bot_game_state_only(color_changed_to, self.game.bot_game_state)
+                server_response = {
+                    "player_state": json.dumps(self.game.player_state.get_all_cards()),
+                    "bot_state": json.dumps(self.game.bot_state.get_all_cards()),
+                    "bot_game_state": json.dumps(self.game.bot_game_state.get_top_card()),
+                    "playable_cards": get_playable_cards(self.game.player_state, self.game.bot_game_state),
+                    "bot_played_cards": []
+                }
+                await self.channel_layer.group_send(
+                    self.bot_game_room,  # name of the Chat root
+                    {
+                        'type': "send_to_player",
+                        'text': json.dumps(server_response)
+                    }
+                )
+                # Bot Turn Skipped
                 return
 
         # Now Bot will Play:-

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import GameRoom, Player#  Card, PlayerHandCard, GameRoomDeckCard
+from .models import GameRoom, Player, Card  # , PlayerHandCard, GameRoomDeckCard
 
 
 class PlayerAdmin(admin.ModelAdmin):
@@ -24,6 +24,6 @@ class GameRoomDeckCardAdmin(admin.ModelAdmin):
 
 admin.site.register(GameRoom, GameRoomAdmin)
 admin.site.register(Player, PlayerAdmin)
-# admin.site.register(Card, CardAdmin)
+admin.site.register(Card, CardAdmin)
 # admin.site.register(PlayerHandCard, PlayerHandCardAdmin)
 # admin.site.register(GameRoomDeckCard, GameRoomDeckCardAdmin)
