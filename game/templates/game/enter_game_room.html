@@ -140,19 +140,8 @@
             }
 
             getCount() {
-                // Method that returns count of cards (including null) in this hand.
+                // Method that returns count of cards in this hand.
                 return this.cards.length;
-            }
-
-            getActiveCount() {
-                // Returns count of active card i.e. not null cards only.
-                let count = 0;
-                for(let card of this.cards) {
-                    if(card != null) {
-                        count++;
-                    }
-                }
-                return count;
             }
 
             getCardAt(i) {
@@ -168,29 +157,13 @@
                 }
             }
             removeCardAndCardSpriteAt(i) {
-                {#this.cards.splice(i, 1);#}
-                {#this.cardSprites.splice(i, 1);#}
-                this.cards[i] = null;
-                this.cardSprites[i] = null;
+                this.cards.splice(i, 1);
+                this.cardSprites.splice(i, 1);
             }
 
             addCardAndCardSprite(card, cardSprite) {
                 this.cards.push(card);
                 this.cardSprites.push(cardSprite);
-            }
-
-            getDepth(cardSprite) {
-                // Getting depth of the card.
-                let depth = 1;
-                for(let i = 0; i < this.getCount(); ++i) {
-                    let thisCardSprite = this.getCardSpriteAt(i);
-                    if(thisCardSprite != null) {
-                        if(JSON.stringify(cardSprite) === JSON.stringify(thisCardSprite)) {
-                            return depth;
-                        }
-                        depth += 1;
-                    }
-                }
             }
         }
 
@@ -204,17 +177,14 @@
                 this.direction = gameData.direction;
                 this.currentPlayerIndex = gameData.currentPlayerIndex;
                 this.isGameRunning = false;
-                this.canDrawCard = false;
                 // Adding Players to DOM.
                 Game.addPlayersToDOM(this.players);
             }
 
             copyData(gameData) {
-                {#console.log(gameData);#}
-                if(gameData.topCard) {
-                    this.topCard = new Card(gameData.topCard.category, gameData.topCard.number);
-                    this.topColor = gameData.topColor;
-                }
+                console.log(gameData);
+                this.topCard = new Card(gameData.topCard.category, gameData.topCard.number);
+                this.topColor = gameData.topColor;
                 this.direction = gameData.direction;
                 this.currentPlayerIndex = gameData.currentPlayerIndex;
             }
@@ -224,12 +194,7 @@
             }
 
             getCurrentPlayer() {
-                if(this.currentPlayerIndex >= 0) {
-                    return this.players[this.currentPlayerIndex];
-                }
-                else {
-                    return null;
-                }
+                return this.players[this.currentPlayerIndex];
             }
 
             setTopCard(card) {
@@ -257,9 +222,7 @@
                     startGameButton.prop("disabled", true);
                     endGameButton.prop("disabled", false);
                     for(let card of myHand.cards) {
-                        if(card != null) {
-                            myHandList.append(`<li>Category: ${card.category} Number: ${card.number}`);
-                        }
+                        myHandList.append(`<li>Category: ${card.category} Number: ${card.number}`);
                     }
                     topCardElem.html(`Category: ${this.topCard.category} Number: ${this.topCard.number}`);
                 }
@@ -297,9 +260,6 @@
                 else if(category === WILD_FOUR) {
                     // Logic for Wild Four Card
                     for(let handCard of myHand.cards) {
-                        if(handCard == null) {
-                            continue;
-                        }
                         if(handCard.category !== WILD_FOUR) {
                             if(this.canPlay(handCard)) {
                                 return false;
@@ -310,52 +270,19 @@
                 }
             }
 
-            playCardRequest(card, index) {
+            playCard(card, index) {
                 // Method to send data to backend using socket and play a card.
-                // If the move is valid, server will respond.
                 if(me === currentGame.getCurrentPlayer()) {
-                    if(this.canPlay(card)) {
-                        let nextTopColor;
-                        if(card.category === WILD_FOUR || card.category === WILD) {
-                            nextTopColor = prompt("Choose Next Color ('B', 'Y', 'G' or 'R')");
-                        }
-                        else {
-                            nextTopColor = card.category;
-                        }
-                        let data = {"status": "play_card", "message": "A player played a card.", "data": {"username": this.getCurrentPlayer(), "card": card, "index": index, "next_top_color": nextTopColor,}};
-                        let response = {"type": "play.card", "text": data};
-                        socket.send(JSON.stringify(response));
+                    console.log("Playing card: ", card);
+                    let nextTopColor;
+                    if(card.category === WILD_FOUR || card.category === WILD) {
+                        nextTopColor = prompt("Choose Next Color ('B', 'Y', 'G' or 'R')");
                     }
                     else {
-                        alert("You cannot play this card!");
+                        nextTopColor = card.category;
                     }
-                }
-                else {
-                    alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
-                }
-            }
-
-            drawCardRequest() {
-                if(me === currentGame.getCurrentPlayer()) {
-                    if(this.canDrawCard) {
-                        this.canDrawCard = false;
-                        let data = {"status": "voluntary_draw_card", "message": "A player drew a card.", "data": {"username": this.getCurrentPlayer() }};
-                        let response = {"type": "voluntary_draw_card", "text": data};
-                        socket.send(JSON.stringify(response));
-                    }
-                    else {
-                        alert("You have already drawn a card for this move!");
-                    }
-                }
-                else {
-                    alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
-                }
-            }
-
-            keepCardAfterDrawingRequest() {
-                if(me === currentGame.getCurrentPlayer()) {
-                    let data = {"status": "keep_card", "message": "The player kept the card after drawing.", "data": {"username": this.getCurrentPlayer() }};
-                    let response = {"type": "keep.card", "text": data};
+                    let data = {"status": "play_card", "message": "A player played a card.", "data": {"username": this.getCurrentPlayer(), "card": card, "index": index, "next_top_color": nextTopColor,}};
+                    let response = {"type": "play.card", "text": data};
                     socket.send(JSON.stringify(response));
                 }
                 else {
@@ -363,17 +290,11 @@
                 }
             }
 
-
             static addPlayersToDOM(players) {
                 for (let player of players) {
                     let appendIt = `<li id="id_connected_players_${player}_{{ game_room.pk }}">${player}</li>`;
                     connectedList.append(appendIt);
                 }
-            }
-
-            static addScoreToDOM(player, score) {
-                let editElem = $(`#id_connected_players_${player}_{{ game_room.pk }}`);
-                editElem.html(`${player} (${score})`);
             }
 
             static removePlayersFromDOM(players) {
@@ -576,6 +497,9 @@
                 if(currentGame == null) {
                     currentGame = new Game(gameData);
                 }
+                else {
+                    currentGame.copyData(gameData);
+                }
             }
 
             let username, pk, elementToAppend;
@@ -594,16 +518,16 @@
                 elementToAppend = `<li>${message}</li>`;
                 notificationList.append(elementToAppend);
             }
-            else if(status === "start_game") {
+            else if(status === START_GAME) {
                 // This is handled in Scene2.js's create() method.
             }
-            else if(status === "end_game") {
+            else if(status === END_GAME) {
                 // This is handled in Scene2.js's create() method.
             }
-            else if(status === "play_card") {
+            else if(status === PLAY_CARD) {
                 // This is handled in Scene2.js's create() method.
             }
-            else if(status === "draw_card") {
+            else if(status === DRAW_CARD) {
                 // This is handled in Scene2.js's create() method.
             }
 
