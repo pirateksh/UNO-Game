@@ -27,10 +27,23 @@ var c = canvas.getContext('2d');
 // c.arc(600, 600, 30, 0, Math.PI *2, false);
 // c.stroke();
 
-gsap.fromTo('#text2', {x:Math.abs(Math.random()-0.5)*innerWidth, y:-80}, {x:innerWidth, y:innerHeight+80, duration:6, repeat:-1, ease:'linear'})
-gsap.fromTo('#text3', {x:Math.abs(Math.random()-0.5)*innerWidth, y:-80}, {x:innerWidth, y:innerHeight+80, duration:6, repeat:-1, ease:'linear'})
-gsap.fromTo('#text1', {x:Math.random()*innerWidth, y:-80}, {y:innerHeight+40, duration:6, repeat:-1, ease:'linear'})
-gsap.fromTo('#text4', {x:Math.random()*innerWidth, y:-80}, {y:innerHeight+40, duration:6, repeat:-1, ease:'linear'})
+
+var i = undefined;
+var j = undefined;
+var k = undefined;
+window.addEventListener('resize', () => {
+    console.log(innerWidth);
+    i = Math.abs( Math.random() -0.3)*innerWidth;
+    j = Math.abs( Math.random() -0.3)*innerWidth;
+    k = Math.abs( Math.random() -0.3)*innerWidth;
+    
+})
+gsap.fromTo('#text1', {x:i, y:0}, {x:i, y:innerHeight, duration:6, repeat:-1, ease:'linear'})
+    
+    gsap.fromTo('#text2', {x:i, y:0}, {x:i, y:innerHeight, delay: Math.random()*3, duration:6, repeat:-1, ease:'linear'})
+    
+    gsap.fromTo('#text3', {x:i, y:0}, {x:i, y:innerHeight, delay: Math.random()*3, duration:6, repeat:-1, ease:'linear'})
+
 
 // for (var i =0; i<100; i++){
 //     var x = Math.random()*window.innerWidth;
@@ -125,8 +138,8 @@ const init = () => {
         var rad = Math.random()*4+1;
         var x = Math.random()*(innerWidth-rad*2)+rad;
         var y = Math.random()*(innerHeight-rad*2)+rad;
-        var dx = (Math.random()-0.5)*1;
-        var dy = (Math.random()-0.5)*1;
+        var dx = (Math.random()-0.5)*3;
+        var dy = (Math.random()-0.5)*3;
         circleArray.push(new Circle(x, y, dx, dy, rad));
     }
 }

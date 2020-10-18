@@ -20,18 +20,16 @@
 <body>
     <canvas></canvas>
     {% comment %} meteor {% endcomment %}
-    <img style="z-index:2" alt="" 
+    <img style="z-index:2; overflow:hidden" alt="" 
         id="text1" src="{% static 'img/meteor.png' %}"
             width="80">
-    <img style="z-index:2" alt="" 
-        id="text4" src="{% static 'img/meteor.png' %}"
+    <img style="z-index:2; overflow:hidden" alt="" 
+        id="text2" src="{% static 'img/meteor.png' %}"
             width="80">
-    <img style="z-index:2" alt="" 
-        id="text2" src="{% static 'img/meteor_t.png' %}"
+    <img style="z-index:2; overflow:hidden" alt="" 
+        id="text3" src="{% static 'img/meteor.png' %}"
             width="80">
-    <img style="z-index:2" alt="" 
-        id="text3" src="{% static 'img/meteor_t.png' %}"
-            width="80">
+
     {% comment %} meteor ends {% endcomment %}
 
 
@@ -40,11 +38,12 @@
             <div class="card-body jello animated p-0">
                 <div class="row">
                     <div class="col-lg-5 d-none d-lg-flex">
-                        <div class="flex-grow-1 bg-register-image" style="background-image: url({%static "img/image.jpg"%});"></div>
+                        <div class="flex-grow-1 bg-register-image" style="background-image: url({%static 'img/image.jpg'%});
+                         background-repeat: no-repeat; background-size: cover;"></div>
                     </div>
                     <div class="col-lg-7">
                         <div class="p-5">
-                            <div class="text-center">
+                            <div class="text-center" style="">
                                 <h4 class="text-dark mb-4">Create an Account!</h4>
                             </div>
                             <form class="user" method="post" action="{% url 'signup' %}">
@@ -72,6 +71,7 @@
 {#                                </div>#}
                                 <button class="btn btn-primary btn-block text-white btn-user" type="submit">Register Account</button>
                                 <hr>
+                                {# TODO: Add Social Login Links -- Ankit #}
                                 <a class="btn btn-danger btn-block text-white btn-user" role="button"><i class="fa fa-google-plus fa-fw"></i>&nbsp; Register with Google</a>
                                 <a class="btn btn-info btn-block text-white btn-user" role="button"><i class="fa fa-facebook fa-fw"></i>&nbsp; Register with Facebook</a>
                                 <a class="btn btn-dark btn-block text-white btn-user" role="button"><i class="fa fa-github fa-fw"></i>&nbsp; Register with Github</a>
@@ -89,7 +89,6 @@
     <script src=" {% static 'bootstrap/js/bootstrap.min.js' %} "></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
-    <script src=" {% static 'js/theme.js' %} "></script>
     <script src="{%  static "js/canvas.js" %}"></script>
 </body>
 
