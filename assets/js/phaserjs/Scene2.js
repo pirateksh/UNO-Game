@@ -67,6 +67,10 @@ class Scene2 extends Phaser.Scene {
             if(status === "start_game") {
                 currentGame.copyData(gameData);
                 _this.startGameEventConsumer(backendResponse.serializedPlayer);
+
+                if(me !== currentGame.getCurrentPlayer()) {
+                    _this.topDeckCard.disableInteractive();
+                }
             }
             else if (status === "end_game") {
                 _this.endGame();
@@ -74,6 +78,10 @@ class Scene2 extends Phaser.Scene {
             else if(status === "play_card") {
                 currentGame.copyData(gameData);
                 _this.playCardEventConsumer(data);
+
+                if(me !== currentGame.getCurrentPlayer()) {
+                    _this.topDeckCard.disableInteractive();
+                }
             }
             else if(status === "forced_draw_card") {
                 // When someone played DRAW TWO or WILD FOUR card.
@@ -110,6 +118,10 @@ class Scene2 extends Phaser.Scene {
                     for(let i = 0; i < drawnCardCount; ++i) {
                         _this.drawCardOpp();
                     }
+                }
+
+                if(me !== currentGame.getCurrentPlayer()) {
+                    _this.topDeckCard.disableInteractive();
                 }
             }
             else if(status === "voluntary_draw_card") {
@@ -158,6 +170,10 @@ class Scene2 extends Phaser.Scene {
                     _this.makeHandInteractive();
 
                     alert("It's your turn!");
+                }
+
+                if(me !== currentGame.getCurrentPlayer()) {
+                    _this.topDeckCard.disableInteractive();
                 }
             }
             else if(status === "keep_card") {
@@ -384,7 +400,7 @@ class Scene2 extends Phaser.Scene {
         _this.discardedTopCards.add(_this.topCardSprite);
         _this.topCardSprite.depth = 0; // Testing
         // _this.topCardSprite.disableBody(true, true);
-
+        _this.discardedTopCards.clear(true, true);
 
         let playedCard = myHand.getCardAt(index);
         let playedCardSprite = myHand.getCardSpriteAt(index);
@@ -421,12 +437,12 @@ class Scene2 extends Phaser.Scene {
 
             cardSprite.on("pointerover", function (pointer) {
                 // console.log("Can Play this card: ", card);
-                cardSprite.depth = 25;//myHand.getActiveCount() + 2; //// 10;
+                cardSprite.depth = depth + 2;
                 cardSprite.y = (gameDetails.myHandY - 15);
             });
 
             cardSprite.on("pointerout", function (pointer) {
-                cardSprite.depth = depth;//myHand.getDepth(cardSprite); ////////depth;
+                cardSprite.depth = depth;
                 cardSprite.y = gameDetails.myHandY;
             });
 
