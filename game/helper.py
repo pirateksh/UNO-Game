@@ -188,7 +188,7 @@ class PlayerServer:
 
 
 class GameServer:
-    WINNING_SCORE = 50
+    WINNING_SCORE = 150
     current_games = []
     # TODO: What will happen if deck runs out of cards. -- Kshitiz
 
@@ -232,8 +232,8 @@ class GameServer:
             for player in self.players:
                 player.draw(self.deck)
 
-        # for player in self.players:
-        #     player.sort_hand()
+        for player in self.players:
+            player.sort_hand()
 
     def start_new_round(self):
         """

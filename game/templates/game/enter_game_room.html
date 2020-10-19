@@ -393,7 +393,7 @@
         {#navigator.mediaDevices.getUserMedia = navigator.mediaDevices.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;#}
         const ERROR = "error";
         const SUCCESS = "success";
-        const STREAM = navigator.mediaDevices.getUserMedia({video: true, audio: true});
+        const STREAM = navigator.mediaDevices.getUserMedia({video: false, audio: true});
         const peers = {};
 
         // Fetching Endpoint
@@ -414,7 +414,7 @@
         let me = "{{ user.username }}";
 
         const my_peer = new Peer(undefined, { // making available a Peer Object from peerjs library to work on the root path
-            host: '/',
+            host: '/', //'pirateksh-47c7ba45.localhost.run',
             port: '8001'
         });
 
