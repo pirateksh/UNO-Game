@@ -416,7 +416,7 @@ class GameServer:
             "topCard": self.top_card,
             "topColor": self.top_color,
             "direction": self.direction,
-            "currentPlayerIndex": self.current_player_index
+            "currentPlayerIndex": self.current_player_index,
         }
 
     def can_play_over_top(self, player, card):
@@ -496,15 +496,6 @@ class GameServer:
         # Fetching client_player_object/current_player_object
         current_player_obj = self.get_current_player()
 
-        # print("BEFORE MOVE:", json.dumps(self.prepare_client_data(), cls=CustomEncoder))
-        # print()
-        # for player in self.players:
-        #     print(player, json.dumps(player.hand, cls=CustomEncoder))
-        #     print()
-        #
-        # print("PLAYED CARD: ", client_card, client_card_index, " PLAYED BY: ", client_username)
-        # print()
-
         # Making card object based on client_card
         client_card_obj = Card(client_card['category'], client_card['number'])
 
@@ -565,9 +556,6 @@ class GameServer:
                 self.start_new_round()
             print(f"{current_player_obj.username} won this round with score = {current_player_obj.get_score()}.")
 
-        # print(f"New current player is: {self.get_current_player().username} at index = {self.current_player_index}")
-        # print()
-
         if won_data:
             return won_data
 
@@ -596,11 +584,6 @@ class GameServer:
             }
         else:
             response = None
-        # print("AFTER MOVE:", json.dumps(self.prepare_client_data(), cls=CustomEncoder))
-        # print()
-        # for player in self.players:
-        #     print(player, json.dumps(player.hand, cls=CustomEncoder))
-        #     print()
         return response
 
     def is_valid_draw_move(self, client_data, server_data):
