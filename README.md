@@ -6,6 +6,7 @@ A real-time multiplayer UNO Game developed using Django Web Framework, Django Ch
 * If you are using Linux, run `source <envname>/bin/activate` to activate the virtual environment.
 * Run `pip install -r requirements.txt` to install the dependencies.
 * Install **redis**. If you are using *Ubuntu 20.04*, take help from <a href="https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-20-04">this</a> link otherwise take help from *Google*.
+* Run `sudo npm install peer -g`. You will also need to install **npm** if it's not already there.
 * Run `python manage.py makemigrations`.
 * Run `python manage.py migrate`.
 * Now you are good to go. Run `python manage.py runserver` to start the server.

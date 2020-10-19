@@ -20,14 +20,13 @@ class Scene2 extends Phaser.Scene {
         _this.discardedTopCards = _this.physics.add.group();
         _this.maxTopCardDepth = -1;
 
-        let initialPosX = 200, initialPosY = 0;
+        let initialPosX = 0, initialPosY = 0;
         _this.deckX = config.width/2 - initialPosX;
         _this.deckY = config.height/2 + initialPosY;
-        for(let i = 0; i < 5; ++i) {
-            let cardBack = _this.physics.add.sprite(config.width/2 - initialPosX, config.height/2 + initialPosY, "cardBack");
+        for(let i = 0; i < 4; ++i) {
+            let cardBack = _this.physics.add.sprite(gameDetails.deckX + initialPosX, gameDetails.deckY + initialPosY, "cardBack");
+            cardBack.setScale(gameDetails.deckScale);
             _this.topDeckCard = cardBack;
-            // cardBack.setInteractive();
-            // cardBack.on("pointerdown", this.drawCardCallback, this);
             _this.deck.add(cardBack);
             initialPosX -= 3;
             initialPosY += 2;
@@ -48,10 +47,6 @@ class Scene2 extends Phaser.Scene {
             console.log("Deck card has been clicked.");
             currentGame.drawCardRequest(); ////
         });
-
-        // Opponents Hand Sprite.
-        _this.oppHand = _this.physics.add.sprite(gameDetails.oppHandX, gameDetails.oppHandY, "oppHand");
-        _this.oppHand.setScale(gameDetails.oppHandScale);
 
         socket.addEventListener("message", function (e) {
             // console.log("Listening message from Game", e);
@@ -83,6 +78,8 @@ class Scene2 extends Phaser.Scene {
                 if(me !== currentGame.getCurrentPlayer()) {
                     _this.topDeckCard.disableInteractive();
                 }
+
+                _this.moveOrSetTurnIndicator(true);
             }
             else if(status === "forced_draw_card") {
                 // When someone played DRAW TWO or WILD FOUR card.
@@ -124,6 +121,8 @@ class Scene2 extends Phaser.Scene {
                 if(me !== currentGame.getCurrentPlayer()) {
                     _this.topDeckCard.disableInteractive();
                 }
+
+                _this.moveOrSetTurnIndicator(true);
             }
             else if(status === "voluntary_draw_card") {
                 // TODO: Bug when player drew WILD FOUR. Look into it.
@@ -170,12 +169,15 @@ class Scene2 extends Phaser.Scene {
                     console.log("Making hand interactive for: ", me);
                     _this.makeHandInteractive();
 
-                    alert("It's your turn!");
+                    // alert("It's your turn!");
+                    // _this.moveOrSetTurnIndicator(true);
                 }
 
                 if(me !== currentGame.getCurrentPlayer()) {
                     _this.topDeckCard.disableInteractive();
                 }
+
+                _this.moveOrSetTurnIndicator(true);
             }
             else if(status === "keep_card") {
                 currentGame.copyData(gameData);
@@ -187,8 +189,11 @@ class Scene2 extends Phaser.Scene {
                     console.log("Making hand interactive for: ", me);
                     _this.makeHandInteractive();
 
-                    alert("It's your turn!");
+                    // alert("It's your turn!");
+                    // _this.moveOrSetTurnIndicator(true);
                 }
+
+                _this.moveOrSetTurnIndicator(true);
             }
             else if(status === "won_round") {
                 _this.playCardEventConsumer(data);
@@ -217,8 +222,11 @@ class Scene2 extends Phaser.Scene {
                 _this.topCardSprite.destroy();
 
                 _this.topDeckCard.disableInteractive();
+                _this.oppHandGroup.clear(true, true);
+                _this.turnIndicator.destroy();
 
                 // TODO: Next Round will start in 3 2 1....
+                //       Error in Cards Placement of that player who has won.
                 // Starting new round.
                 currentGame.copyData(gameData);
                 if(backendResponse.serializedPlayer) {
@@ -236,6 +244,47 @@ class Scene2 extends Phaser.Scene {
         });
     }
 
+    placeOppHandsOnTable() {
+        let _this = this;
+        _this.oppHandGroup = _this.physics.add.group();
+        let n = currentGame.getPlayersCount();
+        let angle = (2*Math.PI)/(n);
+        let btmX = gameDetails.centerX , btmY = gameDetails.centerY + gameDetails.radius;//gameDetails.myHandY;
+        let r = gameDetails.radius;
+
+        let allPlayers = currentGame.getPlayers();
+        let myIndex = allPlayers.indexOf(me);
+
+        currentGame.coordinatesOfPlayers[me] = [btmX, btmY];
+        let theta = angle;
+        for (let i = 1; i < n; ++i) {
+            let otherIndex = (myIndex + i) % n;
+            let otherPlayer = currentGame.players[otherIndex];
+            let costheta = Math.cos(theta);
+            let sintheta = Math.sin(theta);
+            let newX = btmX + (r * sintheta), newY = btmY - (r*(1 - costheta));
+            let oppHand = _this.physics.add.sprite(gameDetails.deckX, gameDetails.deckY, "oppHand");
+            oppHand.setScale(gameDetails.oppHandScale);
+            oppHand.setData({"username": otherPlayer});
+            _this.oppHandGroup.add(oppHand);
+
+            currentGame.coordinatesOfPlayers[otherPlayer] = [newX, newY];
+
+            _this.tweens.add({
+                targets: oppHand,
+                x: newX,
+                y: newY,
+                duration: 700,
+                repeat: 0,
+                onComplete: function (){
+                    _this.add.bitmapText(newX, newY + 20, "pixelFont", otherPlayer, 20);
+                },
+                callbackScope: _this
+            });
+            theta += angle;
+        }
+    }
+
     startGameEventConsumer(strigifiedSerializedPlayer) {
         let _this = this;
         let serializedPlayer = JSON.parse(strigifiedSerializedPlayer);
@@ -251,6 +300,12 @@ class Scene2 extends Phaser.Scene {
         }
         _this.maxTopCardDepth = -1;
         _this.startGame();
+
+        // Placing opponent's hands on the table.
+        _this.placeOppHandsOnTable();
+
+        // Setting Turn Indicator.
+        _this.moveOrSetTurnIndicator(false);
     }
 
     playCardEventConsumer(data) {
@@ -280,7 +335,8 @@ class Scene2 extends Phaser.Scene {
             console.log("Making hand interactive for: ", me);
             _this.makeHandInteractive();
 
-            alert("It's your turn!");
+            // alert("It's your turn!");
+            // _this.moveOrSetTurnIndicator(true);
         }
     }
 
@@ -300,7 +356,7 @@ class Scene2 extends Phaser.Scene {
             _this.adjustSelfHandOnTable();
 
             currentGame.keepCardAfterDrawingRequest();
-            // TODO: Send keep_card message to server so that it can go to next player.
+            // TODO: Error in positioning of keep card.
         }
     }
 
@@ -313,6 +369,8 @@ class Scene2 extends Phaser.Scene {
             if(activeCardsCount > 0) { // If active cards are present in the hand.
                 let window = gameDetails.myHandEndX - gameDetails.myHandStartX;
                 let incrementValue = window / activeCardsCount;
+                let angleIncrementValue = 60 / activeCardsCount;
+                let startAngle = -30;
                 let toX = gameDetails.myHandStartX, toY = gameDetails.myHandY;
                 for(let i = 0; i < myHand.getCount(); ++i) {
                     if(skipIndex !== i) { // If this card doesn't have to be skipped.
@@ -322,12 +380,34 @@ class Scene2 extends Phaser.Scene {
                         if(card != null && cardSprite != null) {
                             // console.log("Adjusting:", card);
                             let duration = 500;
-                            _this.addTween(cardSprite, toX, toY, duration);
-                            cardSprite.depth = depth; //////////////
+
+
+                            _this.tweens.add({
+                                targets: cardSprite,
+                                x: toX,
+                                y: toY,
+                                // angle: startAngle,
+                                depth: depth,
+                                ease: "Power1",
+                                duration: duration, // 1500
+                                repeat: 0,
+                                onComplete: function () {},
+                                callbackScope: _this
+                            });
+
+                            // _this.addTween(cardSprite, toX, toY, duration);
+
+                            // cardSprite.depth = depth;
+                            //
+                            // // Testing Angles,
+                            // cardSprite.setAngle(startAngle);
+
+
                             if(me !== currentGame.getCurrentPlayer()) {
                                 // Making cards Un-Interactive if it is not this player's turn.
                                 cardSprite.disableInteractive();
                             }
+                            startAngle += angleIncrementValue;
                             depth += 1;
                             toX += incrementValue;
                         }
@@ -364,7 +444,38 @@ class Scene2 extends Phaser.Scene {
             console.log("Making hand interactive for: ", me);
             _this.makeHandInteractive();
 
-            alert("It's your turn!");
+            // alert("It's your turn!");
+            // _this.moveOrSetTurnIndicator(false);
+
+        }
+    }
+
+    moveOrSetTurnIndicator(isAlreadySet) {
+        let _this = this;
+        let currentPlayer = currentGame.getCurrentPlayer();
+        // console.log("Coordinates: ", currentGame.coordinatesOfPlayers);
+        for(let i = 0; i < currentGame.getPlayersCount(); ++i) {
+            let player = currentGame.players[i];
+            if(currentPlayer === player) {
+                console.log("Inside:", player, currentGame.coordinatesOfPlayers[player]);
+                let coordinates = currentGame.coordinatesOfPlayers[player];
+                let toX = coordinates[0], toY = coordinates[1];
+                if(isAlreadySet) {
+                    _this.tweens.add({
+                        targets: _this.turnIndicator,
+                        x: toX - 25,
+                        y: toY + 35,
+                        repeat: 0,
+                        callbackScope: _this
+                    });
+                }
+                else {
+                    _this.turnIndicator = _this.physics.add.sprite(toX - 25, toY + 35, "turnIndicator");
+                    _this.turnIndicator.depth = 20;
+                    _this.turnIndicator.setScale(0.05);
+                    _this.turnIndicator.play("yourTurnAnim");
+                }
+            }
         }
     }
 
@@ -484,6 +595,9 @@ class Scene2 extends Phaser.Scene {
         }
 
         _this.discardedTopCards.clear(true, true);
+        _this.oppHandGroup.clear(true, true);
+
+        _this.turnIndicator.destroy();
 
         // Disabling CardSprite in Hand of Player.
         for(let i = 0; i < myHand.getCount(); ++i) {
