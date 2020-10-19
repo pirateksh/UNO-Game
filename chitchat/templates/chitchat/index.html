@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>chat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css'>
+<link rel="stylesheet" href="./chat.css">
+<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<div class="container clearfix">
+    <div class="people-list" id="people-list">
+      <div class="search">
+        <input type="text" placeholder="search" />
+      </div>
+      <ul class="list nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+        <li class="clearfix nav-item">
+          <a class="nav-link" id="person-1" data-toggle="pill" href="#chat-1" role="tab" aria-controls="chat-1" aria-selected="true">
+          <img src="https://scontent.fpat3-1.fna.fbcdn.net/v/t1.0-9/106731601_1167452090288418_237388223169334717_o.jpg?_nc_cat=106&_nc_sid=09cbfe&_nc_ohc=P5jF3XWoYsEAX-Fg4M2&_nc_ht=scontent.fpat3-1.fna&oh=856009cb43f5ef5d46aef2ec1c8278de&oe=5FB2A24F"
+           alt="avatar" width="55px" class="rounded-circle"/>
+          <div class="about">
+            <div class="name">Vishwajeet Kumar</div>
+            <div class="status">
+              <i class="fa fa-circle online"></i> online
+            </div>
+          </div>
+          </a>
+        </li>
+        
+        <li class="clearfix nav-item">
+          <a class="nav-link active" id="person-2" data-toggle="pill" href="#chat-2" role="tab" aria-controls="chat-2" aria-selected="false">
+          <img src="https://scontent.fpat3-2.fna.fbcdn.net/v/t1.0-9/68870447_2370302253233964_5182504661172617216_n.jpg?_nc_cat=102&_nc_sid=09cbfe&_nc_ohc=zoIKACXvWmAAX-CowM5&_nc_ht=scontent.fpat3-2.fna&oh=f2d9420c9384404085ed651a6e64560a&oe=5FB25C29"
+           alt="avatar" width="55px" class="rounded-circle"/>
+          <div class="about">
+            <div class="name">Ankit Sangwan</div>
+            <div class="status">
+              <i class="fa fa-circle offline"></i> left 7 mins ago
+            </div>
+          </div>
+          </a>
+        </li>
+        
+        <li class="clearfix nav-item">
+          <a class="nav-link" id="person-3" data-toggle="pill" href="#chat-3" role="tab" aria-controls="chat-3" aria-selected="false">
+          <img src="https://scontent.fpat3-2.fna.fbcdn.net/v/t1.0-9/18953104_914449888695659_4255386797861288347_n.jpg?_nc_cat=111&_nc_sid=09cbfe&_nc_ohc=hUr2BIA1qO8AX9Eh2VW&_nc_ht=scontent.fpat3-2.fna&oh=5e1c20415cb9addd0976d32a3587064f&oe=5FB2838D"
+           alt="avatar" width="55px" class="rounded-circle"/>
+          <div class="about">
+            <div class="name">Kshitij Shrivastava</div>
+            <div class="status">
+              <i class="fa fa-circle online"></i> online
+            </div>
+          </div>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+
+    
+    <div class="chat tab-content" id="v-pills-tabContent">
+      <div class="tab-pane fade" id="chat-1" role="tabpanel" aria-labelledby="v-pills-home-tab">
+        <div class="chat-header clearfix">
+          <img src="https://scontent.fpat3-1.fna.fbcdn.net/v/t1.0-9/106731601_1167452090288418_237388223169334717_o.jpg?_nc_cat=106&_nc_sid=09cbfe&_nc_ohc=P5jF3XWoYsEAX-Fg4M2&_nc_ht=scontent.fpat3-1.fna&oh=856009cb43f5ef5d46aef2ec1c8278de&oe=5FB2A24F"
+          alt="avatar" width="55px" class="rounded-circle" />
+          
+          <div class="chat-about">
+            <div class="chat-with">Chat with Vishwajeet Kumar</div>
+            <div class="chat-num-messages">already 1 902 messages</div>
+          </div>
+          <a class="star btn" style="right: 0;"><i class="fa fa-star"></i></a>
+        </div> <!-- end chat-header -->
+        
+        <div class="chat-history">
+          <ul>
+            <li class="clearfix">
+              <div class="message-data align-right">
+                <span class="message-data-time" >10:10 AM, Today</span> &nbsp; &nbsp;
+                <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>
+                
+              </div>
+              <div class="message other-message float-right">
+                Hi Vishwajeet, how are you?
+              </div>
+            </li>
+            
+            <li>
+              <div class="message-data">
+                <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>
+                <span class="message-data-time">10:12 AM, Today</span>
+              </div>
+              <div class="message my-message">
+                Kaun hai ji tu?
+              </div>
+            </li>
+            
+          </ul>
+          
+        </div> <!-- end chat-history -->
+        
+        <div class="chat-message clearfix">
+          <textarea name="message-to-send" id="message-to-send" placeholder ="Type your message" rows="3"></textarea>
+                  
+          <i class="fa fa-file-o"></i> &nbsp;&nbsp;&nbsp;
+          <i class="fa fa-file-image-o"></i>
+          
+          <button>Send</button>
+
+        </div> <!-- end chat-message -->
+      </div>
+
+
+
+
+      <div class="tab-pane fade show active" id="chat-2" role="tabpanel" aria-labelledby="v-pills-profile-tab">
+        <div class="chat-header clearfix">
+          <img src="https://scontent.fpat3-1.fna.fbcdn.net/v/t1.00288418_237388223169334717_o.jpg?_nc_cat=106&_nc_sid=09cbfe&_nc_ohc=P5jF3XWoYsEAX-Fg4M2&_nc_ht=scontent.fpat3-1.fna&oh=856009cb43f5ef5d46aef2ec1c8278de&oe=5FB2A24F"
+          alt="avatar" width="55px" class="rounded-circle" />
+          
+          <div class="chat-about">
+            <div class="chat-with">Chat with Ankit</div>
+            <div class="chat-num-messages">already 1 902 messages</div>
+          </div>
+          <a class="star btn" style="right: 0;"><i class="fa fa-star"></i></a>
+        </div> <!-- end chat-header -->
+        
+        <div class="chat-history">
+          <ul>
+            <li class="clearfix">
+              <div class="message-data align-right">
+                <span class="message-data-time" >10:10 AM, Today</span> &nbsp; &nbsp;
+                <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>
+                
+              </div>
+              <div class="message other-message float-right">
+                Hi Ankit, how are you?
+              </div>
+            </li>
+            
+            <li>
+              <div class="message-data">
+                <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>
+                <span class="message-data-time">10:12 AM, Today</span>
+              </div>
+              <div class="message my-message">
+                Kaun hai ji tu?
+              </div>
+            </li>
+            
+            
+          </ul>
+          
+        </div> <!-- end chat-history -->
+        
+        <div class="chat-message clearfix">
+          <textarea name="message-to-send" id="message-to-send" placeholder ="Type your message" rows="3"></textarea>
+                  
+          <i class="fa fa-file-o"></i> &nbsp;&nbsp;&nbsp;
+          <i class="fa fa-file-image-o"></i>
+          
+          <button>Send</button>
+
+        </div> <!-- end chat-message -->
+      </div>
+
+
+
+
+      <div class="tab-pane fade" id="chat-3" role="tabpanel" aria-labelledby="v-pills-messages-tab">
+        <div class="chat-header clearfix">
+          <img src="https://scontent.fpat3-1.fna.fbcdn.net/v/t1452090288418_237388223169334717_o.jpg?_nc_cat=106&_nc_sid=09cbfe&_nc_ohc=P5jF3XWoYsEAX-Fg4M2&_nc_ht=scontent.fpat3-1.fna&oh=856009cb43f5ef5d46aef2ec1c8278de&oe=5FB2A24F"
+          alt="avatar" width="55px" class="rounded-circle" />
+          
+          <div class="chat-about">
+            <div class="chat-with">Chat with Kshitij</div>
+            <div class="chat-num-messages">already 1 902 messages</div>
+          </div>
+          <a class="star btn" style="right: 0;"><i class="fa fa-star"></i></a>
+        </div> <!-- end chat-header -->
+        
+        <div class="chat-history">
+          <ul>
+            <li class="clearfix">
+              <div class="message-data align-right">
+                <span class="message-data-time" >10:10 AM, Today</span> &nbsp; &nbsp;
+                <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>
+                
+              </div>
+              <div class="message other-message float-right">
+                Hi Vishwajeet, how are you?
+              </div>
+            </li>
+            
+            <li>
+              <div class="message-data">
+                <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>
+                <span class="message-data-time">10:12 AM, Today</span>
+              </div>
+              <div class="message my-message">
+                Kaun hai ji tu?
+              </div>
+            </li>
+            
+          </ul>
+          
+        </div> <!-- end chat-history -->
+        
+        <div class="chat-message clearfix">
+          <textarea name="message-to-send" id="message-to-send" placeholder ="Type your message" rows="3"></textarea>
+                  
+          <i class="fa fa-file-o"></i> &nbsp;&nbsp;&nbsp;
+          <i class="fa fa-file-image-o"></i>
+          
+          <button>Send</button>
+
+        </div> <!-- end chat-message -->
+      </div>
+
+
+
+
+
+    </div> <!-- end chat -->
+    
+  </div> <!-- end container -->
+
+<script id="message-template" type="text/x-handlebars-template">
+  <li class="clearfix">
+    <div class="message-data align-right">
+      <span class="message-data-time" >{{time}}, Today</span> &nbsp; &nbsp;
+      <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>
+    </div>
+    <div class="message other-message float-right">
+      {{messageOutput}}
+    </div>
+  </li>
+</script>
+
+<script id="message-response-template" type="text/x-handlebars-template">
+  <li>
+    <div class="message-data">
+      <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>
+      <span class="message-data-time">{{time}}, Today</span>
+    </div>
+    <div class="message my-message">
+      {{response}}
+    </div>
+  </li>
+</script>
+<!-- partial -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.0/handlebars.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/list.js/1.1.1/list.min.js'></script>
+<script  src="./chat.js"></script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
+</body>
+</html>

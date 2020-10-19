@@ -18,6 +18,7 @@ class Scene2 extends Phaser.Scene {
 
         _this.deck = _this.physics.add.group();
         _this.discardedTopCards = _this.physics.add.group();
+        _this.maxTopCardDepth = -1;
 
         let initialPosX = 200, initialPosY = 0;
         _this.deckX = config.width/2 - initialPosX;
@@ -67,6 +68,10 @@ class Scene2 extends Phaser.Scene {
             if(status === "start_game") {
                 currentGame.copyData(gameData);
                 _this.startGameEventConsumer(backendResponse.serializedPlayer);
+
+                if(me !== currentGame.getCurrentPlayer()) {
+                    _this.topDeckCard.disableInteractive();
+                }
             }
             else if (status === "end_game") {
                 _this.endGame();
@@ -74,6 +79,10 @@ class Scene2 extends Phaser.Scene {
             else if(status === "play_card") {
                 currentGame.copyData(gameData);
                 _this.playCardEventConsumer(data);
+
+                if(me !== currentGame.getCurrentPlayer()) {
+                    _this.topDeckCard.disableInteractive();
+                }
             }
             else if(status === "forced_draw_card") {
                 // When someone played DRAW TWO or WILD FOUR card.
@@ -110,6 +119,10 @@ class Scene2 extends Phaser.Scene {
                     for(let i = 0; i < drawnCardCount; ++i) {
                         _this.drawCardOpp();
                     }
+                }
+
+                if(me !== currentGame.getCurrentPlayer()) {
+                    _this.topDeckCard.disableInteractive();
                 }
             }
             else if(status === "voluntary_draw_card") {
@@ -159,6 +172,10 @@ class Scene2 extends Phaser.Scene {
 
                     alert("It's your turn!");
                 }
+
+                if(me !== currentGame.getCurrentPlayer()) {
+                    _this.topDeckCard.disableInteractive();
+                }
             }
             else if(status === "keep_card") {
                 currentGame.copyData(gameData);
@@ -187,14 +204,21 @@ class Scene2 extends Phaser.Scene {
                     if(cardSprite != null) {
                         let toX = gameDetails.deckX, toY = gameDetails.deckY, duration = 500;
                         _this.addTween(cardSprite, toX, toY, duration);
+
+                        console.log("Disable Body 1: Inside won_round.");
                         cardSprite.disableBody(true, true);
                     }
                 }
                 myHand.emptyHand();
 
                 // Destroying previous round's top card.
+                console.log("clear() and destroy(): Inside won_round.");
                 _this.discardedTopCards.clear(true, true);
+                _this.topCardSprite.destroy();
 
+                _this.topDeckCard.disableInteractive();
+
+                // TODO: Next Round will start in 3 2 1....
                 // Starting new round.
                 currentGame.copyData(gameData);
                 if(backendResponse.serializedPlayer) {
@@ -225,6 +249,7 @@ class Scene2 extends Phaser.Scene {
             let cardSprite = _this.getCardSprite(cardObject, x, y, depth, scale);
             myHand.addCardAndCardSprite(cardObject, cardSprite);
         }
+        _this.maxTopCardDepth = -1;
         _this.startGame();
     }
 
@@ -295,7 +320,7 @@ class Scene2 extends Phaser.Scene {
                         let cardSprite = myHand.getCardSpriteAt(i);
                         let depth = i + 1;
                         if(card != null && cardSprite != null) {
-                            console.log("Adjusting:", card);
+                            // console.log("Adjusting:", card);
                             let duration = 500;
                             _this.addTween(cardSprite, toX, toY, duration);
                             cardSprite.depth = depth; //////////////
@@ -348,6 +373,8 @@ class Scene2 extends Phaser.Scene {
         let x = _this.deckX, y = _this.deckY, depth = 0, scale = gameDetails.myHandScale;
         let toX = gameDetails.topCardX, toY = gameDetails.topCardY;
         _this.topCardSprite = _this.getCardSprite(currentGame.topCard, x, y, depth, scale);
+        _this.maxTopCardDepth += 1;
+        _this.topCardSprite.depth = _this.maxTopCardDepth;
         _this.addTween(_this.topCardSprite, toX, toY, 1500);
     }
 
@@ -379,36 +406,46 @@ class Scene2 extends Phaser.Scene {
     playCardSelf(index) {
         let _this = this;
         // When current player plays a card.
-
-        console.log("Disabling top card body.");
-        _this.discardedTopCards.add(_this.topCardSprite);
-        _this.topCardSprite.depth = 0; // Testing
-        // _this.topCardSprite.disableBody(true, true);
-
-
         let playedCard = myHand.getCardAt(index);
         let playedCardSprite = myHand.getCardSpriteAt(index);
 
         if(playedCard != null && playedCardSprite != null) {
-            let x = gameDetails.topCardX, y = gameDetails.topCardY, duration = 500;
-
-            playedCardSprite.depth = 1; // Testing
-
-            _this.addTween(playedCardSprite, x, y, duration);
-
-            playedCardSprite.disableInteractive();
-
-            // Updating the topCardSprite and currentGame.topCard.
-            console.log("Setting top card after playing!");
-            _this.topCardSprite = playedCardSprite;
-            _this.topCardSprite.depth = 0;
-            currentGame.setTopCard(playedCard);
+            let x = gameDetails.topCardX, y = gameDetails.topCardY, duration = 1000;
 
             // Removing card and cardSprite from Hand
             myHand.removeCardAndCardSpriteAt(index);
 
-            // Adjusting Cards in the Hand present on table.
-            _this.adjustSelfHandOnTable(index);
+            // Updating topCard of currentGame
+            currentGame.setTopCard(playedCard);
+
+            _this.topCardSprite.destroy();
+            _this.discardedTopCards.clear(true, true);
+
+            // Moving played card to Top Card Position.
+            // _this.addTween(playedCardSprite, x, y, duration);
+            _this.tweens.add({
+                targets: playedCardSprite,
+                x: x,
+                y: y,
+                ease: "Power1",
+                duration: 700, // 1500
+                repeat: 0,
+                onComplete: function () {
+                    // Destroying playedCardSprite
+                    playedCardSprite.destroy();
+
+                    // Generating new cardSprite at TopCard position.
+                    let depth = _this.maxTopCardDepth + 1;
+                    _this.maxTopCardDepth = depth;
+                    _this.topCardSprite = _this.getCardSprite(playedCard, x, y, depth, gameDetails.myHandScale);
+
+                    console.log(`Depth of top Card = ${_this.topCardSprite.depth} | Max Top Card Depth = ${_this.maxTopCardDepth}`);
+
+                    // Adjusting Cards in the Hand present on table.
+                    _this.adjustSelfHandOnTable(index);
+                },
+                callbackScope: _this
+            });
 
         } else {
             console.log("playedCard is null.");
@@ -421,12 +458,12 @@ class Scene2 extends Phaser.Scene {
 
             cardSprite.on("pointerover", function (pointer) {
                 // console.log("Can Play this card: ", card);
-                cardSprite.depth = 25;//myHand.getActiveCount() + 2; //// 10;
+                cardSprite.depth = depth + 2;
                 cardSprite.y = (gameDetails.myHandY - 15);
             });
 
             cardSprite.on("pointerout", function (pointer) {
-                cardSprite.depth = depth;//myHand.getDepth(cardSprite); ////////depth;
+                cardSprite.depth = depth;
                 cardSprite.y = gameDetails.myHandY;
             });
 
@@ -442,6 +479,7 @@ class Scene2 extends Phaser.Scene {
         _this.topDeckCard.disableInteractive();
 
         if(_this.topCardSprite) {
+            console.log("Disable Body 3: Inside end_game()");
             _this.topCardSprite.disableBody(true, true);//.destroy();
         }
 
@@ -451,6 +489,7 @@ class Scene2 extends Phaser.Scene {
         for(let i = 0; i < myHand.getCount(); ++i) {
             let cardSprite = myHand.getCardSpriteAt(i);
             if(cardSprite != null) {
+                console.log("Disable Body 4: Inside end_game()");
                 cardSprite.disableBody(true, true);
             }
         }
@@ -467,7 +506,7 @@ class Scene2 extends Phaser.Scene {
                 let card = myHand.getCardAt(i);
                 let cardSprite = myHand.getCardSpriteAt(i);
                 if(card != null && cardSprite != null) {
-                    if(currentGame.canPlay(card)) {
+                    if(currentGame.canPlay(card)) { // TODO: Remove this if condition if there is any bug.
                         cardSprite.setInteractive();
                     }
                 }
@@ -478,18 +517,22 @@ class Scene2 extends Phaser.Scene {
      playCardOpp(card) {
         let _this = this;
         // When opponent plays a card.
-        _this.topCardSprite.disableBody(true, true);
+         console.log("Disable Body 5: Inside playCardOpp().");
+        // _this.topCardSprite.disableBody(true, true);
+         _this.topCardSprite.destroy();
         let x = gameDetails.oppHandX, y = gameDetails.oppHandY;
-        let depth = 0, scale = gameDetails.myHandScale;
+        _this.maxTopCardDepth += 1;
+        let depth = _this.maxTopCardDepth, scale = gameDetails.myHandScale;
         let playedCardSprite = _this.getCardSprite(card, x, y, depth, scale);
 
         // Moving card from Opponent's deck to TopCard Place.
-        let toX = gameDetails.topCardX, toY = gameDetails.topCardY, duration = 500;
+        let toX = gameDetails.topCardX, toY = gameDetails.topCardY, duration = 1000;
         _this.addTween(playedCardSprite, toX, toY, duration);
 
         // Setting as top Card.
         _this.topCardSprite = playedCardSprite;
-        _this.topCardSprite.depth = 0;
+        // _this.topCardSprite.depth = 0;
+         console.log(`Depth of top Card = ${_this.topCardSprite.depth} | Max Top Card Depth = ${_this.maxTopCardDepth}`);
         currentGame.setTopCard(card);
     }
 
@@ -510,6 +553,7 @@ class Scene2 extends Phaser.Scene {
             duration: 500,
             repeat: 0,
             onComplete: function () {
+                console.log("Disable body 6: Inside drawCardOpp().");
                 drawnCard.disableBody(true, true);
             },
             callbackScope: _this

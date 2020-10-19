@@ -52,6 +52,10 @@
         </div>
     </section> 
 
+    {# To go to message #}
+    <div class="text-center">
+        <a class="btn btn-outline-light btn-xl" href="{% url 'main_page' %}"><span>message</span></a>
+    </div>
 
     <div class="text-light text-center">
         <h1 data-aos="slide-left">YOUR GAME ROOMS</h1>
@@ -111,8 +115,8 @@
         {% endif %}
         </div>
 
-        <h1 data-aos="slide-right">JOINED GAME ROOMS</h1>
-        <div class="container" data-aos="slide-right" data-aos-duration="500" data-aos-delay="250">
+        <h1 data-aos="slide-up">JOINED GAME ROOMS</h1>
+        <div class="container" data-aos="slide-up" data-aos-duration="500" data-aos-delay="250">
         {% if joined_game_rooms %}
             <table class="table table-bordered table-light table-hover">
                 <thead>
@@ -140,6 +144,30 @@
         {% endif %}
         </div>
     </div>
+
+    <footer class="footer text-center">
+        <div class="container" data-aos="fade-up" data-aos-duration="550" data-aos-delay="150">
+            <div class="row">
+                <div class="col-md-4 mb-5 mb-lg-0">
+                    <h4 class="text-uppercase mb-4">Location</h4>
+                    <p>2215 John Daniel Drive<br>Clark, MO 65243</p>
+                </div>
+                <div class="col-md-4 mb-5 mb-lg-0">
+                    <h4 class="text-uppercase">Social</h4>
+                    <ul class="list-inline">
+                        <li class="list-inline-item"><a class="btn btn-outline-light btn-social text-center rounded-circle" role="button" target="_blank"><i class="fa fa-facebook fa-fw"></i></a></li>
+                        <li class="list-inline-item"><a class="btn btn-outline-light btn-social text-center rounded-circle" role="button" target="_blank"><i class="fa fa-google-plus fa-fw"></i></a></li>
+                        <li class="list-inline-item"><a class="btn btn-outline-light btn-social text-center rounded-circle" role="button" target="_blank"><i class="fa fa-twitter fa-fw"></i></a></li>
+                        <li class="list-inline-item"><a class="btn btn-outline-light btn-social text-center rounded-circle" role="button" target="_blank"><i class="fa fa-dribbble fa-fw"></i></a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h4 class="text-uppercase mb-4">About Freelancer</h4>
+                    <p class="lead mb-0"><span>Freelance is a free to use, open source Bootstrap theme.&nbsp;</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     {% else %}
         <h1>Hey! How did you get in here. You are not logged in!</h1>
