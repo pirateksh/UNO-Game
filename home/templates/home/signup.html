@@ -48,36 +48,39 @@
                             </div>
                             <form class="user" method="post" action="{% url 'signup' %}">
                                 {% csrf_token %}
-                                {{ form.as_p }}
+{#                                {{ form.as_p }}#}
                                 {# TODO: Uncomment below fields after managing the classes in django forms. #}
-{#                                <div class="form-group row">#}
-{#                                    <div class="col-sm-6 mb-3 mb-sm-0">#}
-{#                                        <input class="form-control form-control-user" type="text" id="exampleFirstName" placeholder="First Name" name="first_name">#}
-{#                                    </div>#}
-{#                                    <div class="col-sm-6">#}
-{#                                        <input class="form-control form-control-user" type="text" id="exampleLastName" placeholder="Last Name" name="last_name">#}
-{#                                    </div>#}
-{#                                </div>#}
-{#                                <div class="form-group">#}
-{#                                    <input class="form-control form-control-user" type="email" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Email Address" name="email">#}
-{#                                </div>#}
-{#                                <div class="form-group row">#}
-{#                                    <div class="col-sm-6 mb-3 mb-sm-0">#}
-{#                                        <input class="form-control form-control-user" type="password" id="examplePasswordInput" placeholder="Password" name="password">#}
-{#                                    </div>#}
-{#                                    <div class="col-sm-6">#}
-{#                                        <input class="form-control form-control-user" type="password" id="exampleRepeatPasswordInput" placeholder="Repeat Password" name="password_repeat">#}
-{#                                    </div>#}
-{#                                </div>#}
-                                <button class="btn btn-primary btn-block text-white btn-user" type="submit">Register Account</button>
+                                <div class="form-group row">
+                                    <div class="col-sm-6 mb-3 mb-sm-0">
+                                        <input class="form-control form-control-user" type="text" id="exampleFirstName" placeholder="First Name" name="first_name" required>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <input class="form-control form-control-user" type="text" id="exampleLastName" placeholder="Last Name" name="last_name" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <input class="form-control form-control-user" type="text" id="exampleInputUsername" aria-describedby="emailHelp" placeholder="Username" name="username" required>
+                                </div>
+                                <div class="form-group">
+                                    <input class="form-control form-control-user" type="email" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Email Address" name="email" required>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-sm-6 mb-3 mb-sm-0">
+                                        <input class="form-control form-control-user" type="password" id="examplePasswordInput" placeholder="Password" required>
+                                        <input type="hidden" name="password" id="id_password1_hidden">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <input class="form-control form-control-user" type="password" id="exampleRepeatPasswordInput" placeholder="Repeat Password" required>
+                                        <input type="hidden" name="password_repeat" id="id_password2_hidden">
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary btn-block text-white btn-user" type="submit" onclick="submit_signup();">Register Account</button>
                                 <hr>
-                                {# TODO: Add Social Login Links -- Ankit #}
-                                <a class="btn btn-danger btn-block text-white btn-user" role="button"><i class="fa fa-google-plus fa-fw"></i>&nbsp; Register with Google</a>
-                                <a class="btn btn-info btn-block text-white btn-user" role="button"><i class="fa fa-facebook fa-fw"></i>&nbsp; Register with Facebook</a>
-                                <a class="btn btn-dark btn-block text-white btn-user" role="button"><i class="fa fa-github fa-fw"></i>&nbsp; Register with Github</a>
+                                <a class="btn btn-danger btn-block text-white btn-user" role="button" href="{% url 'social:begin' 'google-oauth2' %}"><i class="fa fa-google-plus fa-fw"></i>&nbsp; Register with Google</a>
+                                <a class="btn btn-info btn-block text-white btn-user" role="button" href="{% url 'social:begin' 'facebook' %}"><i class="fa fa-facebook fa-fw"></i>&nbsp; Register with Facebook</a>
+                                <a class="btn btn-dark btn-block text-white btn-user" role="button" href="{% url 'social:begin' 'github' %}"><i class="fa fa-github fa-fw"></i>&nbsp; Register with Github</a>
                                 <hr>
                             </form>
-                            <div class="text-center"><a class="small" href="forgot-password.html">Forgot Password?</a></div>
                             <div class="text-center"><a class="small" href="{% url 'login' %}">Already have an account? Login!</a></div>
                         </div>
                     </div>
@@ -90,6 +93,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
     <script src="{%  static "js/canvas.js" %}"></script>
+
+    <script>
+        {% if messages %}
+            {% for message in messages %}
+                alert("{{ message }}");
+                 {# TODO: Hanle invalid Creds message here... -- Vishwajeet #}
+                {#<div class="alert alert-{{ message.tags }}">  <!-- singular -->#}
+                {#    <a class="close" data-dismiss="alert">×</a>#}
+                {#    {{ message|safe }}#}
+                {#</div>#}
+            {% endfor %}
+        {% endif %}
+    </script>
+
+
+
+    {% include 'scripts.html' %}
 </body>
 
 </html>

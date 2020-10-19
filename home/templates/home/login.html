@@ -50,35 +50,53 @@
                                     </div>
                                     <form class="user" method="post" action="{% url 'login' %}">
                                         {% csrf_token %}
-                                        {{ form.as_p }}
-                                        {# TODO: Uncomment below fields after managing the classes in django forms. #}
-{#                                        <div class="form-group">#}
-{#                                            <input class="form-control form-control-user" type="text" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Enter Username..." name="email">#}
-{#                                        </div>#}
-{#                                        <div class="form-group">#}
-{#                                            <input class="form-control form-control-user" type="password" id="exampleInputPassword" placeholder="Password" name="password">#}
-{#                                        </div>#}
-{#                                        <div class="form-group">#}
-{#                                            <div class="custom-control custom-checkbox small">#}
-{#                                                <div class="form-check">#}
-{#                                                    <input class="form-check-input custom-control-input" type="checkbox" id="formCheck-1">#}
-{#                                                    <label class="form-check-label custom-control-label" for="formCheck-1">Remember Me</label>#}
-{#                                                </div>#}
-                                        {# TODO: Implement REMEMBER ME feature -- Ankit #}
+                                        {# {{ form.as_p }}#}
+                                        {% if 'cook_user' and 'cook_pass' in request.COOKIES %}
+                                            <div class="form-group">
+                                                <input class="form-control form-control-user" type="text" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Enter Username/Email..." value="{{request.COOKIES.cook_user}}" required>
+                                                <input id="login_username_hidden" name="username" name="username" type="hidden">
+                                            </div>
+                                            <div class="form-group">
+                                                <input class="form-control form-control-user" type="password" id="exampleInputPassword" placeholder="Password" value="{{request.COOKIES.cook_pass}}" required>
+                                                <input id="login_password_hidden" name="password" type="hidden">
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="custom-control custom-checkbox small">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input custom-control-input" type="checkbox" id="formCheck-1" name="remember_me" value="remember_me" checked="checked">
+                                                        <label class="form-check-label custom-control-label" for="formCheck-1">Remember Me</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {%else%}
+                                            <div class="form-group">
+                                                <input class="form-control form-control-user" type="text" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Enter Username/Email..."  required>
+                                                <input id="login_username_hidden" name="username" type="hidden">
+                                            </div>
+                                            <div class="form-group">
+                                                <input class="form-control form-control-user" type="password" id="exampleInputPassword" placeholder="Password" required>
+                                                <input id="login_password_hidden" name="password" type="hidden">
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="custom-control custom-checkbox small">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input custom-control-input" type="checkbox" id="formCheck-1" name="remember_me" value="remember_me">
+                                                        <label class="form-check-label custom-control-label" for="formCheck-1">Remember Me</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
                                         {# TODO: Implement Forget Password Feature -- Kshitiz #}
                                         {# TODO: Implement Login by Email as well -- Kshitiz #}
-{#                                            </div>#}
-{#                                        </div>#}
-                                        <button class="btn btn-primary btn-block text-white btn-user" type="submit">Login</button>
+                                        <button class="btn btn-primary btn-block text-white btn-user" type="submit" onclick="submit_login();">Login</button>
                                         <hr>
-                                        {# TODO: Add Social Login Links -- Ankit #}
-                                        <a class="btn btn-danger btn-block text-white btn-user" role="button"><i class="fa fa-google-plus fa-fw"></i>&nbsp; Login with Google</a>
-                                        <a class="btn btn-info btn-block text-white btn-user" role="button"><i class="fa fa-facebook fa-fw"></i>&nbsp; Login with Facebook</a>
-                                        <a class="btn btn-dark btn-block text-white btn-user" role="button"><i class="fa fa-github fa-fw"></i>&nbsp; Register with Github</a>
+                                        <a class="btn btn-danger btn-block text-white btn-user" role="button" href="{% url 'social:begin' 'google-oauth2' %}"><i class="fa fa-google-plus fa-fw" ></i>&nbsp; Login with Google</a>
+                                        <a class="btn btn-info btn-block text-white btn-user" role="button" href="{% url 'social:begin' 'facebook' %}"><i class="fa fa-facebook fa-fw" ></i>&nbsp; Login with Facebook</a>
+                                        <a class="btn btn-dark btn-block text-white btn-user" role="button" href="{% url 'social:begin' 'github' %}"><i class="fa fa-github fa-fw"></i>&nbsp; Register with Github</a>
                                         <hr>
                                     </form>
                                     <div class="text-center"><a class="small" href="{% url "home" %}">Forgot Password?</a></div>
-                                    {# TODO: Add link name from home/urls.py for Forot Password Page #}
+                                    {# TODO: Add link name from home/urls.py for Forot Password Page -- Kshitiz #}
                                     <div class="text-center"><a class="small" href="{% url "signup" %}">Create an Account!</a></div>
                                 </div>
                             </div>
@@ -89,11 +107,29 @@
         </div>
     </div>
 
+
     <script src=" {% static 'js/jquery.min.js' %} "></script>
     <script src=" {% static 'bootstrap/js/bootstrap.min.js' %} "></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
    <script src="{%  static "js/canvas.js" %}"></script>
+
+    <script>
+        {% if messages %}
+            {% for message in messages %}
+                alert("{{ message }}");
+                 {# TODO: Hanle invalid Creds message here... -- Vishwajeet #}
+                {#<div class="alert alert-{{ message.tags }}">  <!-- singular -->#}
+                {#    <a class="close" data-dismiss="alert">×</a>#}
+                {#    {{ message|safe }}#}
+                {#</div>#}
+            {% endfor %}
+        {% endif %}
+    </script>
+
+    {% include 'scripts.html' %}
+
 </body>
 
 </html>
+

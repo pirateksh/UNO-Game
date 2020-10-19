@@ -13,3 +13,55 @@
 
 {% comment %} <script src=" {% static 'js/canvas.js' %} "></script>
 <script src="{%  static "js/freelancer.js" %}"></script> {% endcomment %}
+
+
+
+{# Client Side Hashing using Shaw-256 Algorithm #}
+    {# including the required js file for hashing #}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsSHA/2.0.2/sha.js"></script>
+{# for login form submission #}
+<script>
+    function submit_login(obj) {
+        var usernameObj = document.getElementById('exampleInputEmail');
+        var passwordObj = document.getElementById('exampleInputPassword');
+        var usernameObjhidden = document.getElementById('login_username_hidden');
+        var passwordObjhidden = document.getElementById('login_password_hidden');
+        usernameObjhidden.value = usernameObj.value;
+        if("{{request.COOKIES.cook_user}}" && "{{request.COOKIES.cook_pass}}"){
+            if(passwordObj.value === "{{request.COOKIES.cook_pass}}"){
+                passwordObjhidden.value = passwordObj.value;
+            }
+            else{
+                let hashObj2  = new jsSHA("SHA-512","TEXT",{numRounds:1});
+                hashObj2.update(passwordObj.value);
+                let hashedpassword = hashObj2.getHash("HEX");
+                passwordObjhidden.value = hashedpassword;
+            }
+        }
+        else{
+            let hashObj2  = new jsSHA("SHA-512","TEXT",{numRounds:1});
+            hashObj2.update(passwordObj.value);
+            let hashedpassword = hashObj2.getHash("HEX");
+            passwordObjhidden.value = hashedpassword;
+        }
+    }
+</script>
+{# for signup form submission #}
+<script>
+    function submit_signup(obj) {
+        let password1Obj = document.getElementById('examplePasswordInput');
+        let password2Obj = document.getElementById('exampleRepeatPasswordInput');
+
+        let password1Objhidden = document.getElementById('id_password1_hidden');
+        let password2Objhidden = document.getElementById('id_password2_hidden');
+
+        let hashObj2  = new jsSHA("SHA-512","TEXT",{numRounds:1});
+        hashObj2.update(password1Obj.value);
+        let hashedpassword1 = hashObj2.getHash("HEX");
+        password1Objhidden.value = hashedpassword1;
+        let hashObj3  = new jsSHA("SHA-512","TEXT",{numRounds:1});
+        hashObj3.update(password2Obj.value);
+        let hashedpassword2 = hashObj3.getHash("HEX");
+        password2Objhidden.value = hashedpassword2;
+    }
+</script>
