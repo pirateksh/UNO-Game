@@ -1,18 +1,18 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" >
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>chat</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
-<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css'>
-<link rel="stylesheet" href="./chat.css">
-<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
-
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css'>
+    <link rel="stylesheet" href="{% static "css/chat.css"%}">
+    <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css"%}">
 </head>
+
 <body>
-<!-- partial:index.partial.html -->
+
 <div class="container clearfix">
     <div class="people-list" id="people-list">
       <div class="search">
@@ -220,42 +220,38 @@
         </div> <!-- end chat-message -->
       </div>
 
-
-
-
-
     </div> <!-- end chat -->
     
   </div> <!-- end container -->
 
-<script id="message-template" type="text/x-handlebars-template">
-  <li class="clearfix">
-    <div class="message-data align-right">
-      <span class="message-data-time" >{{time}}, Today</span> &nbsp; &nbsp;
-      <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>
-    </div>
-    <div class="message other-message float-right">
-      {{messageOutput}}
-    </div>
-  </li>
-</script>
+    <script id="message-template" type="text/x-handlebars-template">
+      <li class="clearfix">
+        <div class="message-data align-right">
+          <span class="message-data-time" >{{time}}, Today</span> &nbsp; &nbsp;
+          <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>
+        </div>
+        <div class="message other-message float-right">
+          {{messageOutput}}
+        </div>
+      </li>
+    </script>
 
-<script id="message-response-template" type="text/x-handlebars-template">
-  <li>
-    <div class="message-data">
-      <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>
-      <span class="message-data-time">{{time}}, Today</span>
-    </div>
-    <div class="message my-message">
-      {{response}}
-    </div>
-  </li>
-</script>
-<!-- partial -->
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
-<script src='https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.0/handlebars.min.js'></script>
-<script src='https://cdnjs.cloudflare.com/ajax/libs/list.js/1.1.1/list.min.js'></script>
-<script  src="./chat.js"></script>
-<script src="bootstrap/js/bootstrap.min.js"></script>
+    <script id="message-response-template" type="text/x-handlebars-template">
+      <li>
+        <div class="message-data">
+          <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>
+          <span class="message-data-time">{{time}}, Today</span>
+        </div>
+        <div class="message my-message">
+          {{response}}
+        </div>
+      </li>
+    </script>
+
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.0/handlebars.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/list.js/1.1.1/list.min.js'></script>
+    <script src="{% static "js/chat.js"%}"></script>
+    <script src="{% static "bootstrap/js/bootstrap.min.js"%}"></script>
 </body>
 </html>

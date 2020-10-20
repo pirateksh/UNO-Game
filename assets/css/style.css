@@ -1,21 +1,5 @@
 
-/* div.ui.container.center_ms {
-    display: flex !important;
-    align-items: center;
-    justify-content: center !important;
-    margin-top: 10em;
-    text-align: center;
-} */
 
-canvas {
-    background-color: black;
-    z-index: -1;
-    position: fixed;
-    top: 0;
-    left: 0;
-    
-  }
-  
   body {
     margin: 0;
   }
@@ -23,4 +7,5 @@ canvas {
   .top-pad-5 {
     padding-top: 5rem;
   }
-  
+
+ 
