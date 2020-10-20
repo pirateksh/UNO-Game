@@ -9,17 +9,21 @@ window.onload = function () {
 	let width = 700, height = 600;
 
 	gameDetails = {
-		deckX: width/2 - 200,
-		deckY: height/2,
+		deckX: width/2 - 100,
+		deckY: height/2 - 100,
+		deckScale: 0.55,
 		myHandStartX: width/2 - 200,
 		myHandEndX: width/2 + 200,
 		myHandY: height/2 + 200,
 		topCardX: width/2,
 		topCardY: height/2,
-        myHandScale: 1.61,
+        myHandScale: 1.4,
         oppHandScale: 0.35,
 		oppHandX: width/2,
-		oppHandY: height/2 - 200
+		oppHandY: height/2 - 200,
+		centerX: width/2,
+		centerY: height/2 - 50,
+		radius: 225,
 	};
 
 	let config = {

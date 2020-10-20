@@ -206,6 +206,7 @@
                 this.currentPlayerIndex = gameData.currentPlayerIndex;
                 this.isGameRunning = false;
                 this.canDrawCard = false;
+                this.coordinatesOfPlayers = {};
                 // Adding Players to DOM.
                 Game.addPlayersToDOM(this.players);
             }
@@ -222,6 +223,14 @@
 
             getTopCard() {
                 return this.topCard;
+            }
+
+            getPlayersCount() {
+                return this.players.length;
+            }
+
+            getPlayers() {
+                return this.players;
             }
 
             getCurrentPlayer() {
