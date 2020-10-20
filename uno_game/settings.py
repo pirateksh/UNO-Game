@@ -24,6 +24,8 @@ INSTALLED_APPS = [
     'game.apps.GameConfig',
     'home.apps.HomeConfig',
     'user_profile.apps.UserProfileConfig',
+    'chitchat.apps.ChitchatConfig',
+    'botGame.apps.BotgameConfig',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -32,8 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'channels',
-    'chitchat',
-    'botGame',
+
     # Social Media Login
     'social_django',
 ]
@@ -147,9 +148,10 @@ CHANNEL_LAYERS = {
 }
 
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    'social_core.backends.github.GithubOAuth2',
-    'social_core.backends.facebook.FacebookOAuth2',
+    'django.contrib.auth.backends.ModelBackend',  # Default Django Authentication Backend
+    'home.models.EmailBackend',  # Enables Login using Email as well as username
+    'social_core.backends.github.GithubOAuth2',  # for Github authentication
+    'social_core.backends.facebook.FacebookOAuth2',  # for Facebook authentication
     'social_core.backends.open_id.OpenIdAuth',  # for Google authentication
     'social_core.backends.google.GoogleOpenId',  # for Google authentication
     'social_core.backends.google.GoogleOAuth2',  # for Google authentication
@@ -168,4 +170,11 @@ LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
 LOGIN_REDIRECT_URL = 'home'
 
+# Email Setup
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default="")
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default="")
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 

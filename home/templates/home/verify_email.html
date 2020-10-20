@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify your Email{% endblock %}
+
+{% block content %}
+    <div class="container">
+        Hi! {{ user.username }}! You have signed in successfully!
+        <br/>
+        You now need to verify your email address to continue. Click on below link to get a verification link on your email.
+        <br/>
+        <a href="{% url 'verify_email' user.username %}">Verify my email!</a>
+    </div>
+{% endblock %}

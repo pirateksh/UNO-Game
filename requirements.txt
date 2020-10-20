@@ -21,6 +21,7 @@ daphne==2.5.0
 dataclasses-json==0.5.2
 defusedxml==0.7.0rc1
 Django==3.1.2
+django-utils-six==2.0
 hiredis==1.1.0
 humanfriendly==8.2
 hyperlink==20.0.1
