@@ -20,6 +20,8 @@ class Scene2 extends Phaser.Scene {
         _this.discardedTopCards = _this.physics.add.group();
         _this.maxTopCardDepth = -1;
 
+        _this.playerNameBitMap =  _this.physics.add.group();
+
         let initialPosX = 0, initialPosY = 0;
         _this.deckX = config.width/2 - initialPosX;
         _this.deckY = config.height/2 + initialPosY;
@@ -31,9 +33,6 @@ class Scene2 extends Phaser.Scene {
             initialPosX -= 3;
             initialPosY += 2;
         }
-
-        // Setting top Deck as interactive for draw card move.
-        // TODO: Implement Draw Card -- Kshitiz
 
         _this.topDeckCard.on("pointerover", function (pointer) {
             _this.topDeckCard.y = gameDetails.deckY + 20;
@@ -114,7 +113,7 @@ class Scene2 extends Phaser.Scene {
                 }
                 else {
                     for(let i = 0; i < drawnCardCount; ++i) {
-                        _this.drawCardOpp();
+                        _this.drawCardOpp(username);
                     }
                 }
 
@@ -158,7 +157,7 @@ class Scene2 extends Phaser.Scene {
                 }
                 else {
                     // Opponent drew a card.
-                    _this.drawCardOpp();
+                    _this.drawCardOpp(username);
                 }
 
                 if(currentGame.getCurrentPlayer() === me && me !== username) {
@@ -168,9 +167,6 @@ class Scene2 extends Phaser.Scene {
                     _this.topDeckCard.setInteractive();
                     console.log("Making hand interactive for: ", me);
                     _this.makeHandInteractive();
-
-                    // alert("It's your turn!");
-                    // _this.moveOrSetTurnIndicator(true);
                 }
 
                 if(me !== currentGame.getCurrentPlayer()) {
@@ -181,16 +177,31 @@ class Scene2 extends Phaser.Scene {
             }
             else if(status === "keep_card") {
                 currentGame.copyData(gameData);
-                if(currentGame.getCurrentPlayer() === me) {
+                let username = data.username;
+                let card = data.card;
+                // TODO: Error in positioning and playing of keep card.
+                if(username === me) {
+                    console.log(username, card);//quit
+                    // Setting onclick etc handlers for card.
+                    let keptCardObject = new Card(card.category, card.number);
+                    let x = _this.config.width/2, y = _this.config.height/2 - 100;
+                    let depth = myHand.getCount() + 1, index = myHand.getCount();
+                    let scale = gameDetails.myHandScale;
+                    let keptCardSprite = _this.getCardSprite(keptCardObject, x, y ,depth, scale);
+                    myHand.addCardAndCardSprite(keptCardObject, keptCardSprite);
+                    _this.drawCardSelf(keptCardObject, keptCardSprite , depth, index);
+                    // Adjusting cards in hand on the table.
+                    // _this.keptCard.destroy();
+                    _this.adjustSelfHandOnTable();
+                }
+                else if(currentGame.getCurrentPlayer() === me) {
+
                     // Making Hand Interactive for current Player.
                     console.log("Making top deck card interactive for draw card.", me);
                     currentGame.canDrawCard = true;
                     _this.topDeckCard.setInteractive();
                     console.log("Making hand interactive for: ", me);
                     _this.makeHandInteractive();
-
-                    // alert("It's your turn!");
-                    // _this.moveOrSetTurnIndicator(true);
                 }
 
                 _this.moveOrSetTurnIndicator(true);
@@ -277,7 +288,8 @@ class Scene2 extends Phaser.Scene {
                 duration: 700,
                 repeat: 0,
                 onComplete: function (){
-                    _this.add.bitmapText(newX, newY + 20, "pixelFont", otherPlayer, 20);
+                    let nameBitMap = _this.add.bitmapText(newX, newY + 20, "pixelFont", otherPlayer, 20);
+                    _this.playerNameBitMap.add(nameBitMap);
                 },
                 callbackScope: _this
             });
@@ -324,7 +336,7 @@ class Scene2 extends Phaser.Scene {
             _this.playCardSelf(index);
         } else {
             // Opponent plays a card.
-            _this.playCardOpp(playedCardObject);
+            _this.playCardOpp(playedCardObject, username_);
         }
 
         if(currentGame.getCurrentPlayer() === me) {
@@ -334,30 +346,63 @@ class Scene2 extends Phaser.Scene {
             _this.topDeckCard.setInteractive();
             console.log("Making hand interactive for: ", me);
             _this.makeHandInteractive();
-
-            // alert("It's your turn!");
-            // _this.moveOrSetTurnIndicator(true);
         }
     }
 
     giveOptionToPlayOrKeep(drawnCardObject, drawnCardSprite, depth, index) {
         let _this = this;
-        // drawnCardSprite.setScale(2 * gameDetails.myHandScale);
-        let toX = _this.config.width/2, toY = _this.config.height/2, duration = 1000;
+        drawnCardSprite.setScale(1.5 * gameDetails.myHandScale);
+        drawnCardSprite.depth = _this.maxTopCardDepth + 1;
+        let toX = _this.config.width/2, toY = _this.config.height/2 - 100, duration = 700;
         _this.addTween(drawnCardSprite, toX, toY, duration);
-        let playOrKeep = prompt(`You have drawn ${drawnCardObject.number} of ${drawnCardObject.category}. Choose Play or Keep ('P' or 'K')`);
-        if(playOrKeep === 'P') { // Play
-            currentGame.playCardRequest(drawnCardObject, index);
-        }
-        else if(playOrKeep === 'K'){ // Keep
-            // Setting onclick etc handlers for card.
-            _this.drawCardSelf(drawnCardObject, drawnCardSprite, depth, index);
-            // Adjusting cards in hand on the table.
-            _this.adjustSelfHandOnTable();
 
-            currentGame.keepCardAfterDrawingRequest();
-            // TODO: Error in positioning of keep card.
-        }
+        let noX = _this.config.width/2 - 85, noY = _this.config.height/2 + 100;
+        let yesX = _this.config.width/2 + 85, yesY = _this.config.height/2 + 100;
+        let noButton = _this.physics.add.sprite(noX, noY, "noButton");
+        noButton.setScale(0.85);
+        noButton.depth = myHand.getCount() + 1;
+        let yesButton = _this.physics.add.sprite(yesX, yesY, "yesButton");
+        yesButton.setScale(0.85);
+        yesButton.depth = myHand.getCount() + 1;
+
+
+        noButton.setInteractive();
+        yesButton.setInteractive();
+
+        noButton.on("pointerover", function (pointer) {
+            noButton.play("noButtonOver");
+        });
+
+        noButton.on("pointerout", function (pointer) {
+            noButton.play("noButtonOut");
+        });
+
+        noButton.on("pointerdown", function (pointer) {
+            currentGame.keepCardAfterDrawingRequest(drawnCardObject);
+            yesButton.destroy();
+            noButton.destroy();
+        });
+
+        yesButton.on("pointerover", function (pointer) {
+            yesButton.play("yesButtonOver");
+        });
+
+        yesButton.on("pointerout", function (pointer) {
+            yesButton.play("yesButtonOut");
+        });
+
+        yesButton.on("pointerdown", function (pointer) {
+            currentGame.playCardRequest(drawnCardObject, index);
+            yesButton.destroy();
+            noButton.destroy();
+        });
+
+
+
+        _this.keptCard = drawnCardSprite;
+
+        // TODO: Error in positioning and playing of keep card.
+
     }
 
 
@@ -369,8 +414,8 @@ class Scene2 extends Phaser.Scene {
             if(activeCardsCount > 0) { // If active cards are present in the hand.
                 let window = gameDetails.myHandEndX - gameDetails.myHandStartX;
                 let incrementValue = window / activeCardsCount;
-                let angleIncrementValue = 60 / activeCardsCount;
-                let startAngle = -30;
+                // let angleIncrementValue = 60 / activeCardsCount;
+                // let startAngle = -30;
                 let toX = gameDetails.myHandStartX, toY = gameDetails.myHandY;
                 for(let i = 0; i < myHand.getCount(); ++i) {
                     if(skipIndex !== i) { // If this card doesn't have to be skipped.
@@ -379,9 +424,7 @@ class Scene2 extends Phaser.Scene {
                         let depth = i + 1;
                         if(card != null && cardSprite != null) {
                             // console.log("Adjusting:", card);
-                            let duration = 500;
-
-
+                            let duration = 700;
                             _this.tweens.add({
                                 targets: cardSprite,
                                 x: toX,
@@ -395,19 +438,11 @@ class Scene2 extends Phaser.Scene {
                                 callbackScope: _this
                             });
 
-                            // _this.addTween(cardSprite, toX, toY, duration);
-
-                            // cardSprite.depth = depth;
-                            //
-                            // // Testing Angles,
-                            // cardSprite.setAngle(startAngle);
-
-
                             if(me !== currentGame.getCurrentPlayer()) {
                                 // Making cards Un-Interactive if it is not this player's turn.
                                 cardSprite.disableInteractive();
                             }
-                            startAngle += angleIncrementValue;
+                            // startAngle += angleIncrementValue;
                             depth += 1;
                             toX += incrementValue;
                         }
@@ -443,9 +478,6 @@ class Scene2 extends Phaser.Scene {
             _this.topDeckCard.setInteractive();
             console.log("Making hand interactive for: ", me);
             _this.makeHandInteractive();
-
-            // alert("It's your turn!");
-            // _this.moveOrSetTurnIndicator(false);
 
         }
     }
@@ -596,6 +628,7 @@ class Scene2 extends Phaser.Scene {
 
         _this.discardedTopCards.clear(true, true);
         _this.oppHandGroup.clear(true, true);
+        _this.playerNameBitMap.clear(true, true);
 
         _this.turnIndicator.destroy();
 
@@ -628,31 +661,33 @@ class Scene2 extends Phaser.Scene {
         }
     }
 
-     playCardOpp(card) {
+     playCardOpp(card, oppUsername) {
         let _this = this;
         // When opponent plays a card.
          console.log("Disable Body 5: Inside playCardOpp().");
         // _this.topCardSprite.disableBody(true, true);
          _this.topCardSprite.destroy();
-        let x = gameDetails.oppHandX, y = gameDetails.oppHandY;
-        _this.maxTopCardDepth += 1;
-        let depth = _this.maxTopCardDepth, scale = gameDetails.myHandScale;
-        let playedCardSprite = _this.getCardSprite(card, x, y, depth, scale);
+         let oppCoordinates = currentGame.coordinatesOfPlayers[oppUsername];
+         let x = oppCoordinates[0], y = oppCoordinates[1];
+         _this.maxTopCardDepth += 1;
+         let depth = _this.maxTopCardDepth, scale = gameDetails.myHandScale;
+         let playedCardSprite = _this.getCardSprite(card, x, y, depth, scale);
 
         // Moving card from Opponent's deck to TopCard Place.
-        let toX = gameDetails.topCardX, toY = gameDetails.topCardY, duration = 1000;
+        let toX = gameDetails.topCardX, toY = gameDetails.topCardY, duration = 700;
         _this.addTween(playedCardSprite, toX, toY, duration);
-
         // Setting as top Card.
-        _this.topCardSprite = playedCardSprite;
-        // _this.topCardSprite.depth = 0;
+         _this.topCardSprite = playedCardSprite;
+         // _this.topCardSprite.depth = 0;
          console.log(`Depth of top Card = ${_this.topCardSprite.depth} | Max Top Card Depth = ${_this.maxTopCardDepth}`);
-        currentGame.setTopCard(card);
+         currentGame.setTopCard(card);
     }
 
-    drawCardOpp() {
+    drawCardOpp(oppUsername) {
         let _this = this;
         // To be called when Opponent draws a card.
+        let oppCoordinates = currentGame.coordinatesOfPlayers[oppUsername];
+        let toX = oppCoordinates[0], toY = oppCoordinates[1];
         let x = gameDetails.deckX;
         let y = gameDetails.deckY;
         let drawnCard = _this.physics.add.sprite(x, y, "cardBack");
@@ -661,13 +696,12 @@ class Scene2 extends Phaser.Scene {
 
         this.tweens.add({
             targets: drawnCard,
-            x: gameDetails.oppHandX,
-            y: gameDetails.oppHandY,
+            x: toX,
+            y: toY,
             ease: "Power1",
-            duration: 500,
+            duration: 700,
             repeat: 0,
             onComplete: function () {
-                console.log("Disable body 6: Inside drawCardOpp().");
                 drawnCard.disableBody(true, true);
             },
             callbackScope: _this

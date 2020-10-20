@@ -12,5 +12,18 @@ class UserProfile(models.Model):
     # Whether Email has been verified or not
     is_email_verified = models.BooleanField(default=False)
 
+    # # Number of Games won by this player
+    # won_games_count = models.IntegerField(default=0, verbose_name="Count of Games Won")
+    #
+    # # Number of rounds won by this player
+    # won_rounds_count = models.IntegerField(default=0, verbose_name="Count of Rounds Won")
+
+    # Winning streak of player.
+    # winning_streak = models.IntegerField(default=0, verbose_name="Winning Streak")
+
+    # current_league/rating = models.CharField()
+
+    # maximum_league/rating = models.CharField()
+
     def __str__(self):
         return self.user.username

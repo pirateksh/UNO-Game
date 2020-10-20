@@ -9,7 +9,9 @@ A real-time multiplayer UNO Game developed using Django Web Framework, Django Ch
 * Run `sudo npm install peer -g`. You will also need to install **npm** if it's not already there.
 * Run `python manage.py makemigrations`.
 * Run `python manage.py migrate`.
-* Now you are good to go. Run `python manage.py runserver` to start the server.
+* Run `python manage.py runserver` to start the server.
+* On another terminal, run `peerjs --port 8001` to start peerjs server.
+* Now you are good to go, visit `http://localhost:8000`.
 
 ## How to Contribute?
 * Fork the repository (If you are not a collaborator).
