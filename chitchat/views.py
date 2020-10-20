@@ -19,7 +19,8 @@ def main(request):
     context = {
         'friends': User.objects.all(),
     }
-    return render(request, 'chitchat/main.html', context)
+    # return render(request, 'chitchat/main.html', context)
+    return render(request, 'chitchat/index.html', context)
 
 
 class Chat(LoginRequiredMixin, View):
