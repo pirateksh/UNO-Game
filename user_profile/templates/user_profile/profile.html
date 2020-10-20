@@ -57,30 +57,30 @@
         <a class="btn btn-outline-light btn-xl" href="{% url 'main_page' %}"><span>message</span></a>
     </div>
 
-    <div class="text-light text-center">
+    <div class="text-center">
         <h1 data-aos="slide-left">YOUR GAME ROOMS</h1>
         
         <div class="container" data-aos="slide-left" data-aos-duration="500" data-aos-delay="250">
         {% if user_game_rooms %}
             <div class="table-responsive">
-            <table class="table table-bordered table-light table-hover">
-                <thead>
-                <tr>
-                    <th>Serial Number</th>
-                    <th>Unique Game ID</th>
-                    <th>Enter Button</th>
-                </tr>
-                </thead>
-                {% for user_game_room in user_game_rooms %}
-                <tbody>
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ user_game_room.unique_game_id }}</td>
-                        <td><a data-toggle="modal" href="#portfolio-modal" href="{% url 'enter_game_room' user_game_room.unique_game_id %}">Enter</a></td>
-                    </tr>
-                    </tbody>
-                {% endfor %}
-            </table>
+                <table class="table tbl-bg table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Serial Number</th>
+                            <th>Unique Game ID</th>
+                            <th>Enter Button</th>
+                        </tr>
+                    </thead>
+                    {% for user_game_room in user_game_rooms %}
+                    <tbody>
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ user_game_room.unique_game_id }}</td>
+                            <td><a data-toggle="modal" href="#portfolio-modal" href="{% url 'enter_game_room' user_game_room.unique_game_id %}">Enter</a></td>
+                        </tr>
+                        </tbody>
+                    {% endfor %}
+                </table>
             </div>
         {% else %}
             <p> You haven't created any game rooms yet. </p>
@@ -90,7 +90,7 @@
         <h1 data-aos="slide-up">OTHER GAME ROOMS</h1>
         <div class="container" data-aos="slide-up" data-aos-duration="500" data-aos-delay="250">
         {% if other_game_rooms %}
-            <table class="table table-bordered table-light table-hover">
+            <table class="table table-bordered tbl-bg table-hover">
                 <thead>
                     <tr>
                         <th>Serial Number</th>
@@ -118,7 +118,7 @@
         <h1 data-aos="slide-up">JOINED GAME ROOMS</h1>
         <div class="container" data-aos="slide-up" data-aos-duration="500" data-aos-delay="250">
         {% if joined_game_rooms %}
-            <table class="table table-bordered table-light table-hover">
+            <table class="table table-bordered tbl-bg table-hover">
                 <thead>
                     <tr>
                         <th>Serial Number</th>
@@ -149,21 +149,21 @@
         <div class="container" data-aos="fade-up" data-aos-duration="550" data-aos-delay="150">
             <div class="row">
                 <div class="col-md-4 mb-5 mb-lg-0">
-                    <h4 class="text-uppercase mb-4">Location</h4>
-                    <p>MNNIT Allahabad<br>Prayagraj, UP 211004</p>
+                    <h4 class="text-uppercase mb-4" style="color: rgba(255, 255, 255, 0.7)">Location</h4>
+                    <p class="text-white">MNNIT Allahabad<br>Prayagraj, UP 211004</p>
                 </div>
                 <div class="col-md-4 mb-5 mb-lg-0">
-                    <h4 class="text-uppercase">Social</h4>
+                    <h4 class="text-uppercase" style="color: rgba(255, 255, 255, 0.7)">Social</h4>
                     <ul class="list-inline">
-                        <li class="list-inline-item"><a class="btn btn-outline-light btn-social text-center rounded-circle" role="button" target="_blank"><i class="fa fa-facebook fa-fw"></i></a></li>
-                        <li class="list-inline-item"><a class="btn btn-outline-light btn-social text-center rounded-circle" role="button" target="_blank"><i class="fa fa-google-plus fa-fw"></i></a></li>
-                        <li class="list-inline-item"><a class="btn btn-outline-light btn-social text-center rounded-circle" role="button" target="_blank"><i class="fa fa-twitter fa-fw"></i></a></li>
-                        <li class="list-inline-item"><a class="btn btn-outline-light btn-social text-center rounded-circle" role="button" target="_blank"><i class="fa fa-dribbble fa-fw"></i></a></li>
+                        <li class="list-inline-item"><a class="btn btn-outline-dark btn-social text-white text-center rounded-circle" role="button" target="_blank"><i class="fa fa-facebook fa-fw"></i></a></li>
+                        <li class="list-inline-item"><a class="btn btn-outline-dark btn-social text-white text-center rounded-circle" role="button" target="_blank"><i class="fa fa-google-plus fa-fw"></i></a></li>
+                        <li class="list-inline-item"><a class="btn btn-outline-dark btn-social text-white text-center rounded-circle" role="button" target="_blank"><i class="fa fa-twitter fa-fw"></i></a></li>
+                        <li class="list-inline-item"><a class="btn btn-outline-dark btn-social text-white text-center rounded-circle" role="button" target="_blank"><i class="fa fa-dribbble fa-fw"></i></a></li>
                     </ul>
                 </div>
                 <div class="col-md-4">
-                    <h4 class="text-uppercase mb-4">About Django Unchained</h4>
-                    <p class="lead mb-0"><span>Django Unchained is a Web-Dev team of students of MNNIT Allahabad.</span></p>
+                    <h4 class="text-uppercase mb-4" style="color: rgba(255, 255, 255, 0.7)">About Django Unchained</h4>
+                    <p class="lead mb-0 text-white"><span>Django Unchained is a Web-Dev team of students of MNNIT Allahabad.</span></p>
                 </div>
             </div>
         </div>

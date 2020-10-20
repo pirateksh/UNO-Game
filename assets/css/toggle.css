@@ -179,13 +179,18 @@ body {
 }
 /* Toggle ends */
 
- /* Dark Mode */
+ /*------------------------------------------------------------------------------------------------------------------------------------- 
+ Dark Mode 
+ ---------------------------------------------------------------------------------------------------------------------------------------*/
+
  :root {
   --text-color: #222;
   --bkg-color: #fff;
   --anchor-color: #0033cc;
   --can-bg: rgba(255, 255, 255, 1);
   --primary: #18bc9c;
+  --h-color: black;
+  --bg-07: white;
 }
 
 body.dark-theme {
@@ -194,6 +199,8 @@ body.dark-theme {
   --anchor-color: #809fff;
   --can-bg: rgba(0, 0, 0, 0.9);
   --primary: #0e6957;
+  --h-color: rgba(255, 255, 255, 0.7);
+  --bg-07: rgba(0, 0, 0, 0.7);
 }
 
 canvas {
@@ -236,4 +243,20 @@ p {
   
 .about-bg {
   background-color: var(--bkg-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--h-color);
+}
+
+.card-bg {
+  background-color: var(--bg-07);
+}
+
+.tbl-bg {
+  background-color: var(--bg-07);
+  color: var(--text-color);
+}
+.table-hover tbody tr:hover {
+  color: var(--text-color) !important;
 }
