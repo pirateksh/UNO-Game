@@ -1,0 +1,21 @@
+{% comment %}
+    email_context = {
+        'user': user,
+        'host': host,
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'token': account_activation_token.make_token(user),
+    }
+{% endcomment %}
+{% autoescape off %}
+<br>
+Hi {{ user.username }},<br><br>
+
+Please click on the link to verify your email,<br><br>
+http{% if request.is_secure %}s{% endif %}://{{ host }}{% url 'activate' uidb64=uid token=token %} <br> <br>
+
+If clicking the link above doesn't work, please copy and paste the URL in a new browser
+window instead.<br><br>
+
+Sincerely,<br>
+The Django Unchained Team<br>
+{% endautoescape %}

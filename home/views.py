@@ -3,8 +3,20 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib import messages
+
+from user_profile.models import UserProfile
+
 
 def home_view(request):
+    user = request.user
+    if user.is_authenticated:
+        user_profile_qs = UserProfile.objects.filter(user=user)
+        if user_profile_qs:
+            user_profile = user_profile_qs[0]
+            if not user_profile.is_email_verified:
+                messages.info(request, f"Your email is not verified.")
+                return render(request, 'home/verify_email.html', {})
     return render(request, 'home/index.html', {})
 
 
@@ -26,7 +38,7 @@ def signup(request):
         last_name = request.POST['last_name']
 
         if password1 != password2:
-            messages.error(request, "Password Didnot Match.")
+            messages.error(request, "Password did not match.")
             return redirect(request.path)
 
         users = User.objects.all()  # Signed-up users
@@ -52,11 +64,15 @@ def signup(request):
         )
         if user:
             user.save()
-            messages.error(request, "Sign Up successful, Now You may login")
             user = authenticate(username=username, password=password1)
+
+            # Creating user profile
+            user_profile = UserProfile.objects.create(user=user)
+
             if user:
                 login(request, user)
-                return redirect('home')
+                messages.error(request, "Sign Up successful!")
+                return HttpResponseRedirect(reverse('home'))
             else:
                 messages.error(request, "Some error occurred Try logging-in again")
         else:
@@ -81,7 +97,7 @@ def signup(request):
 def login_view(request):
     user = request.user
     # If user is already logged in.
-    if user.is_authenticated: # False only for AnonymousUser
+    if user.is_authenticated:  # False only for AnonymousUser
         return HttpResponseRedirect(reverse('home'))
 
     if request.method == 'POST':
@@ -128,3 +144,4 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
+

@@ -7,22 +7,6 @@
 {% endblock %}
 
 {% block content %}
-
-    <canvas></canvas>
-    {% comment %} meteor {% endcomment %}
-    <img style="z-index:2; overflow:hidden" alt="" 
-        id="text1" src="{% static 'img/meteor.png' %}"
-            width="80">
-    <img style="z-index:2; overflow:hidden" alt="" 
-        id="text2" src="{% static 'img/meteor.png' %}"
-            width="80">
-    <img style="z-index:2; overflow:hidden" alt="" 
-        id="text3" src="{% static 'img/meteor.png' %}"
-            width="80">
-    
-
-
-
     <nav class="navbar navbar-light navbar-expand-lg fixed-top bg-secondary bounce animated text-uppercase" id="mainNav">
         <div class="container">
             {% if user.is_authenticated %}
@@ -416,11 +400,4 @@
             </div>
         </div>
     </div> -->
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.2.0/aos.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
-    <script src="{%  static "js/freelancer.js" %}"></script>
-    <script src="{%  static "js/canvas.js" %}"></script>
-
-{% endblock content %}
+{% endblock %}

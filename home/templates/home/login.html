@@ -1,3 +1,4 @@
+{% extends 'base.html' %}
 {% load static %}
 {% comment %}
     Context Variables:
@@ -5,34 +6,9 @@
         "form": form,
     }
 {% endcomment %}
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Login Page</title>
-    <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
-    <link rel="stylesheet" href="{% static "fonts/font-awesome.min.css"%}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+{% block title %}Login Page{% endblock %}
 
-</head>
-<body>
-    <canvas></canvas>
-    {% comment %} meteor {% endcomment %}
-    <img style="z-index:2; overflow:hidden" alt="" 
-        id="text1" src="{% static 'img/meteor.png' %}"
-            width="80">
-    <img style="z-index:2; overflow:hidden" alt="" 
-        id="text2" src="{% static 'img/meteor.png' %}"
-            width="80">
-    <img style="z-index:2; overflow:hidden" alt="" 
-        id="text3" src="{% static 'img/meteor.png' %}"
-            width="80">
-    {% comment %} meteor ends {% endcomment %}
-
-
+{% block content %}
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-9 col-lg-12 col-xl-10">
@@ -68,7 +44,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        {%else%}
+                                        {% else %}
                                             <div class="form-group">
                                                 <input class="form-control form-control-user" type="text" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Enter Username/Email..."  required>
                                                 <input id="login_username_hidden" name="username" type="hidden">
@@ -86,8 +62,6 @@
                                                 </div>
                                             </div>
                                         {% endif %}
-                                        {# TODO: Implement Forget Password Feature -- Kshitiz #}
-                                        {# TODO: Implement Login by Email as well -- Kshitiz #}
                                         <button class="btn btn-primary btn-block text-white btn-user" type="submit" onclick="submit_login();">Login</button>
                                         <hr>
                                         <a class="btn btn-danger btn-block text-white btn-user" role="button" href="{% url 'social:begin' 'google-oauth2' %}"><i class="fa fa-google-plus fa-fw" ></i>&nbsp; Login with Google</a>
@@ -95,8 +69,7 @@
                                         <a class="btn btn-dark btn-block text-white btn-user" role="button" href="{% url 'social:begin' 'github' %}"><i class="fa fa-github fa-fw"></i>&nbsp; Register with Github</a>
                                         <hr>
                                     </form>
-                                    <div class="text-center"><a class="small" href="{% url "home" %}">Forgot Password?</a></div>
-                                    {# TODO: Add link name from home/urls.py for Forot Password Page -- Kshitiz #}
+                                    <div class="text-center"><a class="small" href="{% url 'password_reset' %}">Forgot Password?</a></div>
                                     <div class="text-center"><a class="small" href="{% url "signup" %}">Create an Account!</a></div>
                                 </div>
                             </div>
@@ -106,30 +79,4 @@
             </div>
         </div>
     </div>
-
-
-    <script src=" {% static 'js/jquery.min.js' %} "></script>
-    <script src=" {% static 'bootstrap/js/bootstrap.min.js' %} "></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
-   <script src="{%  static "js/canvas.js" %}"></script>
-
-    <script>
-        {% if messages %}
-            {% for message in messages %}
-                alert("{{ message }}");
-                 {# TODO: Hanle invalid Creds message here... -- Vishwajeet #}
-                {#<div class="alert alert-{{ message.tags }}">  <!-- singular -->#}
-                {#    <a class="close" data-dismiss="alert">×</a>#}
-                {#    {{ message|safe }}#}
-                {#</div>#}
-            {% endfor %}
-        {% endif %}
-    </script>
-
-    {% include 'scripts.html' %}
-
-</body>
-
-</html>
-
+{% endblock %}
