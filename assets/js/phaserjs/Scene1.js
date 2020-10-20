@@ -26,6 +26,16 @@ class Scene1 extends Phaser.Scene {
             frameHeight: 146
         });
 
+        this.load.spritesheet("noButton", `${generatePath("spritesheets", "no_button.png")}`, {
+            frameWidth: 149,
+            frameHeight: 149
+        });
+
+        this.load.spritesheet("yesButton", `${generatePath("spritesheets", "yes_button.png")}`, {
+            frameWidth: 148,
+            frameHeight: 148
+        });
+
         // this.load.spritesheet("yourTurn", `${generatePath("spritesheets", "your_turn.jpeg")}`, {
         //     frameWidth: 62.75,
         //     frameHeight: 60.667
@@ -60,5 +70,45 @@ class Scene1 extends Phaser.Scene {
 			frameRate: 30, // play at 20 frames per second
 			repeat: -1 // For infinite loop (repeat) we user -1
 		});
+
+        this.anims.create({
+            key: "noButtonOut",
+            frames: this.anims.generateFrameNumbers("noButton", {
+                start: 0,
+                end: 0
+            }),
+            frameRate: 20,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: "noButtonOver",
+            frames: this.anims.generateFrameNumbers("noButton", {
+                start: 1,
+                end: 1
+            }),
+            frameRate: 20,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: "yesButtonOut",
+            frames: this.anims.generateFrameNumbers("yesButton", {
+                start: 0,
+                end: 0
+            }),
+            frameRate: 20,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: "yesButtonOver",
+            frames: this.anims.generateFrameNumbers("yesButton", {
+                start: 1,
+                end: 1
+            }),
+            frameRate: 20,
+            repeat: 0
+        });
     }
 }

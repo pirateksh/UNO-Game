@@ -10,6 +10,7 @@ from .helper import Card, PlayerServer, GameServer, Deck, CustomEncoder
 
 User = get_user_model()
 
+
 class GameRoomConsumer(AsyncConsumer):
     """
         A Consumer which will consume (handle) events related to Game Room

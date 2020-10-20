@@ -189,7 +189,7 @@ class PlayerServer:
 
 class GameServer:
 
-    WINNING_SCORE = 150
+    WINNING_SCORE = 500
     current_games = []
     # TODO: What will happen if deck runs out of cards. -- Kshitiz
 
