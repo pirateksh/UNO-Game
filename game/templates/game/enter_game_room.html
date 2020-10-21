@@ -361,7 +361,7 @@
 
             keepCardAfterDrawingRequest(card) {
                 if(me === currentGame.getCurrentPlayer()) {
-                    let data = {"status": "keep_card", "message": "The player kept the card after drawing.", "data": {"username": this.getCurrentPlayer(), "card": card }};
+                    let data = {"status": "keep_card", "message": "The player kept the card after drawing.", "data": {"username": this.getCurrentPlayer() }};
                     let response = {"type": "keep.card", "text": data};
                     socket.send(JSON.stringify(response));
                 }

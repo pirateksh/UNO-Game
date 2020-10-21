@@ -72,7 +72,7 @@ class Scene2 extends Phaser.Scene {
             }
             else if(status === "play_card") {
                 currentGame.copyData(gameData);
-                _this.playCardEventConsumer(data);
+                _this.playCardEventConsumer(backendResponse, false);
 
                 if(me !== currentGame.getCurrentPlayer()) {
                     _this.topDeckCard.disableInteractive();
@@ -85,7 +85,7 @@ class Scene2 extends Phaser.Scene {
 
                 // Play the Card.
                 currentGame.copyData(gameData);
-                _this.playCardEventConsumer(data);
+                _this.playCardEventConsumer(backendResponse, false);
 
                 // Draw card for next player.
                 // TODO: Bug when cards are drawn.
@@ -94,7 +94,6 @@ class Scene2 extends Phaser.Scene {
                 let drawnCards = JSON.parse(forcedDrawData.drawnCards);
                 let drawnCardCount = data.drawnCardCount;
 
-                console.log("Drawn Cards are:", drawnCards);
                 if(username === me) {
                     for(let drawnCard of drawnCards) {
                         let category = drawnCard.category, number = drawnCard.number;
@@ -160,12 +159,8 @@ class Scene2 extends Phaser.Scene {
                     _this.drawCardOpp(username);
                 }
 
-                if(currentGame.getCurrentPlayer() === me && me !== username) {
+                if(me !== username) {
                     // Making Hand Interactive for current Player.
-                    console.log("Making top deck card interactive for draw card.", me);
-                    currentGame.canDrawCard = true;
-                    _this.topDeckCard.setInteractive();
-                    console.log("Making hand interactive for: ", me);
                     _this.makeHandInteractive();
                 }
 
@@ -177,72 +172,13 @@ class Scene2 extends Phaser.Scene {
             }
             else if(status === "keep_card") {
                 currentGame.copyData(gameData);
-                let username = data.username;
-                let card = data.card;
-                // TODO: Error in positioning and playing of keep card.
-                if(username === me) {
-                    console.log(username, card);//quit
-                    // Setting onclick etc handlers for card.
-                    let keptCardObject = new Card(card.category, card.number);
-                    let x = _this.config.width/2, y = _this.config.height/2 - 100;
-                    let depth = myHand.getCount() + 1, index = myHand.getCount();
-                    let scale = gameDetails.myHandScale;
-                    let keptCardSprite = _this.getCardSprite(keptCardObject, x, y ,depth, scale);
-                    myHand.addCardAndCardSprite(keptCardObject, keptCardSprite);
-                    _this.drawCardSelf(keptCardObject, keptCardSprite , depth, index);
-                    // Adjusting cards in hand on the table.
-                    // _this.keptCard.destroy();
-                    _this.adjustSelfHandOnTable();
-                }
-                else if(currentGame.getCurrentPlayer() === me) {
 
-                    // Making Hand Interactive for current Player.
-                    console.log("Making top deck card interactive for draw card.", me);
-                    currentGame.canDrawCard = true;
-                    _this.topDeckCard.setInteractive();
-                    console.log("Making hand interactive for: ", me);
-                    _this.makeHandInteractive();
-                }
+                _this.makeHandInteractive();
 
                 _this.moveOrSetTurnIndicator(true);
             }
             else if(status === "won_round") {
-                _this.playCardEventConsumer(data);
-                let wonData = backendResponse.wonData;
-                let wonUsername = wonData.username;
-                let wonScore = wonData.score;
-                Game.addScoreToDOM(wonUsername, wonScore);
-                alert(`${wonUsername} won with score = ${wonScore}. New round is going to start.`);
-
-                // Emptying Hands.
-                for(let i = 0; i < myHand.getCount(); ++i) {
-                    let cardSprite = myHand.getCardSpriteAt(i);
-                    if(cardSprite != null) {
-                        let toX = gameDetails.deckX, toY = gameDetails.deckY, duration = 500;
-                        _this.addTween(cardSprite, toX, toY, duration);
-
-                        console.log("Disable Body 1: Inside won_round.");
-                        cardSprite.disableBody(true, true);
-                    }
-                }
-                myHand.emptyHand();
-
-                // Destroying previous round's top card.
-                console.log("clear() and destroy(): Inside won_round.");
-                _this.discardedTopCards.clear(true, true);
-                _this.topCardSprite.destroy();
-
-                _this.topDeckCard.disableInteractive();
-                _this.oppHandGroup.clear(true, true);
-                _this.turnIndicator.destroy();
-
-                // TODO: Next Round will start in 3 2 1....
-                //       Error in Cards Placement of that player who has won.
-                // Starting new round.
-                currentGame.copyData(gameData);
-                if(backendResponse.serializedPlayer) {
-                    _this.startGameEventConsumer(backendResponse.serializedPlayer);
-                }
+                _this.playCardEventConsumer(backendResponse, true);
             }
             else if(status === "won_game") {
                 _this.endGame();
@@ -253,6 +189,61 @@ class Scene2 extends Phaser.Scene {
                 alert(`${wonUsername} won with score = ${wonScore}. Start a new game or leave the room.`);
             }
         });
+    }
+
+    wonRoundEventHandler(backendResponse) {
+        let _this = this;
+        let wonData = backendResponse.wonData;
+        let serializedPlayer = backendResponse.serializedPlayer;
+        let gameData = JSON.parse(backendResponse.gameData);
+        let wonUsername = wonData.username;
+        let wonScore = wonData.score;
+        Game.addScoreToDOM(wonUsername, wonScore);
+        alert(`${wonUsername} won with score = ${wonScore}. New round is going to start.`);
+
+        // Emptying Hands.
+        let removeCardSpritesArray = [];
+        for(let i = 0; i < myHand.getCount(); ++i) {
+            let cardSprite = myHand.getCardSpriteAt(i);
+            if(cardSprite != null) {
+                removeCardSpritesArray.push(cardSprite);
+            }
+        }
+
+        myHand.emptyHand();
+
+        let toX = gameDetails.deckX, toY = gameDetails.deckY, duration = 700;
+        _this.tweens.add({
+            targets: removeCardSpritesArray,
+            x: toX,
+            y: toY,
+            duration: duration,
+            onComplete: function () { // TODO: Test this
+                for(let i = 0; i < removeCardSpritesArray.length; ++i) {
+                    removeCardSpritesArray[i].destroy();
+                    _this.adjustSelfHandOnTable(); /// TESTINGNNN
+                }
+            },
+            callbackScope: _this
+        });
+
+
+        // Destroying previous round's top card.
+        _this.discardedTopCards.clear(true, true);
+        _this.topCardSprite.destroy();
+
+        _this.topDeckCard.disableInteractive();
+        _this.oppHandGroup.clear(true, true);
+        _this.turnIndicator.destroy();
+
+        // TODO: Next Round will start in 3 2 1....
+        //       Error in Cards Placement of that player who has won.
+        // Starting new round.
+        currentGame.copyData(gameData);
+        console.log("After Won: ", gameData);
+        if(serializedPlayer) {
+            _this.startGameEventConsumer(serializedPlayer);
+        }
     }
 
     placeOppHandsOnTable() {
@@ -266,7 +257,7 @@ class Scene2 extends Phaser.Scene {
         let allPlayers = currentGame.getPlayers();
         let myIndex = allPlayers.indexOf(me);
 
-        currentGame.coordinatesOfPlayers[me] = [btmX, btmY];
+        currentGame.coordinatesOfPlayers[me] = [btmX, btmY-90];
         let theta = angle;
         for (let i = 1; i < n; ++i) {
             let otherIndex = (myIndex + i) % n;
@@ -301,6 +292,7 @@ class Scene2 extends Phaser.Scene {
         let _this = this;
         let serializedPlayer = JSON.parse(strigifiedSerializedPlayer);
         let serverHand = serializedPlayer.hand;
+        console.log("New Hand", serverHand);
         for(let i = 0; i < serverHand.length; ++i) {
             let cardInHand = serverHand[i];
             let category = cardInHand.category, number = cardInHand.number;
@@ -313,17 +305,14 @@ class Scene2 extends Phaser.Scene {
         _this.maxTopCardDepth = -1;
         _this.startGame();
 
-        // Placing opponent's hands on the table.
-        _this.placeOppHandsOnTable();
-
         // Setting Turn Indicator.
         _this.moveOrSetTurnIndicator(false);
     }
 
-    playCardEventConsumer(data) {
+    playCardEventConsumer(backendResponse, won) {
         let _this = this;
         // Called when play_card event is encountered.
-
+        let data = backendResponse.data;
         let username_ = data.username;
         let playedCard = data.card; // Used if opponent has played the card.
         let index = data.index; // Used if current player has played the card.
@@ -331,21 +320,10 @@ class Scene2 extends Phaser.Scene {
 
         if(username_ === me) {
             // Current Player plays a card.
-            console.log(JSON.parse(JSON.stringify(myHand.cards)));
-            console.log("Index of played card in create(): ", index);
-            _this.playCardSelf(index);
+            _this.playCardSelf(backendResponse, index, won);
         } else {
             // Opponent plays a card.
-            _this.playCardOpp(playedCardObject, username_);
-        }
-
-        if(currentGame.getCurrentPlayer() === me) {
-            // Making Hand Interactive for current Player.
-            console.log("Making top deck card interactive for draw card.", me);
-            currentGame.canDrawCard = true;
-            _this.topDeckCard.setInteractive();
-            console.log("Making hand interactive for: ", me);
-            _this.makeHandInteractive();
+            _this.playCardOpp(backendResponse, playedCardObject, username_, won);
         }
     }
 
@@ -381,6 +359,9 @@ class Scene2 extends Phaser.Scene {
             currentGame.keepCardAfterDrawingRequest(drawnCardObject);
             yesButton.destroy();
             noButton.destroy();
+
+            drawnCardSprite.setScale(gameDetails.myHandScale);
+            _this.adjustSelfHandOnTable();
         });
 
         yesButton.on("pointerover", function (pointer) {
@@ -396,10 +377,6 @@ class Scene2 extends Phaser.Scene {
             yesButton.destroy();
             noButton.destroy();
         });
-
-
-
-        _this.keptCard = drawnCardSprite;
 
         // TODO: Error in positioning and playing of keep card.
 
@@ -472,14 +449,10 @@ class Scene2 extends Phaser.Scene {
         _this.placeTopCard(); // Placing Top Card
         _this.dealHand(); // Dealing Hands
 
-        if(currentGame.getCurrentPlayer() === me) {
-            console.log("Making Deck interactive for Drawing Card: ", me);
-            currentGame.canDrawCard = true;
-            _this.topDeckCard.setInteractive();
-            console.log("Making hand interactive for: ", me);
-            _this.makeHandInteractive();
+        // Placing opponent's hands on the table.
+        _this.placeOppHandsOnTable();
 
-        }
+        _this.makeHandInteractive();
     }
 
     moveOrSetTurnIndicator(isAlreadySet) {
@@ -546,7 +519,7 @@ class Scene2 extends Phaser.Scene {
         return cardSprite;
     }
 
-    playCardSelf(index) {
+    playCardSelf(backendResponse, index, won) {
         let _this = this;
         // When current player plays a card.
         let playedCard = myHand.getCardAt(index);
@@ -577,15 +550,21 @@ class Scene2 extends Phaser.Scene {
                     // Destroying playedCardSprite
                     playedCardSprite.destroy();
 
-                    // Generating new cardSprite at TopCard position.
-                    let depth = _this.maxTopCardDepth + 1;
-                    _this.maxTopCardDepth = depth;
-                    _this.topCardSprite = _this.getCardSprite(playedCard, x, y, depth, gameDetails.myHandScale);
+                    if(!won) {
+                        // Generating new cardSprite at TopCard position.
+                        let depth = _this.maxTopCardDepth + 1;
+                        _this.maxTopCardDepth = depth;
+                        _this.topCardSprite = _this.getCardSprite(playedCard, x, y, depth, gameDetails.myHandScale);
 
-                    console.log(`Depth of top Card = ${_this.topCardSprite.depth} | Max Top Card Depth = ${_this.maxTopCardDepth}`);
-
-                    // Adjusting Cards in the Hand present on table.
-                    _this.adjustSelfHandOnTable(index);
+                        _this.makeHandInteractive();
+                        // Adjusting Cards in the Hand present on table.
+                        _this.adjustSelfHandOnTable(index);
+                    }
+                    else if(won) {
+                        // Add here csk
+                        //  _this.topCardSprite.destroy();
+                        _this.wonRoundEventHandler(backendResponse);
+                    }
                 },
                 callbackScope: _this
             });
@@ -648,6 +627,8 @@ class Scene2 extends Phaser.Scene {
     makeHandInteractive() {
         let _this = this;
         if(currentGame.getCurrentPlayer() === me) {
+            currentGame.canDrawCard = true;
+            _this.topDeckCard.setInteractive();
             let count = myHand.getCount();
             for(let i = 0; i < count; ++i) {
                 let card = myHand.getCardAt(i);
@@ -661,11 +642,9 @@ class Scene2 extends Phaser.Scene {
         }
     }
 
-     playCardOpp(card, oppUsername) {
+     playCardOpp(backendResponse, card, oppUsername, won) {
         let _this = this;
         // When opponent plays a card.
-         console.log("Disable Body 5: Inside playCardOpp().");
-        // _this.topCardSprite.disableBody(true, true);
          _this.topCardSprite.destroy();
          let oppCoordinates = currentGame.coordinatesOfPlayers[oppUsername];
          let x = oppCoordinates[0], y = oppCoordinates[1];
@@ -676,11 +655,27 @@ class Scene2 extends Phaser.Scene {
         // Moving card from Opponent's deck to TopCard Place.
         let toX = gameDetails.topCardX, toY = gameDetails.topCardY, duration = 700;
         _this.addTween(playedCardSprite, toX, toY, duration);
-        // Setting as top Card.
-         _this.topCardSprite = playedCardSprite;
-         // _this.topCardSprite.depth = 0;
-         console.log(`Depth of top Card = ${_this.topCardSprite.depth} | Max Top Card Depth = ${_this.maxTopCardDepth}`);
-         currentGame.setTopCard(card);
+        _this.tweens.add({
+            targets: playedCardSprite,
+            x: toX,
+            y: toY,
+            repeat: 0,
+            onComplete: function () { // rcb
+                if(won) {
+                    playedCardSprite.destroy();
+                    _this.wonRoundEventHandler(backendResponse);
+                }
+                else {
+                    _this.makeHandInteractive();
+
+                    // Setting as top Card.
+
+                    _this.topCardSprite = playedCardSprite;
+                    currentGame.setTopCard(card);
+                }
+            },
+            callbackScope: _this
+        });
     }
 
     drawCardOpp(oppUsername) {
