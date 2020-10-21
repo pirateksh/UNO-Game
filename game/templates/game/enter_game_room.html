@@ -370,6 +370,47 @@
                 }
             }
 
+            callUnoRequest() {
+                if(!currentGame.isGameRunning) { // If game has not started yet.
+                    alert("Glad to see your excitement, but let the game begin first!");
+                    return;
+                }
+                if(me === currentGame.getCurrentPlayer()) {
+                    let activeCardsCount = parseInt(myHand.getActiveCount());
+                    if(activeCardsCount === 2) {
+                        alert("Sending Call UNO Request!");
+                        let data = {"status": "call_uno", "message": "The player called UNO.", "data": {"username": this.getCurrentPlayer() }};
+                        let response = {"type": "call.uno", "text": data};
+                        socket.send(JSON.stringify(response));
+                    }
+                    else if(activeCardsCount === 1) {
+                        alert("It's too late to call UNO! Let's hope that someone doesn't point it out.");
+                    }
+                    else {
+                        alert("We understand you are eager to scream UNO, but you also need to be left with only one card to scream UNO!");
+                    }
+                }
+                else {
+                    alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
+                }
+            }
+
+            catchPlayerRequest(oppUsername) { // Called when current player points out that someone has not called UNO.
+                if(!currentGame.isGameRunning) { // If game has not started yet.
+                    alert("Glad to see your excitement, but let the game begin first!");
+                    return;
+                }
+                if(oppUsername === currentGame.getCurrentPlayer()) { // The person who is being challenged is currrent player.
+                    alert(`You are challenging ${oppUsername}`);
+                    let data = {"status": "catch_player", "message": "The player is caught.", "data": {"catcher": me, "caught": this.getCurrentPlayer() }};
+                    let response = {"type": "catch.player", "text": data};
+                    socket.send(JSON.stringify(response));
+                }
+                else {
+                    alert(`${oppUsername} is not current player.`);
+                }
+            }
+
             static addPlayersToDOM(players) {
                 for (let player of players) {
                     let appendIt = `<li id="id_connected_players_${player}_{{ game_room.pk }}">${player}</li>`;

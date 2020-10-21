@@ -10,11 +10,11 @@ window.onload = function () {
 
 	gameDetails = {
 		deckX: width/2 - 100,
-		deckY: height/2 - 100,
+		deckY: height/2 - 90,
 		deckScale: 0.55,
 		myHandStartX: width/2 - 200,
 		myHandEndX: width/2 + 200,
-		myHandY: height/2 + 200,
+		myHandY: height/2 + 183,
 		topCardX: width/2,
 		topCardY: height/2,
         myHandScale: 1.4,
@@ -24,12 +24,16 @@ window.onload = function () {
 		centerX: width/2,
 		centerY: height/2 - 50,
 		radius: 225,
+		unoButtonX: width/2,
+		unoButtonY: height/2 + 275,
+		unoButtonScale: 0.35,
+        roundButtonScale: 0.4,
 	};
 
 	let config = {
 		width: width,
 		height: height,
-		backgroundColor: 0xff0000,
+		backgroundColor: 0xffffff,
 		scene: [Scene1, Scene2],
 		pixelArt: true,
 		// Added for Physics Engine
