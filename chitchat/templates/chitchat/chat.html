@@ -8,7 +8,7 @@
     <p>Person 2: {{ person2 }}</p>
     <ol id="chat_items">
     {% for chat in chats %}
-        <li><b>{{ chat.sender }}</b>: {{ chat.message }} <b><i>from thread_id:</b></i> {{ chat.thread.id }}</li>
+        <li><b>{{ chat.sender }}</b>: {{ chat.message }} <b><i>from thread_id:</i></b>{{ chat.thread.id }}</li>
     {% endfor %}
     </ol>
 
@@ -16,7 +16,7 @@
          {% csrf_token %}
         <label> Your Message:</label>
         <input id="message" type='text'></input>
-        <button type="submit"> Submit</button>
+        <button type="submit">Submit</button>
     </form>
 
 </div>

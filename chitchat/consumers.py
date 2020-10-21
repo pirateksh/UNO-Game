@@ -10,6 +10,10 @@ from channels.db import database_sync_to_async
 from .models import Thread, ChatMessage
 
 
+def get_time_format(time):
+    print(time) # e.g. 2020-10-21 12:11:54.252804+00:00
+    return time
+
 class ChatConsumer(AsyncConsumer):
     async def websocket_connect(self, event):
         print("Accepting an handshake request", event)
@@ -35,7 +39,7 @@ class ChatConsumer(AsyncConsumer):
             chats = ChatMessage.objects.all().filter(thread=thread_id).order_by('timestamp')
             context = {
                 'chats': chats,
-                'person2': person2
+                'sender': person2  # i.e. the sender
             }
         chat_room = f"chat_{thread_id}" # This is Just a name given to our chat room
         self.chat_room = chat_room
@@ -67,12 +71,15 @@ class ChatConsumer(AsyncConsumer):
         else:
             pass
 
-        await self.chat_message_add(sender, message)
+        added_thread_instance = await self.chat_message_add(sender, message)
 
-        # the response we need to send to the group throught the channel layers
+        # the response we need to send to the group through the channel layers
+        # timestamp = get_time_format(added_thread_instance.timestamp)
+        timestamp = str(added_thread_instance.timestamp)
         response_data = {
             "message": message,
-            "sender": sender.username
+            "sender": sender.username,
+            "timestamp": timestamp
         }
 
         await self.channel_layer.group_send(
@@ -95,8 +102,9 @@ class ChatConsumer(AsyncConsumer):
 
     @database_sync_to_async
     def get_thread_for_dual(self, person1, person2):
-        return Thread.objects.get_thread_for_dual(person1, person2)
+        thread_instance = Thread.objects.get_thread_for_dual(person1, person2)
+        return thread_instance
 
     @database_sync_to_async
     def chat_message_add(self, sender, message):
-        ChatMessage.objects.create(thread=self.thread, sender=sender, message=message)
+        return ChatMessage.objects.create(thread=self.thread, sender=sender, message=message)
