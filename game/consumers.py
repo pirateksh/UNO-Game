@@ -47,27 +47,12 @@ class GameRoomConsumer(AsyncConsumer):
         })
 
     async def websocket_receive(self, event):
-        """
-            Example event:
-            event = {
-                'type': 'websocket.receive',
-                'text': '{
-                    "type":"enter.room",
-                    "text":{
-                        "status":"connected",
-                        "message": "<some_message>",
-                        "data": {
-                            // Some data
-                        }
-                    }
-                }'
-            }
-        """
         # print("received", event)
         front_text = event.get('text', None)
         forced_draw_data = None  # If some player had to draw cards due to DRAW_TWO or WILD_FOUR.
         voluntary_draw_data = None  # When player voluntary drew a card.
         won_data = None  # When player has played all his cards.
+        caught_data = None  # When a player didn't call uno and got caught. Stores cards drawn by that player.
         if front_text:
             loaded_dict_data = json.loads(front_text)
             type_of_event = loaded_dict_data['type']
@@ -141,6 +126,28 @@ class GameRoomConsumer(AsyncConsumer):
                 # Note: Here is_valid_draw_move will work fine to check if this is valid person.
                 if self.game.is_valid_draw_move(client_data=client_data, server_data=server_data):
                     self.game.keep_card()
+            elif type_of_event == "call.uno":  # Player called UNO.
+                client_data = text_of_event['data']
+                server_data = {
+                    "username": self.me.username,
+                }
+                # If this player can call UNO.
+                if self.game.can_call_uno(client_data=client_data, server_data=server_data):
+                    self.game.call_uno()
+                else:
+                    print(f"Cannot call UNO!")
+                    return
+            elif type_of_event == "catch.player":  # When someone catches a player who forgot to say UNO!
+                client_data = text_of_event['data']
+                server_data = {
+                    "caught": self.game.get_current_player().username,
+                    "catcher": self.me.username,
+                }
+                if self.game.is_valid_catch(client_data=client_data, server_data=server_data):
+                    caught_data = self.game.catch_player()
+                else:
+                    print("Cannot catch.")
+                    return
 
             response = {
                 "status": text_of_event['status'],
@@ -148,6 +155,12 @@ class GameRoomConsumer(AsyncConsumer):
                 "data": text_of_event['data'],
                 "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder),
             }
+
+            if caught_data:
+                extra_data = {
+                    "caughtData": caught_data,
+                }
+                response.update(extra_data)
 
             if won_data:
                 extra_data = {
@@ -177,7 +190,55 @@ class GameRoomConsumer(AsyncConsumer):
                 }
             )
 
+            # if type_of_event in ["start.game", "play.card", "forced_draw_card", "keep.card", "voluntary_draw_card"]:
+            #     print("Sleeping for 2 seconds.")
+            #     # await asyncio.sleep(2000)
+            #     print("Woke up after 2 seconds.")
+            #     response = {
+            #         "status": "update_current_player",
+            #         "message": "Updating current player",
+            #         "data": {
+            #             "currentPlayerIndex": self.game.current_player_index,
+            #         },
+            #     }
+            #     await self.channel_layer.group_send(
+            #         self.game_room_id,
+            #         {
+            #             "type": "update_current_player",
+            #             "text": json.dumps(response)
+            #         }
+            #     )
+
             # print("\n\n\n\n")
+    async def update_current_player(self, event):
+        await self.send({
+            "type": "websocket.send",
+            "text": event['text']
+        })
+
+    async def catch_player(self, event):
+        text = json.loads(event['text'])
+        caught_data = text['caughtData']
+        data = text['data']
+        if data['caught'] != self.me.username:
+            caught_data['drawnCards'] = []
+        response = {
+            "status": text['status'],
+            "message": text['message'],
+            "data": text['data'],
+            "gameData": text['gameData'],
+            "caughtData": caught_data,
+        }
+        await self.send({
+            "type": "websocket.send",
+            "text": json.dumps(response),
+        })
+
+    async def call_uno(self, event):
+        await self.send({
+            "type": "websocket.send",
+            "text": event['text']
+        })
 
     async def new_user_entered_room(self, event):
         print("new_user_entered_room function Called")
