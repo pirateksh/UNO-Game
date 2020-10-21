@@ -5,18 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat</title>
+    <link rel="shortcut icon" href="{% static 'img/logo.png' %}" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
     <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css'>
+    <script src="https://cdn.tiny.cloud/1/eycvhhid2rify4lch63otvvke5xgs17tn4xmq8lyzyy2qie8/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
     <link rel="stylesheet" href="{% static "css/chat.css"%}">
     <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css"%}">
+    <link rel="stylesheet" href="{% static "css/toggle.css"%}">
 </head>
 
-<body>
-
+<body class="dark-theme">
+    <canvas></canvas>
+    <div class="toggle">
+        <input class="toggle-input" type="checkbox">
+        <div class="toggle-bg"></div>
+        <div class="toggle-switch">
+            <div class="toggle-switch-figure"></div>
+            <div class="toggle-switch-figureAlt"></div>
+        </div>  
+    </div>
     <div class="container clearfix">
-
         <div class="people-list" id="people-list">
-
             <div class="search">
                 <input type="text" placeholder="search" />
             </div>
@@ -27,8 +36,7 @@
                     <a class="nav-link" data-toggle="pill" href="#add-friend" role="tab" aria-controls="add-friend" aria-selected="true">
                         <div class="about">
                             <div class="name">Add Friend</div>
-                            <div class="status">
-                            </div>
+                            <div class="status"></div>
                         </div>
                     </a>
                 </li>
@@ -137,13 +145,12 @@
             {# Seach Friend Starts #}
             <div class="tab-pane fade" id="add-friend" role="tabpanel" aria-labelledby="v-pills-messages-tab">
                 <div class="chat-header clearfix">
-                    <input type="text" id="id_find-friend_input" placeholder="Find Friends"/>
-                    <i  class="fa fa-search"></i>
+                    <input class="form-control form-control-user" type="text" id="id_find-friend_input" placeholder="Find Friends"/>
+                    {# <i class="fa fa-search"></i> #}
                 </div>
 
                 <div>
-                    <ul id="id_find-friend_ul">
-                    </ul>
+                    <ul class="list-group" id="id_find-friend_ul"></ul>
                 </div>
             </div>
             {# Seach Friend Ends #}
@@ -203,25 +210,25 @@
                               if(friend_status === 0){ // show add friend button
                                   friend_status = "Send Friend Request";
                                   $("#id_find-friend_ul").append(`
-                                    <li value="${person2}">${person2}<button value=${pair[1]} class="class_change-request-status_button"> ${friend_status} </button></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center" value="${person2}">${person2}<button value=${pair[1]} class="class_change-request-status_button btn btn-danger"> ${friend_status} </button></li>
                                   `);
                               }
                               else if(friend_status === 1){ // show disabled Pending button
                                   friend_status = "Request Pending";
                                   $("#id_find-friend_ul").append(`
-                                    <li value="${person2}">${person2}<button value=${pair[1]}> ${friend_status} </button></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center" value="${person2}">${person2}<button class="btn btn-warning" value=${pair[1]}> ${friend_status} </button></li>
                                   `);
                               }
                               else if(friend_status === 2){ // show Accept Request button
                                   friend_status = "Accept Request";
                                   $("#id_find-friend_ul").append(`
-                                    <li value="${person2}">${person2}<button value=${pair[1]} class="class_change-request-status_button"> ${friend_status} </button></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center" value="${person2}">${person2}<button value=${pair[1]} class="class_change-request-status_button btn btn-info"> ${friend_status} </button></li>
                                   `);
                               }
                               else{ // show disabled Already friends button
                                   friend_status = "Friends";
                                   $("#id_find-friend_ul").append(`
-                                    <li value="${person2}">${person2}<button value=${pair[1]}>${friend_status} </button></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center" value="${person2}">${person2}<button class="btn btn-success" value=${pair[1]}>${friend_status} </button></li>
                                   `);
                               }
 
@@ -252,13 +259,16 @@
                       let new_status = data.result;
                       console.log(new_status, typeof(new_status));
                       let new_text = "";
+                      status_button.removeAttr('class');
                       if(new_status === false){ // show disabled Pending button
                           new_text = "Request Pending"
+                          status_button.addClass('btn btn-warning')
                       }
                       else if(new_status === true){ // show Accept Request button
                           new_text = "Friends"
+                          status_button.addClass('btn btn-success')
                       }
-                      status_button.removeAttr('class');
+                      
                       status_button.text(new_text);
                  }
               });
@@ -404,6 +414,21 @@
           });
       }); // end of document ready
     </script>
+    <script>
+        tinymce.init({
+            selector: "#id_message",
+            plugins: "emoticons",
+            toolbar: "emoticons",
+            toolbar_location: "bottom",
+            height: 100,
+            menubar: false,
+            statusbar: false,
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
+    
+    <script src="{% static 'js/canvas.js' %}"></script>
+    <script src="{% static 'js/toggle.js' %}"></script>
 
 </body>
 </html>

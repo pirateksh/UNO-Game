@@ -1,4 +1,5 @@
 import json
+import asyncio
 from json import JSONEncoder
 import random
 
@@ -116,6 +117,7 @@ class PlayerServer:
         self.username = username
         self.score = 0
         self.hand = []
+        self.yelled_uno = False
 
     def draw(self, deck):
         """
@@ -255,6 +257,8 @@ class GameServer:
             self.top_card = self.choose_top_card()
             self.top_color = self.top_card.get_category()
             self.is_game_running = True
+            for player in self.players:
+                player.yelled_uno = False
     
     def choose_top_card(self):
         """
@@ -392,6 +396,12 @@ class GameServer:
         :param card: card which is played
         :return:
         """
+        current_player = self.get_current_player()
+        # If current player has only 1 card left and didn't yell UNO but also didn't get caught.
+        if current_player.get_active_hand_size() == 1:
+            if not current_player.yelled_uno:
+                current_player.yelled_uno = True
+
         if card.is_skip() or card.is_draw_two() or card.is_wild_four():
             # Next Player misses turn. Increment/Decrement by 2.
             amount = 2
@@ -489,7 +499,6 @@ class GameServer:
                             in player's hand coming from Client Side
         :return:
         """
-
         # Segregating Client Side Data
         client_card, client_card_index = client_data['card'], client_data['index']
         client_username, client_next_top_color = client_data['username'], client_data['next_top_color']
@@ -576,6 +585,8 @@ class GameServer:
             for _ in range(draw_count):
                 drawn_cards.append(skipped_player.draw(self.deck))
 
+                skipped_player.yelled_uno = False
+
         if skipped_player is not None:
             response = {
                 "status": "skipped",
@@ -612,6 +623,8 @@ class GameServer:
         # Fetching current player as stored on the server
         server_current_player = self.get_current_player()
 
+        server_current_player.yelled_uno = False
+
         # Draw the card.
         drawn_card = server_current_player.draw(self.deck)
 
@@ -636,3 +649,74 @@ class GameServer:
 
         # Set current player as the next player
         self.current_player_index = self.increment_or_decrement_current_player_index(amount=1)
+
+    def can_call_uno(self, client_data, server_data):
+        # Segregating Client Side Data
+        client_username = client_data['username']
+
+        # Segregating Server Side Data
+        server_username = server_data['username']
+
+        # Fetching current player as stored on the server
+        server_current_player = self.get_current_player()
+        if server_current_player.username != client_username:
+            print(
+                f"Cheating: ServerCurrentPlayer({server_current_player.username}) != ClientPlayer({client_username})!")
+            return False
+
+        if client_username != server_username:
+            print(f"Cheating: ServerPlayer({server_username}) != ClientPlayer({client_username})!")
+            return False
+
+        count = server_current_player.get_active_hand_size()
+
+        if count != 2:
+            print(f"{server_current_player.username} is trying to call UNO! But his/her card count != 2")
+            return False
+
+        return True
+
+    def call_uno(self):
+        # Fetching current player as stored on the server
+        server_current_player = self.get_current_player()
+
+        server_current_player.yelled_uno = True
+
+    def is_valid_catch(self, client_data, server_data):
+        client_catcher = client_data['catcher']
+        client_caught = client_data['caught']
+
+        server_catcher = server_data['catcher']
+        server_caught = server_data['caught']
+
+        if client_catcher != server_catcher:
+            print(f"Client Catcher({client_catcher}) != Server Catcher({server_catcher})")
+            return False
+
+        if client_caught != server_caught:
+            print(f"Client Caught({client_caught}) != Server Caught({server_caught})")
+            return False
+
+        server_caught_player = self.get_current_player()
+        if server_caught_player.yelled_uno:  # Player has already yelled UNO!
+            return False
+
+        if server_caught_player.get_active_hand_size() > 1:
+            return False
+
+        return True
+
+    def catch_player(self):
+
+        server_caught_player = self.get_current_player()
+
+        drawn_cards = []
+        draw_count = 2
+
+        for _ in range(draw_count):
+            drawn_cards.append(server_caught_player.draw(self.deck))
+
+        response = {
+            "drawnCard": json.dumps(drawn_cards, cls=CustomEncoder),
+        }
+        return response

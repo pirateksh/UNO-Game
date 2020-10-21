@@ -9,7 +9,7 @@ toggle.addEventListener('change', function () {
 
 // Select the button
 var btn = document.querySelector(".toggle-input");
-if (localStorage.getItem('toggleState') == 'false') {
+if (localStorage.getItem('toggleState') === 'false') {
     document.body.classList.remove("dark-theme");
 }
 
