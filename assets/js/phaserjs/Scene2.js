@@ -124,25 +124,20 @@ class Scene2 extends Phaser.Scene {
             }
             else if(status === "voluntary_draw_card") {
                 // TODO: Bug when player drew WILD FOUR. Look into it.
-                console.log("Card drawn verified by the server.");
                 currentGame.copyData(gameData);
                 let voluntaryDrawData = backendResponse.voluntaryDrawData;
                 let username = voluntaryDrawData.username;
                 let drawnCard = JSON.parse(voluntaryDrawData.drawnCard);
-                if(username === me) {
-                    // console.log(voluntaryDrawData);
+                if(username === me) { // The player who drew the card.
                     currentGame.canDrawCard = false;
                     _this.topDeckCard.disableInteractive();
-                    // console.log("Drawn Card:", drawnCard);
                     let category = drawnCard.category, number = drawnCard.number;
                     let drawnCardObject = new Card(category, number);
-                    // console.log("Drawn Card Object:", drawnCardObject);
                     let x = gameDetails.deckX, y = gameDetails.deckY;
                     let depth = myHand.getCount() + 1, scale = gameDetails.myHandScale;
                     let index = myHand.getCount();
                     let drawnCardSprite = _this.getCardSprite(drawnCardObject, x, y, depth, scale);
                     myHand.addCardAndCardSprite(drawnCardObject, drawnCardSprite);
-                    console.log("My Hand after draw: ", JSON.parse(JSON.stringify(myHand.cards)));
                     if(currentGame.canPlay(drawnCardObject)) {
                         _this.giveOptionToPlayOrKeep(drawnCardObject, drawnCardSprite, depth, index);
                     }
@@ -221,7 +216,7 @@ class Scene2 extends Phaser.Scene {
             onComplete: function () { // TODO: Test this
                 for(let i = 0; i < removeCardSpritesArray.length; ++i) {
                     removeCardSpritesArray[i].destroy();
-                    _this.adjustSelfHandOnTable(); /// TESTINGNNN
+                    _this.adjustSelfHandOnTable();
                 }
             },
             callbackScope: _this
@@ -237,7 +232,6 @@ class Scene2 extends Phaser.Scene {
         _this.turnIndicator.destroy();
 
         // TODO: Next Round will start in 3 2 1....
-        //       Error in Cards Placement of that player who has won.
         // Starting new round.
         currentGame.copyData(gameData);
         console.log("After Won: ", gameData);
@@ -332,54 +326,60 @@ class Scene2 extends Phaser.Scene {
         drawnCardSprite.setScale(1.5 * gameDetails.myHandScale);
         drawnCardSprite.depth = _this.maxTopCardDepth + 1;
         let toX = _this.config.width/2, toY = _this.config.height/2 - 100, duration = 700;
-        _this.addTween(drawnCardSprite, toX, toY, duration);
+        _this.tweens.add({
+            targets: drawnCardSprite,
+            x: toX,
+            y: toY,
+            duration: duration,
+            repeat: 0,
+            onComplete: function () {
+                let noX = _this.config.width/2 - 85, noY = _this.config.height/2 + 100;
+                let yesX = _this.config.width/2 + 85, yesY = _this.config.height/2 + 100;
+                let noButton = _this.physics.add.sprite(noX, noY, "noButton");
+                noButton.setScale(0.85);
+                noButton.depth = myHand.getCount() + 1;
+                let yesButton = _this.physics.add.sprite(yesX, yesY, "yesButton");
+                yesButton.setScale(0.85);
+                yesButton.depth = myHand.getCount() + 1;
 
-        let noX = _this.config.width/2 - 85, noY = _this.config.height/2 + 100;
-        let yesX = _this.config.width/2 + 85, yesY = _this.config.height/2 + 100;
-        let noButton = _this.physics.add.sprite(noX, noY, "noButton");
-        noButton.setScale(0.85);
-        noButton.depth = myHand.getCount() + 1;
-        let yesButton = _this.physics.add.sprite(yesX, yesY, "yesButton");
-        yesButton.setScale(0.85);
-        yesButton.depth = myHand.getCount() + 1;
+                noButton.setInteractive();
+                yesButton.setInteractive();
 
+                noButton.on("pointerover", function (pointer) {
+                    noButton.play("noButtonOver");
+                });
 
-        noButton.setInteractive();
-        yesButton.setInteractive();
+                noButton.on("pointerout", function (pointer) {
+                    noButton.play("noButtonOut");
+                });
 
-        noButton.on("pointerover", function (pointer) {
-            noButton.play("noButtonOver");
+                noButton.on("pointerdown", function (pointer) {
+                    currentGame.keepCardAfterDrawingRequest(drawnCardObject);
+                    yesButton.destroy();
+                    noButton.destroy();
+
+                    drawnCardSprite.setScale(gameDetails.myHandScale);
+                    _this.drawCardSelf(drawnCardObject, drawnCardSprite, depth, index);
+                    _this.adjustSelfHandOnTable();
+                });
+
+                yesButton.on("pointerover", function (pointer) {
+                    yesButton.play("yesButtonOver");
+                });
+
+                yesButton.on("pointerout", function (pointer) {
+                    yesButton.play("yesButtonOut");
+                });
+
+                yesButton.on("pointerdown", function (pointer) {
+                    currentGame.playCardRequest(drawnCardObject, index);
+                    yesButton.destroy();
+                    noButton.destroy();
+                });
+            },
+            callbackScope: _this
         });
-
-        noButton.on("pointerout", function (pointer) {
-            noButton.play("noButtonOut");
-        });
-
-        noButton.on("pointerdown", function (pointer) {
-            currentGame.keepCardAfterDrawingRequest(drawnCardObject);
-            yesButton.destroy();
-            noButton.destroy();
-
-            drawnCardSprite.setScale(gameDetails.myHandScale);
-            _this.adjustSelfHandOnTable();
-        });
-
-        yesButton.on("pointerover", function (pointer) {
-            yesButton.play("yesButtonOver");
-        });
-
-        yesButton.on("pointerout", function (pointer) {
-            yesButton.play("yesButtonOut");
-        });
-
-        yesButton.on("pointerdown", function (pointer) {
-            currentGame.playCardRequest(drawnCardObject, index);
-            yesButton.destroy();
-            noButton.destroy();
-        });
-
         // TODO: Error in positioning and playing of keep card.
-
     }
 
 
