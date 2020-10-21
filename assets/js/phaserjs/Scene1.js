@@ -36,20 +36,32 @@ class Scene1 extends Phaser.Scene {
             frameHeight: 148
         });
 
-        // this.load.spritesheet("yourTurn", `${generatePath("spritesheets", "your_turn.jpeg")}`, {
-        //     frameWidth: 62.75,
-        //     frameHeight: 60.667
-        // });
-
         // this.load.spritesheet("turnIndicator", `${generatePath("spritesheets", "turn_indicator.png")}`, {
         //     frameWidth: 16,
         //     frameHeight: 16
         // });
 
-        this.load.spritesheet("turnIndicator", `${generatePath("spritesheets", "bird.jpg")}`, {
-            frameWidth: 750,
-            frameHeight: 800
+        // this.load.spritesheet("turnIndicator", `${generatePath("spritesheets", "bird.jpg")}`, {
+        //     frameWidth: 750,
+        //     frameHeight: 800
+        // });
+
+
+        this.load.spritesheet("turnIndicator", `${generatePath("spritesheets", "turn_indicator_2.png")}`, {
+            frameWidth: 73,
+            frameHeight: 73
         });
+
+        this.load.spritesheet("unoButton", `${generatePath("spritesheets", "uno_button.png")}`, {
+            frameWidth: 300,
+            frameHeight: 119
+        });
+
+        this.load.spritesheet("challengeButton", `${generatePath("spritesheets", "challenge_button.png")}`, {
+            frameWidth: 73,
+            frameHeight: 73
+        });
+
 
         this.load.bitmapFont("pixelFont", `${generatePath("font", "font.png")}`, `${generatePath("font", "font.xml")}`);
 
@@ -64,12 +76,12 @@ class Scene1 extends Phaser.Scene {
         this.add.text(20, 20, "Loading Game...");
         this.scene.start("playGame");
 
-        this.anims.create({
-			key: "yourTurnAnim", // Name of animation
-			frames: this.anims.generateFrameNumbers("turnIndicator"), // Using frames from "yourTurn" spritesheet
-			frameRate: 30, // play at 20 frames per second
-			repeat: -1 // For infinite loop (repeat) we user -1
-		});
+        // this.anims.create({
+		// 	key: "yourTurnAnim", // Name of animation
+		// 	frames: this.anims.generateFrameNumbers("turnIndicator"), // Using frames from "yourTurn" spritesheet
+		// 	frameRate: 30, // play at 20 frames per second
+		// 	repeat: -1 // For infinite loop (repeat) we user -1
+		// });
 
         this.anims.create({
             key: "noButtonOut",
@@ -104,6 +116,46 @@ class Scene1 extends Phaser.Scene {
         this.anims.create({
             key: "yesButtonOver",
             frames: this.anims.generateFrameNumbers("yesButton", {
+                start: 1,
+                end: 1
+            }),
+            frameRate: 20,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: "unoButtonOut",
+            frames: this.anims.generateFrameNumbers("unoButton", {
+                start: 0,
+                end: 0
+            }),
+            frameRate: 20,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: "unoButtonOver",
+            frames: this.anims.generateFrameNumbers("unoButton", {
+                start: 1,
+                end: 1
+            }),
+            frameRate: 20,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: "challengeButtonOut",
+            frames: this.anims.generateFrameNumbers("challengeButton", {
+                start: 0,
+                end: 0
+            }),
+            frameRate: 20,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: "challengeButtonOver",
+            frames: this.anims.generateFrameNumbers("challengeButton", {
                 start: 1,
                 end: 1
             }),

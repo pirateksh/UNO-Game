@@ -8,6 +8,7 @@ class Scene2 extends Phaser.Scene {
     *  2. Implement calling UNO / Challenging if UNO is not called by player left with 1 card.
     *  3. Count of Cards on opponents.
     *  4. Color choosing UI.
+    *  5. Try to implement a game tour for new players.
     * */
     create() {
         let _this = this;
@@ -17,12 +18,28 @@ class Scene2 extends Phaser.Scene {
         _this.table = _this.add.tileSprite(0, 0, config.width, config.height, "table");
         _this.table.setOrigin(0,0);
 
+        _this.unoButton = _this.physics.add.sprite(gameDetails.unoButtonX, gameDetails.unoButtonY, "unoButton");
+        _this.unoButton.setInteractive();
+        _this.unoButton.setScale(gameDetails.unoButtonScale);
+        _this.unoButton.on("pointerover", function (pointer) {
+            _this.unoButton.play("unoButtonOver");
+        });
+
+        _this.unoButton.on("pointerout", function (pointer) {
+            _this.unoButton.play("unoButtonOut");
+        });
+
+        _this.unoButton.on("pointerdown", function (pointer) {
+            currentGame.callUnoRequest();
+        });
+
         _this.deck = _this.physics.add.group();
         _this.discardedTopCards = _this.physics.add.group();
         _this.maxTopCardDepth = -1;
 
         _this.playerNameBitMap =  _this.physics.add.group();
         _this.playerRemainingCardsCountBitMap = _this.physics.add.group();
+        _this.challengeButtons = _this.physics.add.group();
 
         let initialPosX = 0, initialPosY = 0;
         _this.deckX = config.width/2 - initialPosX;
@@ -170,6 +187,10 @@ class Scene2 extends Phaser.Scene {
 
                 _this.makeHandInteractive();
 
+                if(me !== currentGame.getCurrentPlayer()) {
+                    _this.topDeckCard.disableInteractive();
+                }
+
                 _this.moveOrSetTurnIndicator(true);
             }
             else if(status === "won_round") {
@@ -182,6 +203,53 @@ class Scene2 extends Phaser.Scene {
                 let wonScore = wonData.score;
                 Game.addScoreToDOM(wonUsername, wonScore);
                 alert(`${wonUsername} won with score = ${wonScore}. Start a new game or leave the room.`);
+            }
+            else if(status === "call_uno") {
+                let username = data.username;
+                if(username !== me) {
+                    alert(`${username} called UNO!`);
+                }
+            }
+            else if(status === "catch_player") {
+                let catcher = data.catcher;
+                let caught = data.caught;
+                let caughtData = backendResponse.caughtData;
+                let drawnCards = JSON.parse(caughtData.drawnCards);
+                console.log(catcher, caught, caughtData);
+                if(caught === me) {
+                    alert(`You were caught by ${catcher}.`);
+                    for(let drawnCard of drawnCards) {
+                        let category = drawnCard.category, number = drawnCard.number;
+                        let drawnCardObject = new Card(category, number);
+                        let x = gameDetails.deckX, y = gameDetails.deckY;
+                        let depth = myHand.getCount() + 1, scale = gameDetails.myHandScale;
+                        let index = myHand.getCount();
+                        let drawnCardSprite = _this.getCardSprite(drawnCardObject, x, y, depth, scale);
+                        myHand.addCardAndCardSprite(drawnCardObject, drawnCardSprite);
+                        _this.drawCardSelf(drawnCardObject, drawnCardSprite, depth, index);
+                    }
+
+                    // Adjusting cards in hand on the table.
+                    _this.adjustSelfHandOnTable();
+                }
+                else {
+                    alert(`${catcher} caught ${caught}.`);
+                    for(let i = 0; i < parseInt(drawnCardCount); ++i) {
+                        _this.drawCardOpp(username);
+                    }
+                }
+            }
+            else if(status === "update_current_player") {
+                // currentGame.currentPlayerIndex = data.currentPlayerIndex;
+                // console.log(data.currentPlayerIndex, currentGame.getCurrentPlayer());
+                //
+                // if(me !== currentGame.getCurrentPlayer()) {
+                //     _this.topDeckCard.disableInteractive();
+                // }
+                //
+                // _this.makeHandInteractive();
+                //
+                // _this.moveOrSetTurnIndicator(true);
             }
         });
     }
@@ -285,7 +353,7 @@ class Scene2 extends Phaser.Scene {
         let allPlayers = currentGame.getPlayers();
         let myIndex = allPlayers.indexOf(me);
 
-        currentGame.coordinatesOfPlayers[me] = [btmX+30, btmY-90];
+        currentGame.coordinatesOfPlayers[me] = [btmX+30, btmY-105];
         let theta = angle;
         for (let i = 1; i < n; ++i) {
             let otherIndex = (myIndex + i) % n;
@@ -307,11 +375,32 @@ class Scene2 extends Phaser.Scene {
                 duration: 700,
                 repeat: 0,
                 onComplete: function (){
+                    // Adding Player's name.
                     let nameBitMap = _this.add.bitmapText(newX, newY + 20, "pixelFont", otherPlayer, 20);
                     _this.playerNameBitMap.add(nameBitMap);
+
+                    // Adding Player's card count.
                     let cardCountBitMap = _this.add.bitmapText(newX + 50, newY, "pixelFont", "7", 30);
                     cardCountBitMap.setData({"username": otherPlayer});
                     _this.playerRemainingCardsCountBitMap.add(cardCountBitMap);
+
+                    // Adding Challenge Button
+                    let challengeButton = _this.physics.add.sprite(newX + 40, newY + 50, "challengeButton");
+                    challengeButton.setInteractive();
+                    challengeButton.setScale(gameDetails.roundButtonScale);
+                    challengeButton.setData({"username": otherPlayer});
+                    challengeButton.on("pointerover", function (pointer) {
+                        challengeButton.play("challengeButtonOver");
+                    });
+                    challengeButton.on("pointerout", function (pointer) {
+                        challengeButton.play("challengeButtonOut");
+                    });
+                    challengeButton.on("pointerdown", function (pointer) {
+                        currentGame.catchPlayerRequest(otherPlayer);
+                    });
+
+                    _this.challengeButtons.add(challengeButton);
+
                 },
                 callbackScope: _this
             });
@@ -523,8 +612,8 @@ class Scene2 extends Phaser.Scene {
                 else {
                     _this.turnIndicator = _this.physics.add.sprite(toX - 25, toY + 35, "turnIndicator");
                     _this.turnIndicator.depth = 20;
-                    _this.turnIndicator.setScale(0.05);
-                    _this.turnIndicator.play("yourTurnAnim");
+                    _this.turnIndicator.setScale(gameDetails.roundButtonScale);
+                    // _this.turnIndicator.play("yourTurnAnim");
                 }
             }
         }
@@ -652,6 +741,7 @@ class Scene2 extends Phaser.Scene {
         _this.oppHandGroup.clear(true, true);
         _this.playerNameBitMap.clear(true, true);
         _this.playerRemainingCardsCountBitMap.clear(true, true);
+        _this.challengeButtons.clear(true, true);
         _this.turnIndicator.destroy();
 
         // Disabling CardSprite in Hand of Player.
