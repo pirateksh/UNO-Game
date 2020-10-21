@@ -216,9 +216,9 @@ body {
   background: var(--bkg-color);
   
 }
-a {
+/* a {
   color: var(--anchor-color);
-}
+} */
 
 p {
   color: var(--text-color);
