@@ -13,245 +13,397 @@
 
 <body>
 
-<div class="container clearfix">
-    <div class="people-list" id="people-list">
-      <div class="search">
-        <input type="text" placeholder="search" />
-      </div>
-      <ul class="list nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-        <li class="clearfix nav-item">
-          <a class="nav-link" id="person-1" data-toggle="pill" href="#chat-1" role="tab" aria-controls="chat-1" aria-selected="true">
-          <img src="https://scontent.fpat3-1.fna.fbcdn.net/v/t1.0-9/106731601_1167452090288418_237388223169334717_o.jpg?_nc_cat=106&_nc_sid=09cbfe&_nc_ohc=P5jF3XWoYsEAX-Fg4M2&_nc_ht=scontent.fpat3-1.fna&oh=856009cb43f5ef5d46aef2ec1c8278de&oe=5FB2A24F"
-           alt="avatar" width="55px" class="rounded-circle"/>
-          <div class="about">
-            <div class="name">Vishwajeet Kumar</div>
-            <div class="status">
-              <i class="fa fa-circle online"></i> online
+    <div class="container clearfix">
+
+        <div class="people-list" id="people-list">
+
+            <div class="search">
+                <input type="text" placeholder="search" />
             </div>
-          </div>
-          </a>
-        </li>
-        
-        <li class="clearfix nav-item">
-          <a class="nav-link active" id="person-2" data-toggle="pill" href="#chat-2" role="tab" aria-controls="chat-2" aria-selected="false">
-          <img src="https://scontent.fpat3-2.fna.fbcdn.net/v/t1.0-9/68870447_2370302253233964_5182504661172617216_n.jpg?_nc_cat=102&_nc_sid=09cbfe&_nc_ohc=zoIKACXvWmAAX-CowM5&_nc_ht=scontent.fpat3-2.fna&oh=f2d9420c9384404085ed651a6e64560a&oe=5FB25C29"
-           alt="avatar" width="55px" class="rounded-circle"/>
-          <div class="about">
-            <div class="name">Ankit Sangwan</div>
-            <div class="status">
-              <i class="fa fa-circle offline"></i> left 7 mins ago
+
+
+            <ul class="list nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <li class="clearfix nav-item">
+                    <a class="nav-link" data-toggle="pill" href="#add-friend" role="tab" aria-controls="add-friend" aria-selected="true">
+                        <div class="about">
+                            <div class="name">Add Friend</div>
+                            <div class="status">
+                            </div>
+                        </div>
+                    </a>
+                </li>
+
+                {% for friend in friends %}
+                    <li class="clearfix nav-item">
+                        <a class="nav-link class_friends_tab" value="{{ friend }}" data-toggle="pill" href="#chat-1" role="tab" aria-controls="chat-1" aria-selected="true">
+                            <img src="{% static "img/profile_pictures/male_default_picture.jpg"%}" alt="avatar" width="55px" class="rounded-circle" />
+                            <div class="about">
+                                <div class="name">{{ friend }}</div>
+                                <div class="status">
+                                    <i class="fa fa-circle online"></i> online
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                {% endfor %}
+
+            </ul>
+        </div>
+
+        <div class="chat tab-content" id="v-pills-tabContent">
+            <div class="tab-pane fade" id="chat-1" role="tabpanel" aria-labelledby="v-pills-home-tab">
+                {# Chat Header Start #}
+                <div class="chat-header clearfix">
+                    {# TODO: The image Should from data passed through AJAX --Ankit #}
+                    <img id="id_chat-with-image" src="{% static "img/profile_pictures/male_default_picture.jpg"%}"
+                         alt="avatar" width="55px" class="rounded-circle" />
+                    <div class="chat-about">
+                        <div class="chat-with"> </div>
+                        {# <div class="chat-num-messages">already 1 902 messages</div> #}
+                    </div>
+                    {# TODO: add user profile visit link --Kshitiz #}
+                    <button type="button" style="float:right;" class="btn btn-primary" href="#">View Profile</button>
+                </div>
+                {# Chat Chat Header End #}
+
+                {# Chat History Part Start #}
+                <div class="chat-history">
+                    <ul id="id_friends_chat_history_ul">
+                        {# Stuff here is appended from the Ajax Script at the End of this file using the id of this ul #}
+                    </ul>
+                </div>
+                {# Chat History Part End #}
+
+                {# Chat Message Sending Part Start #}
+                <div class="chat-message clearfix">
+                    <form id="id_message_form">
+                        <textarea name="message-to-send" id="id_message" placeholder ="Type your message" rows="1"></textarea>
+                        <i class="fa fa-file-o"></i> &nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-file-image-o"></i>
+                        <button>Send</button>
+                    </form>
+                </div>
+                {# Chat Message Sending Part End #}
             </div>
-          </div>
-          </a>
-        </li>
-        
-        <li class="clearfix nav-item">
-          <a class="nav-link" id="person-3" data-toggle="pill" href="#chat-3" role="tab" aria-controls="chat-3" aria-selected="false">
-          <img src="https://scontent.fpat3-2.fna.fbcdn.net/v/t1.0-9/18953104_914449888695659_4255386797861288347_n.jpg?_nc_cat=111&_nc_sid=09cbfe&_nc_ohc=hUr2BIA1qO8AX9Eh2VW&_nc_ht=scontent.fpat3-2.fna&oh=5e1c20415cb9addd0976d32a3587064f&oe=5FB2838D"
-           alt="avatar" width="55px" class="rounded-circle"/>
-          <div class="about">
-            <div class="name">Kshitij Shrivastava</div>
-            <div class="status">
-              <i class="fa fa-circle online"></i> online
+
+
+
+
+{#          <div class="tab-pane fade show active" id="chat-2" role="tabpanel" aria-labelledby="v-pills-profile-tab">#}
+{#              <div class="chat-header clearfix">#}
+{#                  <img src="https://scontent.fpat3-1.fna.fbcdn.net/v/t1.00288418_237388223169334717_o.jpg?_nc_cat=106&_nc_sid=09cbfe&_nc_ohc=P5jF3XWoYsEAX-Fg4M2&_nc_ht=scontent.fpat3-1.fna&oh=856009cb43f5ef5d46aef2ec1c8278de&oe=5FB2A24F"#}
+{#                       alt="avatar" width="55px" class="rounded-circle" />#}
+{##}
+{#                  <div class="chat-about">#}
+{#                      <div class="chat-with">Chat with Ankit</div>#}
+{#                      <div class="chat-num-messages">already 1 902 messages</div>#}
+{#                  </div>#}
+{#                  <a class="star btn" style="right: 0;"><i class="fa fa-star"></i></a>#}
+{#              </div> <!-- end chat-header -->#}
+{##}
+{#              <div class="chat-history">#}
+{#                  <ul>#}
+{#                      <li class="clearfix">#}
+{#                          <div class="message-data align-right">#}
+{#                              <span class="message-data-time" >10:10 AM, Today</span> &nbsp; &nbsp;#}
+{#                              <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>#}
+{#                          </div>#}
+{#                          <div class="message other-message float-right">#}
+{#                              Hi Ankit, how are you?#}
+{#                          </div>#}
+{#                      </li>#}
+{#                      <li>#}
+{#                          <div class="message-data">#}
+{#                              <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>#}
+{#                              <span class="message-data-time">10:12 AM, Today</span>#}
+{#                          </div>#}
+{#                          <div class="message my-message">#}
+{#                              Kaun hai ji tu?#}
+{#                          </div>#}
+{#                      </li>#}
+{#                  </ul>#}
+{#              </div> <!-- end chat-history -->#}
+{##}
+{#              <div class="chat-message clearfix">#}
+{#                <textarea name="message-to-send" id="message-to-send" placeholder ="Type your message" rows="3"></textarea>#}
+{#                <i class="fa fa-file-o"></i> &nbsp;&nbsp;&nbsp;#}
+{#                <i class="fa fa-file-image-o"></i>#}
+{#                <button>Send</button>#}
+{#              </div> <!-- end chat-message -->#}
+{#          </div>#}
+
+
+            {# This div is visible when user click on Add Friend Link #}
+            {# Seach Friend Starts #}
+            <div class="tab-pane fade" id="add-friend" role="tabpanel" aria-labelledby="v-pills-messages-tab">
+                <div class="chat-header clearfix">
+                    <input type="text" id="id_find-friend_input" placeholder="Find Friends"/>
+                    <i  class="fa fa-search"></i>
+                </div>
+
+                <div>
+                    <ul id="id_find-friend_ul">
+                    </ul>
+                </div>
             </div>
-          </div>
-          </a>
-        </li>
-      </ul>
+            {# Seach Friend Ends #}
+        </div>
+
+{#    <script id="message-template" type="text/x-handlebars-template">#}
+{#        <li class="clearfix">#}
+{#            <div class="message-data align-right">#}
+{#                <span class="message-data-time" >{{time}}, Today</span> &nbsp; &nbsp;#}
+{#                <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>#}
+{#            </div>#}
+{#            <div class="message other-message float-right">#}
+{#                {{messageOutput}}#}
+{#            </div>#}
+{#        </li>#}
+{#    </script>#}
+{#    <script id="message-response-template" type="text/x-handlebars-template">#}
+{#          <li>#}
+{#              <div class="message-data">#}
+{#                  <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>#}
+{#                  <span class="message-data-time">{{time}}, Today</span>#}
+{#              </div>#}
+{#              <div class="message my-message">#}
+{#                  {{response}}#}
+{#              </div>#}
+{#          </li>#}
     </div>
-
-
-    
-    <div class="chat tab-content" id="v-pills-tabContent">
-      <div class="tab-pane fade" id="chat-1" role="tabpanel" aria-labelledby="v-pills-home-tab">
-        <div class="chat-header clearfix">
-          <img src="https://scontent.fpat3-1.fna.fbcdn.net/v/t1.0-9/106731601_1167452090288418_237388223169334717_o.jpg?_nc_cat=106&_nc_sid=09cbfe&_nc_ohc=P5jF3XWoYsEAX-Fg4M2&_nc_ht=scontent.fpat3-1.fna&oh=856009cb43f5ef5d46aef2ec1c8278de&oe=5FB2A24F"
-          alt="avatar" width="55px" class="rounded-circle" />
-          
-          <div class="chat-about">
-            <div class="chat-with">Chat with Vishwajeet Kumar</div>
-            <div class="chat-num-messages">already 1 902 messages</div>
-          </div>
-          <a class="star btn" style="right: 0;"><i class="fa fa-star"></i></a>
-        </div> <!-- end chat-header -->
-        
-        <div class="chat-history">
-          <ul>
-            <li class="clearfix">
-              <div class="message-data align-right">
-                <span class="message-data-time" >10:10 AM, Today</span> &nbsp; &nbsp;
-                <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>
-                
-              </div>
-              <div class="message other-message float-right">
-                Hi Vishwajeet, how are you?
-              </div>
-            </li>
-            
-            <li>
-              <div class="message-data">
-                <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>
-                <span class="message-data-time">10:12 AM, Today</span>
-              </div>
-              <div class="message my-message">
-                Kaun hai ji tu?
-              </div>
-            </li>
-            
-          </ul>
-          
-        </div> <!-- end chat-history -->
-        
-        <div class="chat-message clearfix">
-          <textarea name="message-to-send" id="message-to-send" placeholder ="Type your message" rows="3"></textarea>
-                  
-          <i class="fa fa-file-o"></i> &nbsp;&nbsp;&nbsp;
-          <i class="fa fa-file-image-o"></i>
-          
-          <button>Send</button>
-
-        </div> <!-- end chat-message -->
-      </div>
-
-
-
-
-      <div class="tab-pane fade show active" id="chat-2" role="tabpanel" aria-labelledby="v-pills-profile-tab">
-        <div class="chat-header clearfix">
-          <img src="https://scontent.fpat3-1.fna.fbcdn.net/v/t1.00288418_237388223169334717_o.jpg?_nc_cat=106&_nc_sid=09cbfe&_nc_ohc=P5jF3XWoYsEAX-Fg4M2&_nc_ht=scontent.fpat3-1.fna&oh=856009cb43f5ef5d46aef2ec1c8278de&oe=5FB2A24F"
-          alt="avatar" width="55px" class="rounded-circle" />
-          
-          <div class="chat-about">
-            <div class="chat-with">Chat with Ankit</div>
-            <div class="chat-num-messages">already 1 902 messages</div>
-          </div>
-          <a class="star btn" style="right: 0;"><i class="fa fa-star"></i></a>
-        </div> <!-- end chat-header -->
-        
-        <div class="chat-history">
-          <ul>
-            <li class="clearfix">
-              <div class="message-data align-right">
-                <span class="message-data-time" >10:10 AM, Today</span> &nbsp; &nbsp;
-                <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>
-                
-              </div>
-              <div class="message other-message float-right">
-                Hi Ankit, how are you?
-              </div>
-            </li>
-            
-            <li>
-              <div class="message-data">
-                <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>
-                <span class="message-data-time">10:12 AM, Today</span>
-              </div>
-              <div class="message my-message">
-                Kaun hai ji tu?
-              </div>
-            </li>
-            
-            
-          </ul>
-          
-        </div> <!-- end chat-history -->
-        
-        <div class="chat-message clearfix">
-          <textarea name="message-to-send" id="message-to-send" placeholder ="Type your message" rows="3"></textarea>
-                  
-          <i class="fa fa-file-o"></i> &nbsp;&nbsp;&nbsp;
-          <i class="fa fa-file-image-o"></i>
-          
-          <button>Send</button>
-
-        </div> <!-- end chat-message -->
-      </div>
-
-
-
-
-      <div class="tab-pane fade" id="chat-3" role="tabpanel" aria-labelledby="v-pills-messages-tab">
-        <div class="chat-header clearfix">
-          <img src="https://scontent.fpat3-1.fna.fbcdn.net/v/t1452090288418_237388223169334717_o.jpg?_nc_cat=106&_nc_sid=09cbfe&_nc_ohc=P5jF3XWoYsEAX-Fg4M2&_nc_ht=scontent.fpat3-1.fna&oh=856009cb43f5ef5d46aef2ec1c8278de&oe=5FB2A24F"
-          alt="avatar" width="55px" class="rounded-circle" />
-          
-          <div class="chat-about">
-            <div class="chat-with">Chat with Kshitij</div>
-            <div class="chat-num-messages">already 1 902 messages</div>
-          </div>
-          <a class="star btn" style="right: 0;"><i class="fa fa-star"></i></a>
-        </div> <!-- end chat-header -->
-        
-        <div class="chat-history">
-          <ul>
-            <li class="clearfix">
-              <div class="message-data align-right">
-                <span class="message-data-time" >10:10 AM, Today</span> &nbsp; &nbsp;
-                <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>
-                
-              </div>
-              <div class="message other-message float-right">
-                Hi Vishwajeet, how are you?
-              </div>
-            </li>
-            
-            <li>
-              <div class="message-data">
-                <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>
-                <span class="message-data-time">10:12 AM, Today</span>
-              </div>
-              <div class="message my-message">
-                Kaun hai ji tu?
-              </div>
-            </li>
-            
-          </ul>
-          
-        </div> <!-- end chat-history -->
-        
-        <div class="chat-message clearfix">
-          <textarea name="message-to-send" id="message-to-send" placeholder ="Type your message" rows="3"></textarea>
-                  
-          <i class="fa fa-file-o"></i> &nbsp;&nbsp;&nbsp;
-          <i class="fa fa-file-image-o"></i>
-          
-          <button>Send</button>
-
-        </div> <!-- end chat-message -->
-      </div>
-
-    </div> <!-- end chat -->
-    
-  </div> <!-- end container -->
-
-    <script id="message-template" type="text/x-handlebars-template">
-      <li class="clearfix">
-        <div class="message-data align-right">
-          <span class="message-data-time" >{{time}}, Today</span> &nbsp; &nbsp;
-          <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>
-        </div>
-        <div class="message other-message float-right">
-          {{messageOutput}}
-        </div>
-      </li>
-    </script>
-
-    <script id="message-response-template" type="text/x-handlebars-template">
-      <li>
-        <div class="message-data">
-          <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>
-          <span class="message-data-time">{{time}}, Today</span>
-        </div>
-        <div class="message my-message">
-          {{response}}
-        </div>
-      </li>
-    </script>
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.0/handlebars.min.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/list.js/1.1.1/list.min.js'></script>
     <script src="{% static "js/chat.js"%}"></script>
     <script src="{% static "bootstrap/js/bootstrap.min.js"%}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js">
+    </script>
+     <!-- jQuery Ajax Script -->
+    <script type="text/javascript">
+      var ALL_SOCKETS = [];
+
+      $(document).ready(function(){
+          {# Function Responsible for Showing Search Results #}
+          $("#id_find-friend_input").keyup(function(){
+            let search_query = $(this).val();
+            $.ajax({
+                 type:'GET',
+                 data:{
+                    'search_query' : search_query,
+                 },
+                 dataType: 'json', // type of data received from Server-Side
+                 success:function(data){ // data is what we have recieved as json response
+                      let users_list = data.result;
+                      $("#id_find-friend_ul").empty();
+                      if(data.result.length){
+                          users_list.forEach((pair)=>{
+                              let person2 = pair[0];
+                              let friend_status = pair[1]; // a number
+                              if(friend_status === 0){ // show add friend button
+                                  friend_status = "Send Friend Request";
+                                  $("#id_find-friend_ul").append(`
+                                    <li value="${person2}">${person2}<button value=${pair[1]} class="class_change-request-status_button"> ${friend_status} </button></li>
+                                  `);
+                              }
+                              else if(friend_status === 1){ // show disabled Pending button
+                                  friend_status = "Request Pending";
+                                  $("#id_find-friend_ul").append(`
+                                    <li value="${person2}">${person2}<button value=${pair[1]}> ${friend_status} </button></li>
+                                  `);
+                              }
+                              else if(friend_status === 2){ // show Accept Request button
+                                  friend_status = "Accept Request";
+                                  $("#id_find-friend_ul").append(`
+                                    <li value="${person2}">${person2}<button value=${pair[1]} class="class_change-request-status_button"> ${friend_status} </button></li>
+                                  `);
+                              }
+                              else{ // show disabled Already friends button
+                                  friend_status = "Friends";
+                                  $("#id_find-friend_ul").append(`
+                                    <li value="${person2}">${person2}<button value=${pair[1]}>${friend_status} </button></li>
+                                  `);
+                              }
+
+                          });
+                      }
+                      else {
+                          {#alert("No results");#}
+                          $("#id_find-friend_ul").append(`
+                                <li>No Results</li>
+                          `);
+                      }
+                 }
+            });
+          });
+          {# Function Responsible for Sending/Accepting Friend Requests #}
+          $(document).on('click', '.class_change-request-status_button', function(){
+              let other_person = $(this).closest('li').attr('value');
+              let status_button = $(this);
+              {#alert(status_button.text());#}
+              $.ajax({
+                 type:'GET',
+                 data:{
+                    {#'current_status' : current_status,#} // Not required as info present in Friend Table already
+                     'other_person': other_person
+                 },
+                 dataType: 'json', // type of data received from Server-Side
+                 success:function(data){ // data is what we have received as json response
+                      let new_status = data.result;
+                      console.log(new_status, typeof(new_status));
+                      let new_text = "";
+                      if(new_status === false){ // show disabled Pending button
+                          new_text = "Request Pending"
+                      }
+                      else if(new_status === true){ // show Accept Request button
+                          new_text = "Friends"
+                      }
+                      status_button.removeAttr('class');
+                      status_button.text(new_text);
+                 }
+              });
+          });
+
+          {# Function Responsible for Showing Chat History with a friend #}
+          $(document).on('click', '.class_friends_tab', function(){
+              let other_person = $(this).attr('value');
+              let url = other_person;
+              $.ajax({
+                 type:'GET',
+                  url: url,
+                 success:function(data){ // data is what we have received as json response
+                    let messages = data.chats;
+                    let other_user_first_name = data.other_user_first_name;
+                    $(".chat-with").html(`<em>${other_user_first_name}</em>`);
+                    $("#id_friends_chat_history_ul").empty();
+                    {#console.log(messages, typeof(messages));#}
+                    if(messages.length === 0){
+                        $("#id_friends_chat_history_ul").append(`
+                            {# Shown In the Center With Some Animation #}
+                            <li class="clearfix">
+                                <div class="message other-message float-right">
+                                    No messages to Show!
+                                </div>
+                            </li>
+                        `)
+                    }
+                    else{
+                        messages.forEach((message_instance)=>{
+                            let sender = message_instance[0];
+                            let message = message_instance[1];
+                            let timestamp = message_instance[2];
+
+                            if(sender === "{{ request.user.username }}"){
+                                $("#id_friends_chat_history_ul").append(`
+                                    {# Shown Right Side #}
+                                    <li class="clearfix">
+                                        <div class="message-data align-right">
+                                            <span class="message-data-time" >${timestamp}</span> &nbsp; &nbsp;
+                                        </div>
+                                        <div class="message other-message float-right">
+                                            ${message}
+                                        </div>
+                                    </li>
+                                `)
+                            }
+                            else{
+                                 $("#id_friends_chat_history_ul").append(`
+                                    {# Shown Left Side #}
+                                    <li>
+                                        <div class="message-data">
+                                            <span class="message-data-time">${timestamp}</span>
+                                        </div>
+                                        <div class="message my-message">
+                                            ${message}
+                                        </div>
+                                    </li>
+                                `);
+                            }
+                        });
+                    }
+                 }
+              });
+
+              {# Closing the Earlier SOcket Connection #}
+
+
+              {# Scripts below hanldes Message Sending and Receiving #}
+
+              {# Opening the Socket Connection on basis of other_person #}
+              const loc = window.location;
+              const host = loc.host;
+              const pathname = loc.pathname;
+              let wsStart = 'ws://';
+              if(loc.protocol == 'https:'){
+                  wsStart = 'wss://';
+              }
+              const endpoint = wsStart + host + pathname + other_person;
+              console.log(endpoint);
+              console.log("Request For Websocket Connection Sent to Server at endpoint: " + endpoint);
+              {#let socket = new WebSocket(endpoint);#}
+              ALL_SOCKETS.push(socket);
+              var socket = new ReconnectingWebSocket(endpoint);
+
+              let formData = $("#id_message_form"); {# id of form #}
+              let msg = $("#id_message"); {# id of text-input #}
+              let chat_list = $('#id_friends_chat_history_ul'); {# id of ul #}
+
+              socket.onopen = function (e) {
+                  console.log("The Connection has been Opened from Both Sides Now.", e);
+                  formData.submit(function(e) {
+                      e.preventDefault();
+                      if(msg.val().trim() === ""){
+                          return;
+                      }
+                      let message = {"message": msg.val()};
+                      {#alert("Submission Prevented" + message.message);#}
+                      socket.send(JSON.stringify(message));
+                      msg.val('');
+                  });
+              };
+
+              socket.onmessage = function (e) {
+                  console.log("The Message sent by the Server is: ", e.data);
+                  let chat_message = JSON.parse(e.data);
+                  let timestamp = chat_message.timestamp
+                  if(chat_message.sender === "{{ request.user.username }}"){
+                        $("#id_friends_chat_history_ul").append(`
+                            {# Shown Right Side #}
+                            <li class="clearfix">
+                                <div class="message-data align-right">
+                                    <span class="message-data-time" >${timestamp}</span> &nbsp; &nbsp;
+                                </div>
+                                <div class="message other-message float-right">
+                                    ${chat_message.message}
+                                </div>
+                            </li>
+                        `)
+                    }
+                    else{
+                         $("#id_friends_chat_history_ul").append(`
+                            {# Shown Left Side #}
+                            <li>
+                                <div class="message-data">
+                                    <span class="message-data-time">${timestamp}</span>
+                                </div>
+                                <div class="message my-message">
+                                    ${chat_message.message}
+                                </div>
+                            </li>
+                        `);
+                    }
+              };
+
+              socket.onerror = function (e) {
+                  console.log("Error:", e);
+              };
+              socket.onclose = function (e) {
+                  console.log("Connection Closed from Server End.", e);
+              };
+
+          });
+      }); // end of document ready
+    </script>
+
 </body>
 </html>

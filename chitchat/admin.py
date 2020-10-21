@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Thread, ChatMessage
+from .models import Thread, ChatMessage, Friend
 
 
 class ThreadAdmin(admin.ModelAdmin):
@@ -12,5 +12,11 @@ class ChatMessageAdmin(admin.ModelAdmin):
     list_display = ['id', 'thread', 'sender', 'message', 'timestamp']
 
 
+class FriendAdmin(admin.ModelAdmin):
+    model = Friend
+    list_display = ['id', 'sender', 'receiver', 'friend_status']
+
+
 admin.site.register(Thread, ThreadAdmin)
 admin.site.register(ChatMessage, ChatMessageAdmin)
+admin.site.register(Friend, FriendAdmin)
