@@ -29,7 +29,7 @@ window.onload = function () {
 	let config = {
 		width: width,
 		height: height,
-		backgroundColor: 0xff0000,
+		backgroundColor: 0xffffff,
 		scene: [Scene1, Scene2],
 		pixelArt: true,
 		// Added for Physics Engine

@@ -6,7 +6,8 @@ class Scene2 extends Phaser.Scene {
     * TODO: -- Kshitiz.
     *  1. Implement Illegal Wild Four Draw / Challenging when a Wild Four is Drawn.
     *  2. Implement calling UNO / Challenging if UNO is not called by player left with 1 card.
-    *
+    *  3. Count of Cards on opponents.
+    *  4. Color choosing UI.
     * */
     create() {
         let _this = this;
@@ -21,6 +22,7 @@ class Scene2 extends Phaser.Scene {
         _this.maxTopCardDepth = -1;
 
         _this.playerNameBitMap =  _this.physics.add.group();
+        _this.playerRemainingCardsCountBitMap = _this.physics.add.group();
 
         let initialPosX = 0, initialPosY = 0;
         _this.deckX = config.width/2 - initialPosX;
@@ -88,12 +90,10 @@ class Scene2 extends Phaser.Scene {
                 _this.playCardEventConsumer(backendResponse, false);
 
                 // Draw card for next player.
-                // TODO: Bug when cards are drawn.
                 let forcedDrawData = backendResponse.forcedDrawData;
                 let username = forcedDrawData.username;
                 let drawnCards = JSON.parse(forcedDrawData.drawnCards);
-                let drawnCardCount = data.drawnCardCount;
-
+                let drawnCardCount = forcedDrawData.drawnCardCount;
                 if(username === me) {
                     for(let drawnCard of drawnCards) {
                         let category = drawnCard.category, number = drawnCard.number;
@@ -111,7 +111,7 @@ class Scene2 extends Phaser.Scene {
 
                 }
                 else {
-                    for(let i = 0; i < drawnCardCount; ++i) {
+                    for(let i = 0; i < parseInt(drawnCardCount); ++i) {
                         _this.drawCardOpp(username);
                     }
                 }
@@ -186,6 +186,39 @@ class Scene2 extends Phaser.Scene {
         });
     }
 
+    dimOrBrightBackground(dim) {
+        let _this = this;
+        let dimAlpha;
+        if(dim) {
+            dimAlpha = 0.5;
+        } else {
+            dimAlpha = 1;
+        }
+
+        _this.table.alpha = dimAlpha;
+
+        for(let i = 0; i < myHand.getCount() - 1; ++i) { // Not dimming the just drawn card which is already included in the hand.
+            let cardSprite = myHand.getCardSpriteAt(i);
+            if(cardSprite != null) {
+                cardSprite.alpha = dimAlpha;
+            }
+        }
+
+        for(let i = 0; i < _this.deck.getChildren().length; ++i) {
+            let deckCardSprite = _this.deck.getChildren()[i];
+            deckCardSprite.alpha = dimAlpha;
+        }
+
+        for(let i = 0; i < _this.oppHandGroup.getChildren().length; ++i) {
+            let oppHandSprite = _this.oppHandGroup.getChildren()[i];
+            oppHandSprite.alpha = dimAlpha;
+        }
+
+        _this.topCardSprite.alpha = dimAlpha;
+
+        _this.turnIndicator.alpha = dimAlpha;
+    }
+
     wonRoundEventHandler(backendResponse) {
         let _this = this;
         let wonData = backendResponse.wonData;
@@ -229,6 +262,7 @@ class Scene2 extends Phaser.Scene {
 
         _this.topDeckCard.disableInteractive();
         _this.oppHandGroup.clear(true, true);
+        _this.playerRemainingCardsCountBitMap.clear(true, true);
         _this.turnIndicator.destroy();
 
         // TODO: Next Round will start in 3 2 1....
@@ -251,7 +285,7 @@ class Scene2 extends Phaser.Scene {
         let allPlayers = currentGame.getPlayers();
         let myIndex = allPlayers.indexOf(me);
 
-        currentGame.coordinatesOfPlayers[me] = [btmX, btmY-90];
+        currentGame.coordinatesOfPlayers[me] = [btmX+30, btmY-90];
         let theta = angle;
         for (let i = 1; i < n; ++i) {
             let otherIndex = (myIndex + i) % n;
@@ -275,6 +309,9 @@ class Scene2 extends Phaser.Scene {
                 onComplete: function (){
                     let nameBitMap = _this.add.bitmapText(newX, newY + 20, "pixelFont", otherPlayer, 20);
                     _this.playerNameBitMap.add(nameBitMap);
+                    let cardCountBitMap = _this.add.bitmapText(newX + 50, newY, "pixelFont", "7", 30);
+                    cardCountBitMap.setData({"username": otherPlayer});
+                    _this.playerRemainingCardsCountBitMap.add(cardCountBitMap);
                 },
                 callbackScope: _this
             });
@@ -286,7 +323,6 @@ class Scene2 extends Phaser.Scene {
         let _this = this;
         let serializedPlayer = JSON.parse(strigifiedSerializedPlayer);
         let serverHand = serializedPlayer.hand;
-        console.log("New Hand", serverHand);
         for(let i = 0; i < serverHand.length; ++i) {
             let cardInHand = serverHand[i];
             let category = cardInHand.category, number = cardInHand.number;
@@ -323,6 +359,10 @@ class Scene2 extends Phaser.Scene {
 
     giveOptionToPlayOrKeep(drawnCardObject, drawnCardSprite, depth, index) {
         let _this = this;
+
+        // Dimming Background
+        _this.dimOrBrightBackground(true);
+
         drawnCardSprite.setScale(1.5 * gameDetails.myHandScale);
         drawnCardSprite.depth = _this.maxTopCardDepth + 1;
         let toX = _this.config.width/2, toY = _this.config.height/2 - 100, duration = 700;
@@ -361,6 +401,9 @@ class Scene2 extends Phaser.Scene {
                     drawnCardSprite.setScale(gameDetails.myHandScale);
                     _this.drawCardSelf(drawnCardObject, drawnCardSprite, depth, index);
                     _this.adjustSelfHandOnTable();
+
+                    // Brightening Background
+                    _this.dimOrBrightBackground(false);
                 });
 
                 yesButton.on("pointerover", function (pointer) {
@@ -375,7 +418,11 @@ class Scene2 extends Phaser.Scene {
                     currentGame.playCardRequest(drawnCardObject, index);
                     yesButton.destroy();
                     noButton.destroy();
+                    // Brightening Background
+                    _this.dimOrBrightBackground(false);
                 });
+
+
             },
             callbackScope: _this
         });
@@ -462,7 +509,6 @@ class Scene2 extends Phaser.Scene {
         for(let i = 0; i < currentGame.getPlayersCount(); ++i) {
             let player = currentGame.players[i];
             if(currentPlayer === player) {
-                console.log("Inside:", player, currentGame.coordinatesOfPlayers[player]);
                 let coordinates = currentGame.coordinatesOfPlayers[player];
                 let toX = coordinates[0], toY = coordinates[1];
                 if(isAlreadySet) {
@@ -579,7 +625,6 @@ class Scene2 extends Phaser.Scene {
         if(card != null && cardSprite != null) {
 
             cardSprite.on("pointerover", function (pointer) {
-                // console.log("Can Play this card: ", card);
                 cardSprite.depth = depth + 2;
                 cardSprite.y = (gameDetails.myHandY - 15);
             });
@@ -590,7 +635,6 @@ class Scene2 extends Phaser.Scene {
             });
 
             cardSprite.on("pointerdown", function (pointer) {
-                console.log("Index of played card inside handler:", index);
                 currentGame.playCardRequest(card, index);
             });
         }
@@ -601,21 +645,19 @@ class Scene2 extends Phaser.Scene {
         _this.topDeckCard.disableInteractive();
 
         if(_this.topCardSprite) {
-            console.log("Disable Body 3: Inside end_game()");
             _this.topCardSprite.disableBody(true, true);//.destroy();
         }
 
         _this.discardedTopCards.clear(true, true);
         _this.oppHandGroup.clear(true, true);
         _this.playerNameBitMap.clear(true, true);
-
+        _this.playerRemainingCardsCountBitMap.clear(true, true);
         _this.turnIndicator.destroy();
 
         // Disabling CardSprite in Hand of Player.
         for(let i = 0; i < myHand.getCount(); ++i) {
             let cardSprite = myHand.getCardSpriteAt(i);
             if(cardSprite != null) {
-                console.log("Disable Body 4: Inside end_game()");
                 cardSprite.disableBody(true, true);
             }
         }
@@ -651,6 +693,17 @@ class Scene2 extends Phaser.Scene {
          _this.maxTopCardDepth += 1;
          let depth = _this.maxTopCardDepth, scale = gameDetails.myHandScale;
          let playedCardSprite = _this.getCardSprite(card, x, y, depth, scale);
+
+         // Adjusting card count of opponents.
+         for(let i = 0; i < _this.playerRemainingCardsCountBitMap.getChildren().length; ++i) {
+             let countBitmap = _this.playerRemainingCardsCountBitMap.getChildren()[i];
+             if(oppUsername === countBitmap.getData("username")) {
+                 let cardCount = parseInt(countBitmap.text);
+                 cardCount -= 1;
+                 countBitmap.text = cardCount;
+                 break;
+             }
+         }
 
         // Moving card from Opponent's deck to TopCard Place.
         let toX = gameDetails.topCardX, toY = gameDetails.topCardY, duration = 700;
@@ -688,6 +741,18 @@ class Scene2 extends Phaser.Scene {
         let drawnCard = _this.physics.add.sprite(x, y, "cardBack");
         drawnCard.setScale(gameDetails.oppHandScale);
         drawnCard.depth = 0;
+
+        // Adjusting card count of opponents.
+        console.log("Adjusting card count! -- inside drawCardOpp().");
+         for(let i = 0; i < _this.playerRemainingCardsCountBitMap.getChildren().length; ++i) {
+             let countBitmap = _this.playerRemainingCardsCountBitMap.getChildren()[i];
+             if(oppUsername === countBitmap.getData("username")) {
+                 let cardCount = parseInt(countBitmap.text);
+                 cardCount += 1;
+                 countBitmap.text = cardCount;
+                 break;
+             }
+         }
 
         this.tweens.add({
             targets: drawnCard,

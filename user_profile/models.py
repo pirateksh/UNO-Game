@@ -25,5 +25,9 @@ class UserProfile(models.Model):
 
     # maximum_league/rating = models.CharField()
 
+    # image/avatar at assets/img/profile_images
+
+    # is_online
+
     def __str__(self):
         return self.user.username
