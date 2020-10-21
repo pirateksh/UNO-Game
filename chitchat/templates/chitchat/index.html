@@ -259,13 +259,16 @@
                       let new_status = data.result;
                       console.log(new_status, typeof(new_status));
                       let new_text = "";
+                      status_button.removeAttr('class');
                       if(new_status === false){ // show disabled Pending button
                           new_text = "Request Pending"
+                          status_button.addClass('btn btn-warning')
                       }
                       else if(new_status === true){ // show Accept Request button
                           new_text = "Friends"
+                          status_button.addClass('btn btn-success')
                       }
-                      status_button.removeAttr('class');
+                      
                       status_button.text(new_text);
                  }
               });
