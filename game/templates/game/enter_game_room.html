@@ -440,7 +440,7 @@
         {#navigator.mediaDevices.getUserMedia = navigator.mediaDevices.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;#}
         const ERROR = "error";
         const SUCCESS = "success";
-        const STREAM = navigator.mediaDevices.getUserMedia({video: false, audio: true});
+        const STREAM = navigator.mediaDevices.getUserMedia({video: true, audio: false});
         const peers = {};
 
         // Fetching Endpoint
