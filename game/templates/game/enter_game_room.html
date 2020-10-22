@@ -51,34 +51,34 @@
 {#                <br/>#}
 {#                <br/>#}
             </div>
-            <div>
-                <div style="display: inline-block; border-style: dotted; margin-right: 50px;">
-                    <p>Connected Players</p>
-                    <ul id="id_connected_players_{{ game_room.pk }}">
+{#            <div>#}
+{#                <div style="display: inline-block; border-style: dotted; margin-right: 50px;">#}
+{#                    <p>Connected Players</p>#}
+{#                    <ul id="id_connected_players_{{ game_room.pk }}">#}
     {#                    {% for player in players %}#}
     {#                        {% if player.is_online %}#}
     {#                            <li id="id_connected_players_{{ player.player.pk }}_{{ game_room.pk }}">{{ player.player.username }}</li>#}
     {#                        {% endif %}#}
     {#                    {% endfor %}#}
-                    </ul>
-                </div>
-                <div style="display: inline-block; border-style: dotted;">
-                    <p>Game Room Notifications</p>
-                    <ul id="id_game_room_notifications_{{ game_room.pk }}">
-
-                    </ul>
-                </div>
-                <br/>
-                <div style="display: inline-block; margin-right: 50px; border-style: dotted;">
-                    <p>Current Top Card</p>
-                    <p id="id_top_card_{{ game_room.unique_game_id }}"></p>
-                </div>
-                <div style="display: inline-block; border-style: dotted; margin-top: 35px;">
-                    <p>My Hand</p>
-                    <ul id="id_hand_{{ user.username }}_{{ game_room.unique_game_id }}">
-                    </ul>
-                </div>
-            </div>
+{#                    </ul>#}
+{#                </div>#}
+{#                <div style="display: inline-block; border-style: dotted;">#}
+{#                    <p>Game Room Notifications</p>#}
+{#                    <ul id="id_game_room_notifications_{{ game_room.pk }}">#}
+{##}
+{#                    </ul>#}
+{#                </div>#}
+{#                <br/>#}
+{#                <div style="display: inline-block; margin-right: 50px; border-style: dotted;">#}
+{#                    <p>Current Top Card</p>#}
+{#                    <p id="id_top_card_{{ game_room.unique_game_id }}"></p>#}
+{#                </div>#}
+{#                <div style="display: inline-block; border-style: dotted; margin-top: 35px;">#}
+{#                    <p>My Hand</p>#}
+{#                    <ul id="id_hand_{{ user.username }}_{{ game_room.unique_game_id }}">#}
+{#                    </ul>#}
+{#                </div>#}
+{#            </div>#}
 
             <div id="VideoGrid">
     {#            <video >#}
@@ -348,18 +348,18 @@
                 }
             }
 
-            playCardRequest(card, index) {
+            playCardRequest(card, index, nextTopColor) {
                 // Method to send data to backend using socket and play a card.
                 // If the move is valid, server will respond.
                 if(me === currentGame.getCurrentPlayer()) {
                     if(this.canPlay(card)) {
-                        let nextTopColor;
-                        if(card.category === WILD_FOUR || card.category === WILD) {
-                            nextTopColor = prompt("Choose Next Color ('B', 'Y', 'G' or 'R')");
-                        }
-                        else {
-                            nextTopColor = card.category;
-                        }
+                        {#let nextTopColor;#}
+                        {#if(card.category === WILD_FOUR || card.category === WILD) {#}
+                        {#    nextTopColor = prompt("Choose Next Color ('B', 'Y', 'G' or 'R')");#}
+                        {# }#}
+                        {#else {#}
+                        {#    nextTopColor = card.category;#}
+                        {# }#}
                         let data = {"status": "play_card", "message": "A player played a card.", "data": {"username": this.getCurrentPlayer(), "card": card, "index": index, "next_top_color": nextTopColor,}};
                         let response = {"type": "play.card", "text": data};
                         socket.send(JSON.stringify(response));
@@ -471,7 +471,7 @@
         {#navigator.mediaDevices.getUserMedia = navigator.mediaDevices.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;#}
         const ERROR = "error";
         const SUCCESS = "success";
-        const STREAM = navigator.mediaDevices.getUserMedia({video: true, audio: false});
+        const STREAM = navigator.mediaDevices.getUserMedia({video: false, audio: true});
         const peers = {};
 
         // Fetching Endpoint

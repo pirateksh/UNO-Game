@@ -78,6 +78,8 @@ class Scene1 extends Phaser.Scene {
             frameHeight: 221
         });
 
+        this.load.image("chooseAColor", `${generatePath("spritesheets", "choose_color_rounded.png")}`);
+
         this.load.spritesheet("chooseBlueButton", `${generatePath("spritesheets", "choose_blue_button.png")}`, {
             frameWidth: 130,
             frameHeight: 130
@@ -156,7 +158,7 @@ class Scene1 extends Phaser.Scene {
 
         _this.scene1PlayerList = [];
         // console.log("CSKKKK");
-        _this.time.delayedCall(1000, function () {
+        _this.time.delayedCall(2000, function () {
             if(currentGame.players) {
                 for(let player of currentGame.players) {
                      if(!_this.scene1PlayerList.includes(player)) {

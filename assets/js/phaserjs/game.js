@@ -32,6 +32,8 @@ window.onload = function () {
 		crossButtonX: 60,
 		crossButtonY: 20,
         roundButtonScale: 0.4,
+        chooseColorButtonScale: 0.5,
+        dimAlpha: 0.2,
 	};
 
 	let config = {

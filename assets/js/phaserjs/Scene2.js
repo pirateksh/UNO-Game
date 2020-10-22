@@ -309,7 +309,7 @@ class Scene2 extends Phaser.Scene {
         let _this = this;
         let dimAlpha;
         if(dim) {
-            dimAlpha = 0.5;
+            dimAlpha = gameDetails.dimAlpha;
         } else {
             dimAlpha = 1;
         }
@@ -555,11 +555,17 @@ class Scene2 extends Phaser.Scene {
                 });
 
                 yesButton.on("pointerdown", function (pointer) {
-                    currentGame.playCardRequest(drawnCardObject, index);
                     yesButton.destroy();
                     noButton.destroy();
-                    // Brightening Background
-                    _this.dimOrBrightBackground(false);
+                    if(drawnCardObject.category === "W" || drawnCardObject.category === "WF") {
+                        _this.chooseColorOfWildCards(drawnCardObject, index);
+                    }
+                    else {
+                        currentGame.playCardRequest(drawnCardObject, index, drawnCardObject.category);
+
+                        // Brightening Background
+                        _this.dimOrBrightBackground(false);
+                    }
                 });
 
 
@@ -569,6 +575,99 @@ class Scene2 extends Phaser.Scene {
         // TODO: Error in positioning and playing of keep card.
     }
 
+    chooseColorOfWildCards(drawnCardObject, index) {
+        let _this = this;
+        _this.chooseColorText = _this.add.image(_this.config.width/2, _this.config.height/2 - 150, "chooseAColor");
+        _this.blueButton = _this.add.sprite(_this.config.width/2 - 150, _this.config.height/2 + 20, "chooseBlueButton");
+        _this.greenButton = _this.add.sprite(_this.config.width/2 - 50, _this.config.height/2 + 20, "chooseGreenButton");
+        _this.redButton = _this.add.sprite(_this.config.width/2 + 50, _this.config.height/2 + 20, "chooseRedButton");
+        _this.yellowButton = _this.add.sprite(_this.config.width/2 + 150, _this.config.height/2 + 20, "chooseYellowButton");
+        _this.chooseColorText.depth = myHand.getCount() + 1;
+        _this.blueButton.depth = myHand.getCount() + 1;
+        _this.greenButton.depth = myHand.getCount() + 1;
+        _this.redButton.depth = myHand.getCount() + 1;
+        _this.yellowButton.depth = myHand.getCount() + 1;
+        _this.blueButton.setInteractive();
+        _this.greenButton.setInteractive();
+        _this.redButton.setInteractive();
+        _this.yellowButton.setInteractive();
+        _this.blueButton.setScale(gameDetails.chooseColorButtonScale);
+        _this.greenButton.setScale(gameDetails.chooseColorButtonScale);
+        _this.redButton.setScale(gameDetails.chooseColorButtonScale);
+        _this.yellowButton.setScale(gameDetails.chooseColorButtonScale);
+
+        _this.blueButton.on("pointerover", function (pointer) {
+            _this.blueButton.play("chooseBlueButtonOver");
+        });
+        _this.blueButton.on("pointerout", function (pointer) {
+            _this.blueButton.play("chooseBlueButtonOut");
+        });
+        _this.blueButton.on("pointerdown", function (pointer) {
+            _this.chooseColorText.destroy();
+            _this.blueButton.destroy();
+            _this.greenButton.destroy();
+            _this.redButton.destroy();
+            _this.yellowButton.destroy();
+            currentGame.playCardRequest(drawnCardObject, index, "B");
+
+            // Brightening Background
+            _this.dimOrBrightBackground(false);
+        });
+
+        _this.greenButton.on("pointerover", function (pointer) {
+            _this.greenButton.play("chooseGreenButtonOver");
+        });
+        _this.greenButton.on("pointerout", function (pointer) {
+            _this.greenButton.play("chooseGreenButtonOut");
+        });
+        _this.greenButton.on("pointerdown", function (pointer) {
+            _this.chooseColorText.destroy();
+            _this.blueButton.destroy();
+            _this.greenButton.destroy();
+            _this.redButton.destroy();
+            _this.yellowButton.destroy();
+            currentGame.playCardRequest(drawnCardObject, index, "G");
+
+            // Brightening Background
+            _this.dimOrBrightBackground(false);
+        });
+
+        _this.redButton.on("pointerover", function (pointer) {
+            _this.redButton.play("chooseRedButtonOver");
+        });
+        _this.redButton.on("pointerout", function (pointer) {
+            _this.redButton.play("chooseRedButtonOut");
+        });
+        _this.redButton.on("pointerdown", function (pointer) {
+            _this.chooseColorText.destroy();
+            _this.blueButton.destroy();
+            _this.greenButton.destroy();
+            _this.redButton.destroy();
+            _this.yellowButton.destroy();
+            currentGame.playCardRequest(drawnCardObject, index, "R");
+
+            // Brightening Background
+            _this.dimOrBrightBackground(false);
+        });
+
+        _this.yellowButton.on("pointerover", function (pointer) {
+            _this.yellowButton.play("chooseYellowButtonOver");
+        });
+        _this.yellowButton.on("pointerout", function (pointer) {
+            _this.yellowButton.play("chooseYellowButtonOut");
+        });
+        _this.yellowButton.on("pointerdown", function (pointer) {
+            _this.chooseColorText.destroy();
+            _this.blueButton.destroy();
+            _this.greenButton.destroy();
+            _this.redButton.destroy();
+            _this.yellowButton.destroy();
+            currentGame.playCardRequest(drawnCardObject, index, "Y");
+
+            // Brightening Background
+            _this.dimOrBrightBackground(false);
+        });
+    }
 
     adjustSelfHandOnTable(skipIndex=-1) {
         let _this = this;
@@ -775,7 +874,14 @@ class Scene2 extends Phaser.Scene {
             });
 
             cardSprite.on("pointerdown", function (pointer) {
-                currentGame.playCardRequest(card, index);
+                if(card.category === "W" || card.category === "WF") {
+                    // Dimming Background
+                    _this.dimOrBrightBackground(true);
+                    _this.chooseColorOfWildCards(card, index);
+                }
+                else {
+                    currentGame.playCardRequest(card, index, card.category);
+                }
             });
         }
     }
