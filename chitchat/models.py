@@ -93,8 +93,12 @@ class FriendManager(models.Manager):
             )
             row_instance.save()  # Basically Friend.objects.save()
         elif row_instance.friend_status is False and order is 2:  # There is a row but friend_status is 0 i.e. friend_status pending
+            sender, receiver = receiver, sender # sender is now the request Sender
             row_instance.friend_status = True  # Changing it to 1 i.e. sender and receiver are now friends
             row_instance.save()
+            # Adding a default message to the thread of the newly formed friends i.e. sender and receiver.
+            new_thread_instance = Thread.objects.create_thread(sender, receiver)
+            ChatMessage.objects.create(thread=new_thread_instance, sender=row_instance.sender, message="Hello Uno Freak!")
         else:  # There is a row but friend_status is 1 i.e. already friends
             pass
         return row_instance

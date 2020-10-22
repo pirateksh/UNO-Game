@@ -107,4 +107,7 @@ class ChatConsumer(AsyncConsumer):
 
     @database_sync_to_async
     def chat_message_add(self, sender, message):
-        return ChatMessage.objects.create(thread=self.thread, sender=sender, message=message)
+        new_row_instance = ChatMessage.objects.create(thread=self.thread, sender=sender, message=message)
+        self.thread.updated = new_row_instance.timestamp
+        self.thread.save()
+        return new_row_instance

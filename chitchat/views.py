@@ -63,17 +63,40 @@ def main(request):
             return JsonResponse(data)
         else:
             # Fetching the Friends list
+            # friends = []
+            # friends_query_set = Friend.objects.all().filter((Q(sender=request.user) | Q(receiver=request.user)) & Q(friend_status=True))
+            # for friend in friends_query_set:
+            #     if friend.sender.username == request.user.username:
+            #         friends.append(friend.receiver.username)
+            #     else:
+            #         friends.append(friend.sender.username)
+            # requester_list = []
+            # requests_query_set = Friend.objects.all().filter(Q(receiver=request.user) & Q(friend_status=False))
+            # for row_instance in requests_query_set:
+            #     requester_list.append(row_instance.sender.username)
+            # context = {
+            #     'friends': friends,
+            #     'requester_list': requester_list
+            # }
+            # # return render(request, 'chitchat/main.html', context)
+            # return render(request, 'chitchat/index.html', context)
+
+            # UPD: Correct way to get the Friends List
             friends = []
-            friends_query_set = Friend.objects.all().filter((Q(sender=request.user) | Q(receiver=request.user)) & Q(friend_status=True))
-            for friend in friends_query_set:
-                if friend.sender.username == request.user.username:
-                    friends.append(friend.receiver.username)
+            threads_query_set = Thread.objects.all().filter(Q(person1=request.user) | Q(person2=request.user)).order_by('-updated')
+            for thread in threads_query_set:
+                if thread.person1 == request.user:
+                    friends.append(thread.person2.username)
                 else:
-                    friends.append(friend.sender.username)
+                    friends.append(thread.person1.username)
+            requester_list = []
+            requests_query_set = Friend.objects.all().filter(Q(receiver=request.user) & Q(friend_status=False))
+            for row_instance in requests_query_set:
+                requester_list.append(row_instance.sender.username)
             context = {
                 'friends': friends,
+                'requester_list': requester_list
             }
-            # return render(request, 'chitchat/main.html', context)
             return render(request, 'chitchat/index.html', context)
 
 
@@ -96,6 +119,7 @@ class Chat(LoginRequiredMixin, View):
                 return JsonResponse(context)
             else:
                 # print("Fetching Chats of", person1, "with ", person2)
+                # print("Inst:", thread_instance)
                 thread_id = thread_instance.id
                 chats = ChatMessage.objects.all().filter(thread=thread_id).order_by('timestamp')
                 first_name = User.objects.all().get(username=person2).first_name

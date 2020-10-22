@@ -27,16 +27,14 @@
     <div class="container clearfix">
         <div class="people-list" id="people-list">
             <div class="search">
-                <input type="text" placeholder="search" />
+                <input type="text" placeholder="Search Friends" />
             </div>
 
-
             <ul class="list nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                <li class="clearfix nav-item">
+                <li class="clearfix nav-item class_add_friend">
                     <a class="nav-link" data-toggle="pill" href="#add-friend" role="tab" aria-controls="add-friend" aria-selected="true">
                         <div class="about">
                             <div class="name">Add Friend</div>
-                            <div class="status"></div>
                         </div>
                     </a>
                 </li>
@@ -54,7 +52,6 @@
                         </a>
                     </li>
                 {% endfor %}
-
             </ul>
         </div>
 
@@ -86,8 +83,8 @@
                 <div class="chat-message clearfix">
                     <form id="id_message_form">
                         <textarea name="message-to-send" id="id_message" placeholder ="Type your message" rows="1"></textarea>
-                        <i class="fa fa-file-o"></i> &nbsp;&nbsp;&nbsp;
-                        <i class="fa fa-file-image-o"></i>
+                        {# <i class="fa fa-file-o"></i> &nbsp;&nbsp;&nbsp;#}
+                        {# <i class="fa fa-file-image-o"></i>#}
                         <button>Send</button>
                     </form>
                 </div>
@@ -148,7 +145,21 @@
                     <input class="form-control form-control-user" type="text" id="id_find-friend_input" placeholder="Find Friends"/>
                     {# <i class="fa fa-search"></i> #}
                 </div>
+                {# This div will show all requests that i got from other users it is loaded only once from context passed from view #}
+                <div>
+                    <ul class="list-group">
+                        {% for other_user in requester_list %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center" value="{{other_user}}">
+                                {{other_user}}
+                                <button value="2" class="class_change-request-status_button btn btn-info">
+                                    Accept Request
+                                </button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
 
+                {#  This div will show the seach results i.e. ul will be filled by Ajax #}
                 <div>
                     <ul class="list-group" id="id_find-friend_ul"></ul>
                 </div>
@@ -184,12 +195,14 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/list.js/1.1.1/list.min.js'></script>
     <script src="{% static "js/chat.js"%}"></script>
     <script src="{% static "bootstrap/js/bootstrap.min.js"%}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js">
-    </script>
+{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js">#}
+{#    </script>#}
      <!-- jQuery Ajax Script -->
     <script type="text/javascript">
-      var ALL_SOCKETS = [];
+      var ALL_SOCKETS = {}; // An object havig username as key and socket corresponding to this user as value.
+      // This helps in preventing multiple socket connections with the same user.
 
+      {#window.location.replace("");#}
       $(document).ready(function(){
           {# Function Responsible for Showing Search Results #}
           $("#id_find-friend_input").keyup(function(){
@@ -261,18 +274,42 @@
                       let new_text = "";
                       status_button.removeAttr('class');
                       if(new_status === false){ // show disabled Pending button
-                          new_text = "Request Pending"
+                          new_text = "Request Pending";
                           status_button.addClass('btn btn-warning')
                       }
-                      else if(new_status === true){ // show Accept Request button
-                          new_text = "Friends"
-                          status_button.addClass('btn btn-success')
+                      else if(new_status === true){ // show Friends disbaled button
+                          new_text = "Friends";
+                          status_button.addClass('btn btn-success');
+                          $('.class_add_friend').after(`
+                            <li class="clearfix nav-item">
+                                <a class="nav-link class_friends_tab" value="${other_person}" data-toggle="pill" href="#chat-1" role="tab" aria-controls="chat-1" aria-selected="true">
+                                    <img src="{% static "img/profile_pictures/male_default_picture.jpg"%}" alt="avatar" width="55px" class="rounded-circle" />
+                                    <div class="about">
+                                        <div class="name">${other_person}</div>
+                                        <div class="status">
+                                            <i class="fa fa-circle online"></i> online
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                          `);
                       }
-                      
                       status_button.text(new_text);
+
                  }
               });
           });
+
+          function format_AM_PM(date) {
+              let hours = date.getHours();
+              let minutes = date.getMinutes();
+              let am_pm = hours >= 12 ? 'PM' : 'AM';
+              hours = hours % 12;
+              hours = hours ? hours : 12; // the hour '0' should be '12'
+              minutes = minutes < 10 ? '0'+ minutes : minutes;
+              let strTime = hours + ':' + minutes + ' ' + am_pm;
+              return strTime;
+            }
 
           {# Function Responsible for Showing Chat History with a friend #}
           $(document).on('click', '.class_friends_tab', function(){
@@ -290,6 +327,7 @@
                     if(messages.length === 0){
                         $("#id_friends_chat_history_ul").append(`
                             {# Shown In the Center With Some Animation #}
+                            {# UPD: This is no longer required as a default message is sent from the friend-request sender #}
                             <li class="clearfix">
                                 <div class="message other-message float-right">
                                     No messages to Show!
@@ -298,17 +336,21 @@
                         `)
                     }
                     else{
+                        let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
                         messages.forEach((message_instance)=>{
                             let sender = message_instance[0];
                             let message = message_instance[1];
                             let timestamp = message_instance[2];
-
+                            {#console.log(timestamp);#}
+                            let d = new Date(timestamp);
+                            let date_string = format_AM_PM(d) + " on " + months[d.getMonth()] + " " + d.getDate() + ', ' + d.getFullYear();
                             if(sender === "{{ request.user.username }}"){
                                 $("#id_friends_chat_history_ul").append(`
                                     {# Shown Right Side #}
                                     <li class="clearfix">
                                         <div class="message-data align-right">
-                                            <span class="message-data-time" >${timestamp}</span> &nbsp; &nbsp;
+                                            <span class="message-data-time" >${date_string}</span> &nbsp; &nbsp;
                                         </div>
                                         <div class="message other-message float-right">
                                             ${message}
@@ -321,7 +363,7 @@
                                     {# Shown Left Side #}
                                     <li>
                                         <div class="message-data">
-                                            <span class="message-data-time">${timestamp}</span>
+                                            <span class="message-data-time">${date_string}</span>
                                         </div>
                                         <div class="message my-message">
                                             ${message}
@@ -334,10 +376,22 @@
                  }
               });
 
-              {# Closing the Earlier SOcket Connection #}
+              {# Closing the Earlier Socket Connection #}
+              {#ALL_SOCKETS.forEach((s)=>{#}
+              {#    if(s != undefined){#}
+              {#        if(s.readyState == 2 || s.readyState == 3){#}
+              {#        }else{#}
+              {#            s.close();#}
+              {#        }#}
+              {#    }#}
+              // });
 
+              if(ALL_SOCKETS[other_person] !== undefined && ALL_SOCKETS[other_person].readyState !== 2 &&  ALL_SOCKETS[other_person].readyState !== 3){
+                  {#console.log("Already Hai...");#}
+                  return ;
+              }
 
-              {# Scripts below hanldes Message Sending and Receiving #}
+          {# Scripts below hanldes Message Sending and Receiving #}
 
               {# Opening the Socket Connection on basis of other_person #}
               const loc = window.location;
@@ -350,9 +404,9 @@
               const endpoint = wsStart + host + pathname + other_person;
               console.log(endpoint);
               console.log("Request For Websocket Connection Sent to Server at endpoint: " + endpoint);
-              {#let socket = new WebSocket(endpoint);#}
-              ALL_SOCKETS.push(socket);
-              var socket = new ReconnectingWebSocket(endpoint);
+              let socket = new WebSocket(endpoint);
+              ALL_SOCKETS[other_person] = socket;
+              {#var socket = new ReconnectingWebSocket(endpoint);#}
 
               let formData = $("#id_message_form"); {# id of form #}
               let msg = $("#id_message"); {# id of text-input #}
@@ -369,13 +423,15 @@
                       {#alert("Submission Prevented" + message.message);#}
                       socket.send(JSON.stringify(message));
                       msg.val('');
+                      tinymce.get('id_message').setContent('');
                   });
               };
 
               socket.onmessage = function (e) {
                   console.log("The Message sent by the Server is: ", e.data);
                   let chat_message = JSON.parse(e.data);
-                  let timestamp = chat_message.timestamp
+                  let timestamp = chat_message.timestamp;
+
                   if(chat_message.sender === "{{ request.user.username }}"){
                         $("#id_friends_chat_history_ul").append(`
                             {# Shown Right Side #}
@@ -387,7 +443,7 @@
                                     ${chat_message.message}
                                 </div>
                             </li>
-                        `)
+                        `);
                     }
                     else{
                          $("#id_friends_chat_history_ul").append(`
@@ -408,6 +464,7 @@
                   console.log("Error:", e);
               };
               socket.onclose = function (e) {
+                  ALL_SOCKETS[other_person].close();
                   console.log("Connection Closed from Server End.", e);
               };
 
