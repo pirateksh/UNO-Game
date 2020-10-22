@@ -35,10 +35,11 @@
         </div>
     </nav>
     <header class="masthead text-center">
-        <div class="container"><img class="img-fluid d-block mx-auto mb-5" data-aos="zoom-in" data-aos-duration="500" data-aos-delay="100" src="{% static "img/uno.png" %}">
+        <div class="container">
+            <img class="img-fluid d-block mx-auto mb-5" data-aos="zoom-in" data-aos-duration="500" data-aos-delay="100" src="{% static "img/uno.png" %}">
             <h1 data-aos="flip-left">Welcome to UNO Game</h1>
             <hr data-aos="flip-left" class="star-dark">
-            <div data-aos="flip-left" class="text-center mt-4"><a class="btn btn-outline-light btn-xl" role="button" data-toggle="modal" data-target="#myModal"><span>Play Now!</span></a></div>
+            <div data-aos="flip-left" class="text-center mt-4"><a class="btn btn-outline-light btn-xl" href="{% url 'play' %}"><span>Play Now!</span></a></div>
         </div>
     </header>
     <section data-aos="zoom-in" data-aos-duration="500" data-aos-delay="150" id="portfolio" class="portfolio bg-primary">
@@ -382,27 +383,6 @@
         </div>
     </div>
     
-    <!-- The Modal for PLay now-->
-    <div class="modal" id="myModal">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content tbl-bg">
-                <!-- Modal Header -->
-                <div class="modal-header text-center">
-                    <h4 class="modal-title">PLAY NOW</h4>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                </div>
-                <!-- Modal body -->
-                <div class="modal-body">
-                    <a class="btn btn-outline-light btn-xl" role="button"><span>Global</span></a>
-                    <a class="btn btn-outline-light btn-xl" role="button"><span>With Friends</span></a>
-                    <a class="btn btn-outline-light btn-xl" role="button"><span>vs-AI</span></a>
-                </div>
-                <!-- Modal footer -->
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    
 
 {% endblock %}
