@@ -145,3 +145,5 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
+def play(request):
+    return render(request, 'home/play.html', {})
