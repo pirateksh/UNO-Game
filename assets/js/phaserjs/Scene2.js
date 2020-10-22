@@ -6,9 +6,8 @@ class Scene2 extends Phaser.Scene {
     * TODO: -- Kshitiz.
     *  1. Implement Illegal Wild Four Draw / Challenging when a Wild Four is Drawn.
     *  2. Implement calling UNO / Challenging if UNO is not called by player left with 1 card.
-    *  3. Count of Cards on opponents.
-    *  4. Color choosing UI.
-    *  5. Try to implement a game tour for new players.
+    *  3. Color choosing UI.
+    *  4. Try to implement a game tour for new players.
     * */
     create() {
         let _this = this;
@@ -17,6 +16,42 @@ class Scene2 extends Phaser.Scene {
 
         _this.table = _this.add.tileSprite(0, 0, config.width, config.height, "table");
         _this.table.setOrigin(0,0);
+
+        // Adding exit button
+        _this.exitButton = _this.physics.add.sprite(gameDetails.exitButtonX, gameDetails.exitButtonY, "exitButton");
+        _this.exitButton.setScale(gameDetails.roundButtonScale);
+        _this.exitButton.setInteractive();
+        _this.exitButton.on("pointerout", function (pointer) {
+            _this.exitButton.play("exitButtonOut");
+        });
+
+        _this.exitButton.on("pointerover", function (pointer) {
+            _this.exitButton.play("exitButtonOver");
+        });
+
+        _this.exitButton.on("pointerdown", function (pointer) {
+            // alert("Do you really want to exit?");
+
+        });
+
+        if(me === gameRoomAdmin) {
+            // Adding cross button
+            _this.crossButton = _this.physics.add.sprite(gameDetails.crossButtonX, gameDetails.crossButtonY, "crossButton");
+            _this.crossButton.setScale(gameDetails.roundButtonScale);
+            _this.crossButton.setInteractive();
+            _this.crossButton.on("pointerout", function (pointer) {
+                _this.crossButton.play("crossButtonOut");
+            });
+
+            _this.crossButton.on("pointerover", function (pointer) {
+                _this.crossButton.play("crossButtonOver");
+            });
+
+            _this.crossButton.on("pointerdown", function (pointer) {
+                // alert("Do you really want to end the game?");
+                Game.endGameRequest();
+            });
+        }
 
         _this.unoButton = _this.physics.add.sprite(gameDetails.unoButtonX, gameDetails.unoButtonY, "unoButton");
         _this.unoButton.setInteractive();
@@ -68,6 +103,7 @@ class Scene2 extends Phaser.Scene {
 
         socket.addEventListener("message", function (e) {
             // console.log("Listening message from Game", e);
+            console.log("Message from Scene 2.");
             let backendResponse = JSON.parse(e.data);
             let status = backendResponse.status;
             let message = backendResponse.message;
@@ -77,8 +113,14 @@ class Scene2 extends Phaser.Scene {
                 gameData = JSON.parse(backendResponse.gameData);
             }
 
-
+            if(status === "connected") {
+                console.log("Connected from Scene 2.");
+            }
             if(status === "start_game") {
+
+                if(status === "start_game") {
+                    console.log("Start Game From Scene 2");
+                }
                 currentGame.copyData(gameData);
                 _this.startGameEventConsumer(backendResponse.serializedPlayer);
 
@@ -88,6 +130,8 @@ class Scene2 extends Phaser.Scene {
             }
             else if (status === "end_game") {
                 _this.endGame();
+                // _this.scene.start("bootGame");
+                Game.changeSceneRequest(3);
             }
             else if(status === "play_card") {
                 currentGame.copyData(gameData);
@@ -250,6 +294,13 @@ class Scene2 extends Phaser.Scene {
                 // _this.makeHandInteractive();
                 //
                 // _this.moveOrSetTurnIndicator(true);
+            }
+            if(status === "change_scene") {
+                let sceneNumber = data.sceneNumber;
+                if(sceneNumber === 3) {
+                    _this.scene.start("endGame");
+                    socket.close();
+                }
             }
         });
     }
@@ -612,8 +663,8 @@ class Scene2 extends Phaser.Scene {
                 else {
                     _this.turnIndicator = _this.physics.add.sprite(toX - 25, toY + 35, "turnIndicator");
                     _this.turnIndicator.depth = 20;
-                    _this.turnIndicator.setScale(gameDetails.roundButtonScale);
-                    // _this.turnIndicator.play("yourTurnAnim");
+                    _this.turnIndicator.setScale(1.4);
+                    _this.turnIndicator.play("yourTurnAnim");
                 }
             }
         }
@@ -753,7 +804,6 @@ class Scene2 extends Phaser.Scene {
         }
         // Calling endGame() method of Game Class.
         currentGame.endGame();
-        // currentGame = null; // Setting currentGame reference to null.
     }
 
     makeHandInteractive() {

@@ -36,6 +36,17 @@ def broadcast_notification(group_name, message):
     )
 
 
+def play_now(request):
+    return render(request, 'game/play_now.html', {})
+
+
+def enter_friend_play(request):
+    if request.method == "GET":
+        unique_id = request.GET['friend_unique_id']
+        print(unique_id)
+        return HttpResponseRedirect(reverse('enter_game_room', kwargs={"unique_id": unique_id}))
+
+
 @login_required
 def create_game_room(request):
     """

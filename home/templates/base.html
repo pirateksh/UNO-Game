@@ -30,7 +30,7 @@
 
 </head>
 <body id="page-top" class="dark-theme">
-
+        {% include 'navbar.html' %}
         <canvas></canvas>
         {% comment %} meteor {% endcomment %}
         <img style="z-index:2; overflow:hidden" alt=""
@@ -56,6 +56,8 @@
     {% block content %}
 
     {% endblock %}
+
+    {% include 'footer.html' %}
 
     <script src=" {% static 'js/jquery.min.js' %} "></script>
     <script src=" {% static 'bootstrap/js/bootstrap.min.js' %} "></script>
