@@ -192,7 +192,7 @@ class GameRoomConsumer(AsyncConsumer):
 
             # if type_of_event in ["start.game", "play.card", "forced_draw_card", "keep.card", "voluntary_draw_card"]:
             #     print("Sleeping for 2 seconds.")
-            #     # await asyncio.sleep(2000)
+            #     await asyncio.sleep(2)
             #     print("Woke up after 2 seconds.")
             #     response = {
             #         "status": "update_current_player",
@@ -210,6 +210,13 @@ class GameRoomConsumer(AsyncConsumer):
             #     )
 
             # print("\n\n\n\n")
+
+    async def change_scene(self, event):
+        await self.send({
+            "type": "websocket.send",
+            "text": event['text']
+        })
+
     async def update_current_player(self, event):
         await self.send({
             "type": "websocket.send",
@@ -458,3 +465,22 @@ class GameRoomConsumer(AsyncConsumer):
         game_room_obj = self.game_room_obj
         return Player.objects.get(player=me, game_room=game_room_obj)
 
+
+class LobbyConsumer(AsyncConsumer):
+
+    async def websocket_connect(self, event):
+        print("connect", event)
+        await self.send({
+            "type": "websocket.accept",
+        })
+
+    async def websocket_receive(self, event):
+        print("receive", event)
+        await asyncio.sleep(2)
+        await self.send({
+            "type": "websocket.send",
+            "text": event['text'],
+        })
+
+    async def websocket_disconnect(self, event):
+        print("disconnected", event)

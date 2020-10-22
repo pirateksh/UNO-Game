@@ -27,6 +27,10 @@ window.onload = function () {
 		unoButtonX: width/2,
 		unoButtonY: height/2 + 275,
 		unoButtonScale: 0.35,
+		exitButtonX: 20,
+		exitButtonY: 20,
+		crossButtonX: 60,
+		crossButtonY: 20,
         roundButtonScale: 0.4,
 	};
 
@@ -34,7 +38,7 @@ window.onload = function () {
 		width: width,
 		height: height,
 		backgroundColor: 0xffffff,
-		scene: [Scene1, Scene2],
+		scene: [Scene1, Scene2, Scene3],
 		pixelArt: true,
 		// Added for Physics Engine
 		physics: {
@@ -47,6 +51,9 @@ window.onload = function () {
 
 // Creating new instance of Phaser Game
 	game = new Phaser.Game(config);
+
+	resize();
+    window.addEventListener("resize", resize, false);
 };
 
 function generatePath(folderName, fileName) {
@@ -69,4 +76,22 @@ function getImagePoint(category, number) {
 	point *= mul;
 	point += number;
 	return point;
+}
+
+function resize() {
+	// Source: https://stackoverflow.com/a/51530180/11671368
+    var canvas = document.querySelector("canvas");
+    var windowWidth = window.innerWidth;
+    var windowHeight = window.innerHeight;
+    var windowRatio = windowWidth / windowHeight;
+    var gameRatio = game.config.width / game.config.height;
+
+    if(windowRatio < gameRatio){
+        canvas.style.width = windowWidth + "px";
+        canvas.style.height = (windowWidth / gameRatio) + "px";
+    }
+    else {
+        canvas.style.width = (windowHeight * gameRatio) + "px";
+        canvas.style.height = windowHeight + "px";
+    }
 }

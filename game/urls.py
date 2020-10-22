@@ -11,4 +11,6 @@ urlpatterns = [
 
     # Can only be accessed by superuser
     path('add_cards/', views.add_cards, name="add_cards"),
+    path('play_now/', views.play_now, name="play_now"),
+    path('friend/enter_existing_room/', views.enter_friend_play, name="enter_friend_play"),
 ]

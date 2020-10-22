@@ -1,0 +1,49 @@
+{#{% extends 'base.html' %}#}
+{##}
+{#{% block styles %}#}
+{##}
+{#{% endblock %}#}
+{##}
+{#{% block title %}#}
+{#    Play Now#}
+{#{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#    <div class="container">#}
+{#        <a class="btn btn-outline-light btn-xl" role="button"><span>Global</span></a>#}
+{#        <a class="btn btn-outline-light btn-xl" role="button"><span>With Friends</span></a>#}
+{#        <a class="btn btn-outline-light btn-xl" role="button"><span>vs-AI</span></a>#}
+{#    </div>#}
+{#{% endblock %}#}
+{##}
+{#{% block javascript %}#}
+{##}
+{#{% endblock %}#}
+{% load static %}
+<html>
+    <head>
+        <title>Play Now</title>
+    </head>
+    <body>
+        <h2>Play Now</h2>
+        <ul>
+            <li><a id="id_public">Public Online Multi-player</a></li>
+            <li id="id_friend">
+                With Friends Multi-player
+                <p><b>Join Existing Game Room</b></p>
+                <form id="id_form_friend" method="get" action="{% url 'enter_friend_play' %}">
+                    <input name="friend_unique_id" id="id_input_friend" type="text" placeholder="Unique Room ID">
+                    <input type="submit"/>
+                </form>
+                <p><b>Create New Game Room</b> &nbsp; <a href="{% url 'create_game_room' %}">Create</a></p>
+            </li>
+            <li><a id="id_bot" href="{% url 'bot_game' %}">With UNO Bot</a></li>
+        </ul>
+
+        <br/>
+        <br/>
+        <ul id="id_connected_list_play_now">
+
+        </ul>
+    </body>
+</html>

@@ -12,7 +12,7 @@
                 margin: 0;
                 position: absolute;
                 top: 50%;
-                left: 70%;
+                left: 50%;
                 transform: translate(-50%, -50%);
             }
         #VideoGrid{
@@ -39,17 +39,17 @@
                 Game Room Admin: {{ game_room.admin.username }}
                 <br/>
                 <br/>
-                {% if user.is_authenticated and user.username == game_room.admin.username %}
-                    <button id="id_start_game_{{ game_room.pk }}">
-                        Start Game
-                    </button>
-                    <br/>
-                    <button id="id_end_game_{{ game_room.pk }}" disabled>
-                        End Game
-                    </button>
-                {% endif %}
-                <br/>
-                <br/>
+{#                {% if user.is_authenticated and user.username == game_room.admin.username %}#}
+{#                    <button id="id_start_game_{{ game_room.pk }}">#}
+{#                        Start Game#}
+{#                    </button>#}
+{#                    <br/>#}
+{#                    <button id="id_end_game_{{ game_room.pk }}" disabled>#}
+{#                        End Game#}
+{#                    </button>#}
+{#                {% endif %}#}
+{#                <br/>#}
+{#                <br/>#}
             </div>
             <div>
                 <div style="display: inline-block; border-style: dotted; margin-right: 50px;">
@@ -96,6 +96,7 @@
     <script type="text/javascript" src="{% static 'js/phaserjs/game.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/phaserjs/Scene1.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/phaserjs/Scene2.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/phaserjs/Scene3.js' %}"></script>
 
     <script>
         // This script tag contains only DOM elements picked using jQuery.
@@ -205,7 +206,7 @@
                 this.canDrawCard = false;
                 this.coordinatesOfPlayers = {};
                 // Adding Players to DOM.
-                Game.addPlayersToDOM(this.players);
+                // Game.addPlayersToDOM(this.players);
             }
 
             copyData(gameData) {
@@ -246,7 +247,7 @@
             connectPlayer(username) {
                 if(!this.players.includes(username)) {
                     this.players.push(username);
-                    Game.addPlayersToDOM([username]);
+                    {#Game.addPlayersToDOM([username]);#}
                 }
             }
 
@@ -314,6 +315,36 @@
                         }
                     }
                     return true;
+                }
+            }
+
+            static changeSceneRequest(sceneNumber) {
+                if(me === gameRoomAdmin) {
+                    let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": sceneNumber}};
+                    let response = {"type": "change.scene", "text": data};
+                    socket.send(JSON.stringify(response));
+                }
+            }
+
+            static startGameRequest() {
+                if(me === gameRoomAdmin) {
+                    let data = {"status": "start_game", "message": "Game is being started.", "data": {}};
+                    let response = {"type": "start.game", "text": data};
+                    socket.send(JSON.stringify(response));
+                }
+                else {
+                    alert("You are not game Room Admin!");
+                }
+            }
+
+            static endGameRequest() {
+                if(me === gameRoomAdmin) {
+                    let data = {"status": "end_game", "message": "Game is being ended.", "data": {}};
+                    let response = {"type": "end.game", "text": data};
+                    socket.send(JSON.stringify(response));
+                }
+                else {
+                    alert("You are not game Room Admin!");
                 }
             }
 
@@ -459,6 +490,7 @@
         let currentGame = null;
         let myHand = new Hand();
         let me = "{{ user.username }}";
+        let gameRoomAdmin = "{{ game_room.admin.username }}";
 
         const my_peer = new Peer(undefined, { // making available a Peer Object from peerjs library to work on the root path
             host: '/',
@@ -469,7 +501,7 @@
 
         const get_my_peer_id = new Promise(resolve => {
             my_peer.on('open', (uid) => {
-                console.log("My peer ID is: ", uid);
+                {#console.log("My peer ID is: ", uid);#}
                     resolve({"unique_peer_id": uid});
             });
         });
@@ -486,8 +518,8 @@
              MY_UNIQUE_PEER_ID = result[0].unique_peer_id;
              let client_data = {"new_user_username" : "{{ user.username }}", "unique_peer_id": result[0].unique_peer_id, "game_room_unique_id": "{{ game_room.unique_game_id }}"};
              let client_response = {"type": "user.new", "text": client_data};
-             console.log("Sending: ", client_data);
-             console.log(socket.readyState);
+             {#console.log("Sending: ", client_data);#}
+             {#console.log(socket.readyState);#}
              socket.send(JSON.stringify(client_response));
 
              STREAM.then(stream => {
@@ -500,30 +532,30 @@
             socket.send(JSON.stringify(response));
 
             // When start game Button is clicked
-            startGameButton.click(function () {
-                let data = {"status": "start_game", "message": "Game is being started.", "data": {}};
-                response = {"type": "start.game", "text": data};
-                socket.send(JSON.stringify(response));
-            });
+            {#startGameButton.click(function () {#}
+            {#    let data = {"status": "start_game", "message": "Game is being started.", "data": {}};#}
+            {#    response = {"type": "start.game", "text": data};#}
+            {#    socket.send(JSON.stringify(response));#}
+            {# });#}
 
             // When End Game Button is clicked
-            endGameButton.click(function () {
-                let data = {"status": "end_game", "message": "Game is being ended.", "data": {}};
-                response = {"type": "end.game", "text": data};
-                socket.send(JSON.stringify(response));
-            });
+            {#endGameButton.click(function () {#}
+            {#    let data = {"status": "end_game", "message": "Game is being ended.", "data": {}};#}
+            {#    response = {"type": "end.game", "text": data};#}
+            {#    socket.send(JSON.stringify(response));#}
+            {# });#}
         });
 
         VideoGrid = document.getElementById('VideoGrid');
         let Video = document.createElement('video'); // This video Element will contain users own video
 
         function addVideoStream(Video, stream, label="Some user in Room") {
-            console.log("Used to Add own stream on open and then for the other users.");
+            {#console.log("Used to Add own stream on open and then for the other users.");#}
             Video.srcObject = stream; // adding the stream as the src of the video to our myVideo video Element
             Video.addEventListener('loadedmetadata', () => {
                 Video.play()
             });
-            console.log("Video is Playing...");
+            {#console.log("Video is Playing...");#}
             let NewVideoCont = document.createElement('div');
             NewVideoCont.style.display = "inline-block";
             NewVideoCont.style.boxSizing = "border-box";
@@ -536,7 +568,7 @@
             NewVideoLabel.id = label;
             Video.id = "vid_" + label;
             NewVideoCont.append(Video);
-            console.log(label, " is the label");
+            {#console.log(label, " is the label");#}
             if(label === "{{ user.username }}"){
                 Video.muted = true;
             }
@@ -544,34 +576,34 @@
 
         function connectToNewUser(other_unique_peer_id, var_new_user_username){
             if(MY_UNIQUE_PEER_ID === other_unique_peer_id){
-                console.log("No Need to Call Yourself...");
+                {#console.log("No Need to Call Yourself...");#}
                 return ;
             }
-            console.log("Called Connect to new user");
+            {#console.log("Called Connect to new user");#}
             STREAM.then(stream => {
-                console.log("Calling... Peer", var_new_user_username, "at id:", other_unique_peer_id);
+                {#console.log("Calling... Peer", var_new_user_username, "at id:", other_unique_peer_id);#}
                 setTimeout(()=>{
                     const call = my_peer.call(other_unique_peer_id, stream, {metadata: {"username": "{{user.username}}"}}); // Calling the Newly Connected peer
-                    console.log("Called Peer");
+                    {#console.log("Called Peer");#}
                     const Video = document.createElement('video');
-                    console.log("video Element Created.");
+                    {#console.log("video Element Created.");#}
                     call.on('stream', remoteStream => { // adding the others video element to video-grid on our page.
-                        console.log("tung");
-                        console.log(peers[var_new_user_username]);
+                        {#console.log("tung");#}
+                        {#console.log(peers[var_new_user_username]);#}
                         if(peers[var_new_user_username] !== undefined){
-                            console.log("Second Call");
+                            {#console.log("Second Call");#}
                         }
                         else{
-                            console.log("First Call");
-                            console.log("Receiving the Answer");
+                            {#console.log("First Call");#}
+                            {#console.log("Receiving the Answer");#}
                             addVideoStream(Video, remoteStream, var_new_user_username);
-                            console.log("Steam of guy whom i called:",var_new_user_username, "is Added");
+                            {#console.log("Steam of guy whom i called:",var_new_user_username, "is Added");#}
                             peers[var_new_user_username] = call;
                         }
                     });
                     call.on('close', () => {
                         Video.remove();
-                        console.log("Removed from close");
+                        {#console.log("Removed from close");#}
                     });
                 }, 2000);
             });
@@ -580,20 +612,20 @@
         STREAM.then((stream) => {
             my_peer.on('call', (call) => { // Someone is Calling me
                 var caller = call.metadata.username;
-                console.log("Someone Just Called Me.", caller);
-                console.log("Answering the Call...");
+                {#console.log("Someone Just Called Me.", caller);#}
+                {#console.log("Answering the Call...");#}
 
                 call.answer(stream); // Answer the call with an A/V stream.
-                console.log("Answered the Call...");
+                {#console.log("Answered the Call...");#}
                 const othersVideo = document.createElement('video');
                 call.on('stream', (remoteStream) => {
                      if(peers[caller] !== undefined){ // Already Answered Once
-                        console.log("Second Answer");
+                        {#console.log("Second Answer");#}
                      }
                      else{
-                         console.log("First Answer");
+                         {#console.log("First Answer");#}
                          peers[caller] = call;
-                         console.log("For user who just Called me adding his Stream.");
+                         {#console.log("For user who just Called me adding his Stream.");#}
                          addVideoStream(othersVideo, remoteStream, caller);
                      }
                  });
@@ -602,6 +634,7 @@
 
         socket.addEventListener("message", function (e) {
             {# console.log("message");#}
+            console.log("Message from enter_game_room.");
             let backendResponse = JSON.parse(e.data);
             let status = backendResponse.status;
             let message = backendResponse.message;
@@ -609,9 +642,9 @@
             let gameData;
             let left_user_username = backendResponse.left_user_username;
             if(left_user_username){
-                console.log(left_user_username, "Disconnect Ho gya...");
+                {#console.log(left_user_username, "Disconnect Ho gya...");#}
                 if (peers[left_user_username]){
-                    console.log("Aur tha bhi");
+                    {#console.log("Aur tha bhi");#}
                     peers[left_user_username].close();
                     delete peers[left_user_username];
                      if(document.getElementById("div_" + left_user_username)){
@@ -622,7 +655,7 @@
                      }
                 }
                 else{
-                    console.log("Tha hi nhi");
+                    {#console.log("Tha hi nhi");#}
                 }
                 if(document.getElementById(left_user_username)){
                     document.getElementById(left_user_username).remove();
@@ -638,23 +671,22 @@
 
             if(backendResponse.gameData) {
                 gameData = JSON.parse(backendResponse.gameData);
-                {#console.log(gameData);#}
+                console.log(gameData);
                 if(currentGame == null) {
                     currentGame = new Game(gameData);
                 }
-            }
+             }
 
             let username, pk, elementToAppend;
 
             if(status === "connected") {
+                console.log("From enter_game_room, connected: ", data.username);
                 username = data.username;
-                pk = data.pk;
                 currentGame.connectPlayer(username);
             }
             else if(status === "disconnected") {
-                username = data.username;
-                pk = data.pk;
-                currentGame.disconnectPlayer(username);
+                {#username = data.username;#}
+                {#currentGame.disconnectPlayer(username);#}
             }
             else if(status === "broadcast_notification") {
                 elementToAppend = `<li>${message}</li>`;
@@ -1298,12 +1330,10 @@
 {##}
 {#            if(status === "connected") {#}
 {#                username = data.username;#}
-{#                pk = data.pk;#}
 {#                currentGame.connectPlayer(username);#}
 {#            }#}
 {#            else if(status === "disconnected") {#}
 {#                username = data.username;#}
-{#                pk = data.pk;#}
 {#                currentGame.disconnectPlayer(username);#}
 {#            }#}
 {#            else if(status === "broadcast_notification") {#}

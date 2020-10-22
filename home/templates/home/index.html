@@ -7,33 +7,7 @@
 {% endblock %}
 
 {% block content %}
-    <nav class="navbar navbar-light navbar-expand-lg fixed-top bg-secondary bounce animated text-uppercase" id="mainNav">
-        <div class="container">
-            {% if user.is_authenticated %}
-                <a class="navbar-brand js-scroll-trigger" href="#page-top">Hi, {{ user.username }}!</a>
-            {% else %}
-                <a class="navbar-brand js-scroll-trigger" href="#page-top">Uno</a>
-            {% endif %}
-            <button data-toggle="collapse" data-target="#navbarResponsive" class="navbar-toggler navbar-toggler-right text-uppercase bg-primary text-white rounded" aria-controls="navbarResponsive"
-                aria-expanded="false" aria-label="Toggle navigation">
-                <i class="fa fa-bars"></i>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarResponsive">
-                <ul class="nav navbar-nav ml-auto">
-                    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#portfolio">Rules</a></li>
-                    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#about">About UNO<sup>®</sup></a></li>
-                    {% if user.is_authenticated %}
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'user_profile' user.username %}">Profile</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'logout' %}">Log Out</a></li>
-                    {% else %}
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'signup' %}">Sign In</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="{% url 'login' %}">Log In</a></li>
-                    {% endif %}
 
-                </ul>
-            </div>
-        </div>
-    </nav>
     <header class="masthead text-center">
         <div class="container">
             <img class="img-fluid d-block mx-auto mb-5" data-aos="zoom-in" data-aos-duration="500" data-aos-delay="100" src="{% static "img/uno.png" %}">
@@ -109,34 +83,7 @@
             </div>
         </div>
     </section>
-    <footer class="footer text-center">
-        <div class="container" data-aos="fade-up" data-aos-duration="550" data-aos-delay="150">
-            <div class="row">
-                <div class="col-md-4 mb-5 mb-lg-0">
-                    <h4 class="text-uppercase mb-4" style="color: rgba(255, 255, 255, 0.7)">Location</h4>
-                    <p class="text-white">MNNIT Allahabad<br>Prayagraj, UP 211004</p>
-                </div>
-                <div class="col-md-4 mb-5 mb-lg-0">
-                    <h4 class="text-uppercase" style="color: rgba(255, 255, 255, 0.7)">Social</h4>
-                    <ul class="list-inline">
-                        <li class="list-inline-item"><a class="btn btn-outline-dark btn-social text-center text-white rounded-circle" role="button" target="_blank"><i class="fa fa-facebook fa-fw"></i></a></li>
-                        <li class="list-inline-item"><a class="btn btn-outline-dark btn-social text-center text-white rounded-circle" role="button" target="_blank"><i class="fa fa-google-plus fa-fw"></i></a></li>
-                        <li class="list-inline-item"><a class="btn btn-outline-dark btn-social text-center text-white rounded-circle" role="button" target="_blank"><i class="fa fa-twitter fa-fw"></i></a></li>
-                        <li class="list-inline-item"><a class="btn btn-outline-dark btn-social text-center text-white rounded-circle" role="button" target="_blank"><i class="fa fa-dribbble fa-fw"></i></a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h4 class="text-uppercase mb-4" style="color: rgba(255, 255, 255, 0.7)">About Django Unchained</h4>
-                    <p class="lead mb-0 text-white"><span>Django Unchained is a Web-Dev team of students of MNNIT Allahabad.</span></p>
-                </div>
-            </div>
-        </div>
-    </footer>
-    <div class="copyright py-4 text-center text-white">
-        <div class="container"><small>Copyright ©&nbsp;Django Unchained</small></div>
-    </div>
-    <div class="d-lg-none scroll-to-top position-fixed rounded"><a class="d-block js-scroll-trigger text-center text-white rounded" href="#page-top"><i class="fa fa-chevron-up"></i></a></div>
-    
+
     <!-- Modal start -->
     
     <div class="modal text-center" role="dialog" tabindex="-1" id="portfolio-modal-1">
