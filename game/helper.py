@@ -207,6 +207,7 @@ class GameServer:
         self.is_game_running = False
         self.direction = "+"
         self.current_player_index = 0
+        self.previous_player_index = -1
         self.winner = None
 
     def __del__(self):
@@ -396,11 +397,12 @@ class GameServer:
         :param card: card which is played
         :return:
         """
-        current_player = self.get_current_player()
-        # If current player has only 1 card left and didn't yell UNO but also didn't get caught.
-        if current_player.get_active_hand_size() == 1:
-            if not current_player.yelled_uno:
-                current_player.yelled_uno = True
+        previous_player = self.get_previous_player()
+        # If previous player has only 1 card left and didn't yell UNO but also didn't get caught.
+        if previous_player is not None:
+            if previous_player.get_active_hand_size() == 1:
+                if not previous_player.yelled_uno:
+                    previous_player.yelled_uno = True
 
         if card.is_skip() or card.is_draw_two() or card.is_wild_four():
             # Next Player misses turn. Increment/Decrement by 2.
@@ -411,10 +413,23 @@ class GameServer:
         else:
             # Increment/Decrement by 1.
             amount = 1
+
+        # Setting previous player as current player
+        self.previous_player_index = self.current_player_index
+        # Updating current player
         self.current_player_index = self.increment_or_decrement_current_player_index(amount=amount)
 
     def get_current_player(self):
         return self.players[self.current_player_index]
+
+    def get_previous_player(self):
+        """
+        Method to return previous player.
+        :return:
+        """
+        if self.previous_player_index != -1:
+            return self.players[self.previous_player_index]
+        return None
 
     def prepare_client_data(self):
         """
@@ -630,6 +645,9 @@ class GameServer:
 
         # Directly Moving to next player if this card cannot be played.
         if not self.can_play_over_top(player=server_current_player, card=drawn_card):
+            # Set current player as the previous player
+            self.previous_player_index = self.current_player_index
+            # Updating current player
             self.current_player_index = self.increment_or_decrement_current_player_index(amount=1)
 
         response = {
@@ -647,7 +665,10 @@ class GameServer:
         # Fetching current player as stored on the server
         server_current_player = self.get_current_player()
 
-        # Set current player as the next player
+        # Set current player as the previous player
+        self.previous_player_index = self.current_player_index
+
+        # Updating current player
         self.current_player_index = self.increment_or_decrement_current_player_index(amount=1)
 
     def can_call_uno(self, client_data, server_data):
@@ -659,9 +680,10 @@ class GameServer:
 
         # Fetching current player as stored on the server
         server_current_player = self.get_current_player()
-        if server_current_player.username != client_username:
-            print(
-                f"Cheating: ServerCurrentPlayer({server_current_player.username}) != ClientPlayer({client_username})!")
+        server_previous_player = self.get_previous_player()
+
+        if server_current_player.username != client_username and server_previous_player.username != client_username:
+            print(f"Cheating: ServerCurrentPlayer({server_current_player.username}) or ServerPreviousPlayer({server_previous_player.username} != ClientPlayer({client_username})!")
             return False
 
         if client_username != server_username:
@@ -670,17 +692,32 @@ class GameServer:
 
         count = server_current_player.get_active_hand_size()
 
-        if count != 2:
-            print(f"{server_current_player.username} is trying to call UNO! But his/her card count != 2")
+        if client_username == server_current_player.username and server_current_player.username != server_previous_player.username and count != 2:
+            print(f"Current Player {server_current_player.username} is trying to call UNO! But his/her card count({count}) != 2")
+            return False
+
+        count = server_previous_player.get_active_hand_size()
+
+        if client_username == server_previous_player.username and count != 1:
+            print(f"Previous Player {server_previous_player.username} is trying to call UNO! But his/her card count({count}) != 1")
             return False
 
         return True
 
-    def call_uno(self):
+    def call_uno(self, client_data):
+        # Fetching player's username name of player who yelled uno.
+        uno_call_player = client_data['username']
+
         # Fetching current player as stored on the server
         server_current_player = self.get_current_player()
 
-        server_current_player.yelled_uno = True
+        # Fetching previous player as stored on the server
+        server_previous_player = self.get_previous_player()
+
+        if uno_call_player == server_previous_player.username:
+            server_previous_player.yelled_uno = True
+        elif uno_call_player == server_current_player.username:
+            server_current_player.yelled_uno = True
 
     def is_valid_catch(self, client_data, server_data):
         client_catcher = client_data['catcher']
@@ -697,18 +734,23 @@ class GameServer:
             print(f"Client Caught({client_caught}) != Server Caught({server_caught})")
             return False
 
-        server_caught_player = self.get_current_player()
-        if server_caught_player.yelled_uno:  # Player has already yelled UNO!
+        server_previous_player = self.get_previous_player()
+
+        if server_previous_player.yelled_uno:  # Player has already yelled UNO!
+            print(f"Caught({client_caught}) already yelled uno!")
             return False
 
-        if server_caught_player.get_active_hand_size() > 1:
+        count = server_previous_player.get_active_hand_size()
+
+        if server_previous_player.get_active_hand_size() > 1:
+            print(f"Caught({client_caught}) has more than 1 ({count}) cards{json.dumps(server_previous_player.get_hand(), cls=CustomEncoder)}.")
             return False
 
         return True
 
     def catch_player(self):
 
-        server_caught_player = self.get_current_player()
+        server_caught_player = self.get_previous_player()
 
         drawn_cards = []
         draw_count = 2
@@ -717,6 +759,6 @@ class GameServer:
             drawn_cards.append(server_caught_player.draw(self.deck))
 
         response = {
-            "drawnCard": json.dumps(drawn_cards, cls=CustomEncoder),
+            "drawnCards": json.dumps(drawn_cards, cls=CustomEncoder),
         }
         return response

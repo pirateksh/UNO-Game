@@ -6,8 +6,8 @@ class Scene2 extends Phaser.Scene {
     * TODO: -- Kshitiz.
     *  1. Implement Illegal Wild Four Draw / Challenging when a Wild Four is Drawn.
     *  2. Implement calling UNO / Challenging if UNO is not called by player left with 1 card.
-    *  3. Color choosing UI.
-    *  4. Try to implement a game tour for new players.
+    *  3. Try to implement a game tour for new players.
+    *  4. If a player leaves game, his cards should be kept back into deck.
     * */
     create() {
         let _this = this;
@@ -102,8 +102,6 @@ class Scene2 extends Phaser.Scene {
         });
 
         socket.addEventListener("message", function (e) {
-            // console.log("Listening message from Game", e);
-            console.log("Message from Scene 2.");
             let backendResponse = JSON.parse(e.data);
             let status = backendResponse.status;
             let message = backendResponse.message;
@@ -254,13 +252,20 @@ class Scene2 extends Phaser.Scene {
                     alert(`${username} called UNO!`);
                 }
             }
+            else if(status === "failed_call_uno") {
+                let username = data.username;
+                if(username === me) {
+                    alert("You UNO Call failed!");
+                }
+            }
             else if(status === "catch_player") {
                 let catcher = data.catcher;
                 let caught = data.caught;
                 let caughtData = backendResponse.caughtData;
-                let drawnCards = JSON.parse(caughtData.drawnCards);
-                console.log(catcher, caught, caughtData);
+
                 if(caught === me) {
+                let drawnCards = JSON.parse(caughtData.drawnCards);
+                console.log("CAUGHT", catcher, caught, caughtData);
                     alert(`You were caught by ${catcher}.`);
                     for(let drawnCard of drawnCards) {
                         let category = drawnCard.category, number = drawnCard.number;
@@ -278,22 +283,17 @@ class Scene2 extends Phaser.Scene {
                 }
                 else {
                     alert(`${catcher} caught ${caught}.`);
-                    for(let i = 0; i < parseInt(drawnCardCount); ++i) {
-                        _this.drawCardOpp(username);
+                    for(let i = 0; i < 2; ++i) { // Only two cards are drawn in this case.
+                        _this.drawCardOpp(caught);
                     }
                 }
             }
-            else if(status === "update_current_player") {
-                // currentGame.currentPlayerIndex = data.currentPlayerIndex;
-                // console.log(data.currentPlayerIndex, currentGame.getCurrentPlayer());
-                //
-                // if(me !== currentGame.getCurrentPlayer()) {
-                //     _this.topDeckCard.disableInteractive();
-                // }
-                //
-                // _this.makeHandInteractive();
-                //
-                // _this.moveOrSetTurnIndicator(true);
+            else if(status === "failed_catch_player") {
+                let catcher = data.catcher;
+                let caught = data.caught;
+                if(catcher === me) {
+                    alert(`Your catch request failed. Probably ${caught} already yelled UNO or ${caught} has more than one card.`)
+                }
             }
             if(status === "change_scene") {
                 let sceneNumber = data.sceneNumber;
@@ -989,7 +989,6 @@ class Scene2 extends Phaser.Scene {
         drawnCard.depth = 0;
 
         // Adjusting card count of opponents.
-        console.log("Adjusting card count! -- inside drawCardOpp().");
          for(let i = 0; i < _this.playerRemainingCardsCountBitMap.getChildren().length; ++i) {
              let countBitmap = _this.playerRemainingCardsCountBitMap.getChildren()[i];
              if(oppUsername === countBitmap.getData("username")) {
