@@ -7,6 +7,8 @@ class Scene2 extends Phaser.Scene {
     *  1. Implement Illegal Wild Four Draw / Challenging when a Wild Four is Drawn.
     *  2. Try to implement a game tour for new players.
     *  3. If a player leaves game, his cards should be kept back into deck.
+    *  4. Show current top color after wild and wild four.
+    *  5. Can make customizable cards available to players of certain league.
     * */
     create() {
         let _this = this;
@@ -16,7 +18,7 @@ class Scene2 extends Phaser.Scene {
         _this.table = _this.add.tileSprite(0, 0, config.width, config.height, "table");
         _this.table.setOrigin(0,0);
 
-        _this.timeRemainingToSkip = 60;
+        _this.timeRemainingToSkip = gameDetails.timeOutLimitInSeconds;
         _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, 20, "pixelFont", _this.timeRemainingToSkip, 50);
 
         // Adding exit button
@@ -318,12 +320,50 @@ class Scene2 extends Phaser.Scene {
                     socket.close();
                 }
             }
+            if(status === "time_out") {
+                currentGame.copyData(gameData);
+                // TODO: Card count is not getting updated.
+                _this.startTimer();
+
+                _this.makeHandInteractive();
+                let username = data.username;
+                let timeOutData = backendResponse.timeOutData;
+                alert(`${username} couldn't play card in given time limit. ${username} is penalised with 2 cards.`);
+                if(username === me) {
+                    let drawnCards = JSON.parse(timeOutData.drawnCards);
+                    for(let drawnCard of drawnCards) {
+                        let category = drawnCard.category, number = drawnCard.number;
+                        let drawnCardObject = new Card(category, number);
+                        let x = gameDetails.deckX, y = gameDetails.deckY;
+                        let depth = myHand.getCount() + 1, scale = gameDetails.myHandScale;
+                        let index = myHand.getCount();
+                        let drawnCardSprite = _this.getCardSprite(drawnCardObject, x, y, depth, scale);
+                        myHand.addCardAndCardSprite(drawnCardObject, drawnCardSprite);
+                        _this.drawCardSelf(drawnCardObject, drawnCardSprite, depth, index);
+                    }
+
+                    // Adjusting cards in hand on the table.
+                    _this.adjustSelfHandOnTable();
+
+                }
+                else {
+                    for(let i = 0; i < 2; ++i) {
+                        _this.drawCardOpp(username);
+                    }
+                }
+
+                if(me !== currentGame.getCurrentPlayer()) {
+                    _this.topDeckCard.disableInteractive();
+                }
+
+                _this.moveOrSetTurnIndicator(true);
+            }
         });
     }
 
     startTimer() { /// csk
         let _this = this;
-        _this.timeRemainingToSkip = 60;
+        _this.timeRemainingToSkip = 60;// gameDetails.timeOutLimitInSeconds;
         if(_this.timedSkipEvent) {
             _this.timedSkipEvent.remove(false);
         }
@@ -342,7 +382,7 @@ class Scene2 extends Phaser.Scene {
         let _this = this;
         _this.timeRemainingToSkip--;
         if(_this.timeRemainingToSkip === 0) {
-            currentGame.skipTurnRequest();
+            currentGame.timeOutRequest();
             _this.timedSkipEvent.remove(false);
         }
     }

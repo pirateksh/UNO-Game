@@ -348,22 +348,20 @@
                 }
             }
 
-            skipTurnRequest() {
-                alert("Your turn will be skipped!");
+            timeOutRequest() {
+                if(me === this.getCurrentPlayer()) {
+                    alert("TIME OUT: Your turn will be skipped!");
+                    let data = {"status": "time_out", "message": "Time Out for this player.", "data": {"username": me}};
+                    let response = {"type": "time.out", "text": data};
+                    socket.send(JSON.stringify(response));
+                }
             }
 
             playCardRequest(card, index, nextTopColor) {
                 // Method to send data to backend using socket and play a card.
                 // If the move is valid, server will respond.
-                if(me === currentGame.getCurrentPlayer()) {
+                if(me === this.getCurrentPlayer()) {
                     if(this.canPlay(card)) {
-                        {#let nextTopColor;#}
-                        {#if(card.category === WILD_FOUR || card.category === WILD) {#}
-                        {#    nextTopColor = prompt("Choose Next Color ('B', 'Y', 'G' or 'R')");#}
-                        {# }#}
-                        {#else {#}
-                        {#    nextTopColor = card.category;#}
-                        {# }#}
                         let data = {"status": "play_card", "message": "A player played a card.", "data": {"username": this.getCurrentPlayer(), "card": card, "index": index, "next_top_color": nextTopColor,}};
                         let response = {"type": "play.card", "text": data};
                         socket.send(JSON.stringify(response));
@@ -373,12 +371,12 @@
                     }
                 }
                 else {
-                    alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
+                    alert(`Cheating: You = ${me} and Current Player = ${this.getCurrentPlayer()}`);
                 }
             }
 
             drawCardRequest() {
-                if(me === currentGame.getCurrentPlayer()) {
+                if(me === this.getCurrentPlayer()) {
                     if(this.canDrawCard) {
                         this.canDrawCard = false;
                         let data = {"status": "voluntary_draw_card", "message": "A player drew a card.", "data": {"username": this.getCurrentPlayer() }};
@@ -390,28 +388,28 @@
                     }
                 }
                 else {
-                    alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
+                    alert(`Cheating: You = ${me} and Current Player = ${this.getCurrentPlayer()}`);
                 }
             }
 
             keepCardAfterDrawingRequest(card) {
-                if(me === currentGame.getCurrentPlayer()) {
+                if(me === this.getCurrentPlayer()) {
                     let data = {"status": "keep_card", "message": "The player kept the card after drawing.", "data": {"username": this.getCurrentPlayer() }};
                     let response = {"type": "keep.card", "text": data};
                     socket.send(JSON.stringify(response));
                 }
                 else {
-                    alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
+                    alert(`Cheating: You = ${me} and Current Player = ${this.getCurrentPlayer()}`);
                 }
             }
 
             callUnoRequest() {
-                if(!currentGame.isGameRunning) { // If game has not started yet.
+                if(!this.isGameRunning) { // If game has not started yet.
                     alert("Glad to see your excitement, but let the game begin first!");
                     return;
                 }
 
-                let activeCardsCount = parseInt(myHand.getActiveCount());
+                let activeCardsCount = myHand.getActiveCount();
                 if(activeCardsCount <= 2 && activeCardsCount > 0) {
                     alert("Sending Call UNO Request!");
                     let data = {"status": "call_uno", "message": "The player called UNO.", "data": {"username": me }};
@@ -424,7 +422,7 @@
             }
 
             catchPlayerRequest(oppUsername) { // Called when current player points out that someone has not called UNO.
-                if(!currentGame.isGameRunning) { // If game has not started yet.
+                if(!this.isGameRunning) { // If game has not started yet.
                     alert("Glad to see your excitement, but let the game begin first!");
                     return;
                 }

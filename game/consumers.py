@@ -53,6 +53,7 @@ class GameRoomConsumer(AsyncConsumer):
         voluntary_draw_data = None  # When player voluntary drew a card.
         won_data = None  # When player has played all his cards.
         caught_data = None  # When a player didn't call uno and got caught. Stores cards drawn by that player.
+        time_out_data = None  # When a player has exhausted his/her limit to play a card.
         if front_text:
             loaded_dict_data = json.loads(front_text)
             type_of_event = loaded_dict_data['type']
@@ -153,6 +154,13 @@ class GameRoomConsumer(AsyncConsumer):
                 else:  # No one has played any card yet.
                     text_of_event['status'] = "failed_catch_player"
                     print("Cannot catch.")
+            elif type_of_event == "time.out":
+                client_data = text_of_event['data']
+                server_data = {
+                    "username": self.me.username,
+                }
+                if self.game.can_time_out(client_data=client_data, server_data=server_data):
+                    time_out_data = self.game.time_out()
 
             response = {
                 "status": text_of_event['status'],
@@ -160,6 +168,12 @@ class GameRoomConsumer(AsyncConsumer):
                 "data": text_of_event['data'],
                 "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder),
             }
+
+            if time_out_data:
+                extra_data = {
+                    "timeOutData": time_out_data,
+                }
+                response.update(extra_data)
 
             if caught_data:
                 extra_data = {
@@ -194,6 +208,24 @@ class GameRoomConsumer(AsyncConsumer):
                     "text": json.dumps(response)
                 }
             )
+
+    async def time_out(self, event):
+        text = json.loads(event['text'])
+        data = text['data']
+        time_out_data = text['timeOutData']
+        if data['username'] != self.me.username:
+            time_out_data['drawnCards'] = []
+        response = {
+            "status": text['status'],
+            "message": text['message'],
+            "data": text['data'],
+            "gameData": text['gameData'],
+            "timeOutData": time_out_data,
+        }
+        await self.send({
+            "type": "websocket.send",
+            "text": json.dumps(response),
+        })
 
     async def change_scene(self, event):
         await self.send({

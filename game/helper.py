@@ -762,3 +762,41 @@ class GameServer:
             "drawnCards": json.dumps(drawn_cards, cls=CustomEncoder),
         }
         return response
+
+    def can_time_out(self, client_data, server_data):
+        client_username = client_data['username']
+        server_username = server_data['username']
+
+        server_current_player = self.get_current_player()
+
+        if client_username != server_username:
+            print(f"Client user({client_username}) != Server user({server_username}).")
+            return False
+
+        if client_username != server_current_player.username:
+            print(f"Client User({client_username}) != Server Current Player({server_username})")
+            return False
+
+        return True
+
+    def time_out(self):
+        server_current_player = self.get_current_player()
+
+        # Drawing two cards for current player
+        drawn_cards = []
+        draw_count = 2
+
+        for _ in range(draw_count):
+            drawn_cards.append(server_current_player.draw(self.deck))
+
+        response = {
+            "drawnCards": json.dumps(drawn_cards, cls=CustomEncoder),
+        }
+
+        # Setting previous player
+        self.previous_player_index = self.current_player_index
+
+        # Setting current player
+        self.current_player_index = self.increment_or_decrement_current_player_index(amount=1)
+
+        return response

@@ -34,6 +34,7 @@ window.onload = function () {
         roundButtonScale: 0.4,
         chooseColorButtonScale: 0.5,
         dimAlpha: 0.2,
+		timeOutLimitInSeconds: 10,
 	};
 
 	let config = {
