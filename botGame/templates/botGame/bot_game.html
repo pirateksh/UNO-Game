@@ -69,14 +69,16 @@
             var var_bot_game_state = JSON.parse("[" + server_response.bot_game_state + "]");
             var var_playable_cards = server_response.playable_cards;
             var var_bot_played_cards = server_response.bot_played_cards;
-
+            var top_color = server_response.top_color;
+            var bot_says_uno = server_response.bot_says_uno;
+            var bot_won = server_response.bot_won;
+            var player_won = server_response.player_won;
             id_bot_state.empty();
             id_player_state.empty();
             id_bot_game_state.empty();
             id_playable_cards.empty();
 
             id_playable_cards.append("<button id='DRAW_CARD'>" + "Draw Card" + "</button>");
-
             var draw_card_button = document.getElementById('DRAW_CARD');
             draw_card_button.addEventListener('click', send_card_play_request, false);
             draw_card_button.myParam = "DRAW_CARD";
@@ -88,7 +90,7 @@
                 id_bot_state.append("<li>" + var_bot_state[i] + "</li>");
             }
             for(let i=0;i < var_bot_played_cards.length;i++){
-                id_bot_played_cards.append("<li><button disabled>" + var_bot_played_cards[i] + "</button></li>");
+                id_bot_played_cards.prepend("<li><button disabled>" + var_bot_played_cards[i] + "</button></li>");
             }
             for(let i=0;i < var_player_state.length;i++){
                 id_player_state.append("<li>" + var_player_state[i] + "</li>");
@@ -97,7 +99,7 @@
                 {#console.log(var_bot_game_state[i]);#}
                 id_bot_game_state.append("<li>" + var_bot_game_state[i] + "</li>");
             }
-
+            console.log(var_playable_cards);
             for(let i=0;i < var_player_state.length;i++){
                 {#console.log("Checking Card " + var_player_state[i]);#}
                 if(var_playable_cards.includes(var_player_state[i])){
@@ -112,6 +114,21 @@
                     current_button.addEventListener('click', send_card_play_request, false);
                     current_button.myParam = text;
                 }
+            }
+
+            if(top_color !== undefined && top_color !== null){
+                alert("The top Color is: " + top_color);
+            }
+            if(bot_says_uno === 1){
+                alert("BOT: UUUNNNOOOOO!!")
+            }
+            if(bot_won === 1){
+                alert("BOT Won the Game! Ending this Game...");
+                $('#END_GAME').click();
+            }
+            if(player_won === 1){
+                alert("Congrats!!! You Won the Game! Ending this Game...");
+                $('#END_GAME').click();
             }
 
             function send_card_play_request(e){
