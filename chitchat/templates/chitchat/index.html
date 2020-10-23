@@ -199,10 +199,22 @@
 {#    </script>#}
      <!-- jQuery Ajax Script -->
     <script type="text/javascript">
-      var ALL_SOCKETS = {}; // An object havig username as key and socket corresponding to this user as value.
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      function format_AM_PM(date) {
+          let hours = date.getHours();
+          let minutes = date.getMinutes();
+          let am_pm = hours >= 12 ? 'PM' : 'AM';
+          hours = hours % 12;
+          hours = hours ? hours : 12; // the hour '0' should be '12'
+          minutes = minutes < 10 ? '0'+ minutes : minutes;
+          let strTime = hours + ':' + minutes + ' ' + am_pm;
+          return strTime;
+      }
+      var ALL_SOCKETS = {}; // An object having username as key and socket corresponding to this user as value.
       // This helps in preventing multiple socket connections with the same user.
+      // More Importantly this will help us in not sending messages on sockets that were formed earlier but are
+      // closed now.
 
-      {#window.location.replace("");#}
       $(document).ready(function(){
           {# Function Responsible for Showing Search Results #}
           $("#id_find-friend_input").keyup(function(){
@@ -300,21 +312,10 @@
               });
           });
 
-          function format_AM_PM(date) {
-              let hours = date.getHours();
-              let minutes = date.getMinutes();
-              let am_pm = hours >= 12 ? 'PM' : 'AM';
-              hours = hours % 12;
-              hours = hours ? hours : 12; // the hour '0' should be '12'
-              minutes = minutes < 10 ? '0'+ minutes : minutes;
-              let strTime = hours + ':' + minutes + ' ' + am_pm;
-              return strTime;
-            }
-
           {# Function Responsible for Showing Chat History with a friend #}
           $(document).on('click', '.class_friends_tab', function(){
-              let other_person = $(this).attr('value');
-              let url = other_person;
+              let other_user = $(this).attr('value');
+              let url = other_user;
               $.ajax({
                  type:'GET',
                   url: url,
@@ -336,7 +337,6 @@
                         `)
                     }
                     else{
-                        let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
                         messages.forEach((message_instance)=>{
                             let sender = message_instance[0];
@@ -386,14 +386,15 @@
               {#    }#}
               // });
 
-              if(ALL_SOCKETS[other_person] !== undefined && ALL_SOCKETS[other_person].readyState !== 2 &&  ALL_SOCKETS[other_person].readyState !== 3){
-                  {#console.log("Already Hai...");#}
-                  return ;
-              }
+              Object.keys(ALL_SOCKETS).forEach((key)=>{
+                  if(ALL_SOCKETS[key] !== undefined && ALL_SOCKETS[key].readyState !== 2 && ALL_SOCKETS[key].readyState !== 3){
+                      ALL_SOCKETS[key].close();
+                      console.log("Closed:", key);
+                  }
+              });
 
           {# Scripts below hanldes Message Sending and Receiving #}
 
-              {# Opening the Socket Connection on basis of other_person #}
               const loc = window.location;
               const host = loc.host;
               const pathname = loc.pathname;
@@ -401,26 +402,29 @@
               if(loc.protocol == 'https:'){
                   wsStart = 'wss://';
               }
-              const endpoint = wsStart + host + pathname + other_person;
-              console.log(endpoint);
+              {# Opening the Socket Connection on basis of other_person #}
+              const endpoint = wsStart + host + pathname + other_user;
+              {#console.log(endpoint);#}
               console.log("Request For Websocket Connection Sent to Server at endpoint: " + endpoint);
-              let socket = new WebSocket(endpoint);
-              ALL_SOCKETS[other_person] = socket;
-              {#var socket = new ReconnectingWebSocket(endpoint);#}
+              socket = new WebSocket(endpoint);
+              ALL_SOCKETS[other_user] = socket;
+              {#let socket = new ReconnectingWebSocket(endpoint);#}
 
               let formData = $("#id_message_form"); {# id of form #}
               let msg = $("#id_message"); {# id of text-input #}
               let chat_list = $('#id_friends_chat_history_ul'); {# id of ul #}
-
+              console.log("Gonna Use socket for user:", other_user);
               socket.onopen = function (e) {
                   console.log("The Connection has been Opened from Both Sides Now.", e);
                   formData.submit(function(e) {
+                      {#alert("Send Clicked!");#}
+                      console.log($(this));
                       e.preventDefault();
-                      if(msg.val().trim() === ""){
-                          return;
-                      }
+                      e.stopImmediatePropagation(); // This Solved the Problem for the form Submitting over and over again...
+                      // This stops Event Bubbling.
                       let message = {"message": msg.val()};
                       {#alert("Submission Prevented" + message.message);#}
+                      console.log("Sending Data using socket:", socket, other_user);
                       socket.send(JSON.stringify(message));
                       msg.val('');
                       tinymce.get('id_message').setContent('');
@@ -431,13 +435,14 @@
                   console.log("The Message sent by the Server is: ", e.data);
                   let chat_message = JSON.parse(e.data);
                   let timestamp = chat_message.timestamp;
-
+                  let d = new Date(timestamp);
+                  let date_string = format_AM_PM(d) + " on " + months[d.getMonth()] + " " + d.getDate() + ', ' + d.getFullYear();
                   if(chat_message.sender === "{{ request.user.username }}"){
                         $("#id_friends_chat_history_ul").append(`
                             {# Shown Right Side #}
                             <li class="clearfix">
                                 <div class="message-data align-right">
-                                    <span class="message-data-time" >${timestamp}</span> &nbsp; &nbsp;
+                                    <span class="message-data-time" >${date_string}</span> &nbsp; &nbsp;
                                 </div>
                                 <div class="message other-message float-right">
                                     ${chat_message.message}
@@ -450,7 +455,7 @@
                             {# Shown Left Side #}
                             <li>
                                 <div class="message-data">
-                                    <span class="message-data-time">${timestamp}</span>
+                                    <span class="message-data-time">${date_string}</span>
                                 </div>
                                 <div class="message my-message">
                                     ${chat_message.message}
@@ -464,7 +469,6 @@
                   console.log("Error:", e);
               };
               socket.onclose = function (e) {
-                  ALL_SOCKETS[other_person].close();
                   console.log("Connection Closed from Server End.", e);
               };
 
