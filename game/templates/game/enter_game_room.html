@@ -406,23 +406,16 @@
                     alert("Glad to see your excitement, but let the game begin first!");
                     return;
                 }
-                if(me === currentGame.getCurrentPlayer()) {
-                    let activeCardsCount = parseInt(myHand.getActiveCount());
-                    if(activeCardsCount === 2) {
-                        alert("Sending Call UNO Request!");
-                        let data = {"status": "call_uno", "message": "The player called UNO.", "data": {"username": this.getCurrentPlayer() }};
-                        let response = {"type": "call.uno", "text": data};
-                        socket.send(JSON.stringify(response));
-                    }
-                    else if(activeCardsCount === 1) {
-                        alert("It's too late to call UNO! Let's hope that someone doesn't point it out.");
-                    }
-                    else {
-                        alert("We understand you are eager to scream UNO, but you also need to be left with only one card to scream UNO!");
-                    }
+
+                let activeCardsCount = parseInt(myHand.getActiveCount());
+                if(activeCardsCount <= 2 && activeCardsCount > 0) {
+                    alert("Sending Call UNO Request!");
+                    let data = {"status": "call_uno", "message": "The player called UNO.", "data": {"username": me }};
+                    let response = {"type": "call.uno", "text": data};
+                    socket.send(JSON.stringify(response));
                 }
                 else {
-                    alert(`Cheating: You = ${me} and Current Player = ${currentGame.getCurrentPlayer()}`);
+                    alert("We understand you are eager to scream UNO, but you also need to be left with only one card to scream UNO!");
                 }
             }
 
@@ -431,15 +424,11 @@
                     alert("Glad to see your excitement, but let the game begin first!");
                     return;
                 }
-                if(oppUsername === currentGame.getCurrentPlayer()) { // The person who is being challenged is currrent player.
-                    alert(`You are challenging ${oppUsername}`);
-                    let data = {"status": "catch_player", "message": "The player is caught.", "data": {"catcher": me, "caught": this.getCurrentPlayer() }};
-                    let response = {"type": "catch.player", "text": data};
-                    socket.send(JSON.stringify(response));
-                }
-                else {
-                    alert(`${oppUsername} is not current player.`);
-                }
+
+                alert(`You are trying to catch ${oppUsername}`);
+                let data = {"status": "catch_player", "message": "The player is caught.", "data": {"catcher": me, "caught": oppUsername }};
+                let response = {"type": "catch.player", "text": data};
+                socket.send(JSON.stringify(response));
             }
 
             static addPlayersToDOM(players) {
@@ -633,8 +622,6 @@
         });
 
         socket.addEventListener("message", function (e) {
-            {# console.log("message");#}
-            console.log("Message from enter_game_room.");
             let backendResponse = JSON.parse(e.data);
             let status = backendResponse.status;
             let message = backendResponse.message;
@@ -671,7 +658,6 @@
 
             if(backendResponse.gameData) {
                 gameData = JSON.parse(backendResponse.gameData);
-                console.log(gameData);
                 if(currentGame == null) {
                     currentGame = new Game(gameData);
                 }

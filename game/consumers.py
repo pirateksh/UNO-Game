@@ -133,21 +133,26 @@ class GameRoomConsumer(AsyncConsumer):
                 }
                 # If this player can call UNO.
                 if self.game.can_call_uno(client_data=client_data, server_data=server_data):
-                    self.game.call_uno()
+                    self.game.call_uno(client_data=client_data)
                 else:
+                    text_of_event['status'] = "failed_call_uno"
                     print(f"Cannot call UNO!")
-                    return
             elif type_of_event == "catch.player":  # When someone catches a player who forgot to say UNO!
                 client_data = text_of_event['data']
-                server_data = {
-                    "caught": self.game.get_current_player().username,
-                    "catcher": self.me.username,
-                }
-                if self.game.is_valid_catch(client_data=client_data, server_data=server_data):
-                    caught_data = self.game.catch_player()
-                else:
+                server_previous_player = self.game.get_previous_player()
+                if server_previous_player is not None:
+                    server_data = {
+                        "caught": server_previous_player.username,
+                        "catcher": self.me.username,
+                    }
+                    if self.game.is_valid_catch(client_data=client_data, server_data=server_data):
+                        caught_data = self.game.catch_player()
+                    else:
+                        text_of_event['status'] = "failed_catch_player"
+                        print("Cannot catch.")
+                else:  # No one has played any card yet.
+                    text_of_event['status'] = "failed_catch_player"
                     print("Cannot catch.")
-                    return
 
             response = {
                 "status": text_of_event['status'],
@@ -190,27 +195,6 @@ class GameRoomConsumer(AsyncConsumer):
                 }
             )
 
-            # if type_of_event in ["start.game", "play.card", "forced_draw_card", "keep.card", "voluntary_draw_card"]:
-            #     print("Sleeping for 2 seconds.")
-            #     await asyncio.sleep(2)
-            #     print("Woke up after 2 seconds.")
-            #     response = {
-            #         "status": "update_current_player",
-            #         "message": "Updating current player",
-            #         "data": {
-            #             "currentPlayerIndex": self.game.current_player_index,
-            #         },
-            #     }
-            #     await self.channel_layer.group_send(
-            #         self.game_room_id,
-            #         {
-            #             "type": "update_current_player",
-            #             "text": json.dumps(response)
-            #         }
-            #     )
-
-            # print("\n\n\n\n")
-
     async def change_scene(self, event):
         await self.send({
             "type": "websocket.send",
@@ -225,27 +209,51 @@ class GameRoomConsumer(AsyncConsumer):
 
     async def catch_player(self, event):
         text = json.loads(event['text'])
-        caught_data = text['caughtData']
         data = text['data']
-        if data['caught'] != self.me.username:
-            caught_data['drawnCards'] = []
-        response = {
-            "status": text['status'],
-            "message": text['message'],
-            "data": text['data'],
-            "gameData": text['gameData'],
-            "caughtData": caught_data,
-        }
-        await self.send({
-            "type": "websocket.send",
-            "text": json.dumps(response),
-        })
+        status = text['status']
+        if status == "failed_catch_player":
+            # If catch_player failed, send only to player who called catch_player
+            if data['catcher'] == self.me.username:
+                await self.send({
+                    "type": "websocket.send",
+                    "text": event['text']
+                })
+                return
+        else:
+            # If catcher successfully caught a player.
+            caught_data = text['caughtData']
+            if data['caught'] != self.me.username:
+                caught_data['drawnCards'] = []
+            response = {
+                "status": text['status'],
+                "message": text['message'],
+                "data": text['data'],
+                "gameData": text['gameData'],
+                "caughtData": caught_data,
+            }
+            await self.send({
+                "type": "websocket.send",
+                "text": json.dumps(response),
+            })
 
     async def call_uno(self, event):
-        await self.send({
-            "type": "websocket.send",
-            "text": event['text']
-        })
+        text = json.loads(event['text'])
+        status = text['status']
+        data = text['data']
+        if status == "failed_call_uno":
+            # If this was failed UNO call, only send to the player who called this.
+            if data['username'] == self.me.username:
+                await self.send({
+                    "type": "websocket.send",
+                    "text": event['text']
+                })
+                return
+        else:
+            # Else if it was a success, send to everyone.
+            await self.send({
+                "type": "websocket.send",
+                "text": event['text']
+            })
 
     async def new_user_entered_room(self, event):
         print("new_user_entered_room function Called")
@@ -464,23 +472,3 @@ class GameRoomConsumer(AsyncConsumer):
         me = self.me
         game_room_obj = self.game_room_obj
         return Player.objects.get(player=me, game_room=game_room_obj)
-
-
-class LobbyConsumer(AsyncConsumer):
-
-    async def websocket_connect(self, event):
-        print("connect", event)
-        await self.send({
-            "type": "websocket.accept",
-        })
-
-    async def websocket_receive(self, event):
-        print("receive", event)
-        await asyncio.sleep(2)
-        await self.send({
-            "type": "websocket.send",
-            "text": event['text'],
-        })
-
-    async def websocket_disconnect(self, event):
-        print("disconnected", event)

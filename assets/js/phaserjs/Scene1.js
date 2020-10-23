@@ -136,7 +136,7 @@ class Scene1 extends Phaser.Scene {
         }
         else { // This will be changed.
             // _this.scene.start("playGame");
-            _this.add.text(game.config.width/2, game.config.height/2, "Waiting for players to be added....");
+            _this.add.text(game.config.width/2 - 85, game.config.height/2, "Waiting for players to be added....");
         }
 
         _this.joinedX = game.config.width / 2;
@@ -157,45 +157,36 @@ class Scene1 extends Phaser.Scene {
         // });
 
         _this.scene1PlayerList = [];
+        _this.startDisplaySet = false;
         // console.log("CSKKKK");
-        _this.time.delayedCall(2000, function () {
-            if(currentGame.players) {
-                for(let player of currentGame.players) {
-                     if(!_this.scene1PlayerList.includes(player)) {
-                        _this.scene1PlayerList.push(player);
-                        _this.time.delayedCall(600, function () {
-                            _this.add.bitmapText(_this.joinedX - 200, _this.joinedY, "pixelFont", player, 20);
-                            _this.joinedY += 20;
-                        });
-                     }
-                }
-            }
-        });
-
 
         socket.addEventListener("message", function (e) {
-            console.log("Message from Scene 1.");
             let backendResponse = JSON.parse(e.data);
             let status = backendResponse.status;
             let message = backendResponse.message;
             let data = backendResponse.data;
             let gameData;
 
-            // if(backendResponse.gameData) {
-            //     gameData = JSON.parse(backendResponse.gameData);
-            //     let players = gameData.players;
-            //     if(currentGame == null) {
-            //         currentGame = new Game(gameData);
-            //         console.log("JOINED:", players);
-            //         for(let player of players) {
-            //             _this.add.bitmapText( _this.joinedX, _this.joinedY, "pixelFont", player, 20);
-            //             // _this.add.text(_this.joinedX, _this.joinedY, player);
-            //             _this.joinedY += 20;
-            //         }
-            //     }
-            // }
-
-
+            if(backendResponse.gameData) {
+                gameData = JSON.parse(backendResponse.gameData);
+                if(currentGame == null) {
+                    currentGame = new Game(gameData);
+                    _this.startDisplaySet = true;
+                    _this.time.delayedCall(2000, function () {
+                        if(currentGame.players) {
+                            for(let player of currentGame.players) {
+                                 if(!_this.scene1PlayerList.includes(player)) {
+                                    _this.scene1PlayerList.push(player);
+                                    _this.time.delayedCall(600, function () {
+                                        _this.add.bitmapText(_this.joinedX - 200, _this.joinedY, "pixelFont", player, 20);
+                                        _this.joinedY += 20;
+                                    });
+                                 }
+                            }
+                        }
+                    });
+                }
+             }
 
             if(status === "change_scene") {
                 let sceneNumber = data.sceneNumber;
@@ -210,16 +201,29 @@ class Scene1 extends Phaser.Scene {
                 let username = data.username;
                 console.log(`${username} added.`);
                 if(!_this.scene1PlayerList.includes(username)) {
-                // if(!currentGame.players.includes(username)) {
-                //     currentGame.players.push(username);
                     _this.scene1PlayerList.push(username);
                     _this.add.bitmapText( _this.joinedX - 200, _this.joinedY, "pixelFont", username, 20);
                     // _this.add.text(_this.joinedX, _this.joinedY, username);
                     _this.joinedY += 20;
                 }
-                // currentGame.connectPlayer(username);
             }
         });
+
+        if(!_this.startDisplaySet) { // Testing
+            _this.time.delayedCall(2000, function () {
+                if(currentGame.players) {
+                    for(let player of currentGame.players) {
+                         if(!_this.scene1PlayerList.includes(player)) {
+                            _this.scene1PlayerList.push(player);
+                            _this.time.delayedCall(600, function () {
+                                _this.add.bitmapText(_this.joinedX - 200, _this.joinedY, "pixelFont", player, 20);
+                                _this.joinedY += 20;
+                            });
+                         }
+                    }
+                }
+            });
+        }
 
 
         this.anims.create({
