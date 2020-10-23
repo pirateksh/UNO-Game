@@ -35,7 +35,8 @@ class Scene2 extends Phaser.Scene {
 
         _this.exitButton.on("pointerdown", function (pointer) {
             // alert("Do you really want to exit?");
-
+            Game.leaveGameRequest(socket);
+            _this.scene.start("endGame");
         });
 
         if(me === gameRoomAdmin) {
@@ -53,7 +54,7 @@ class Scene2 extends Phaser.Scene {
 
             _this.crossButton.on("pointerdown", function (pointer) {
                 // alert("Do you really want to end the game?");
-                Game.endGameRequest();
+                Game.endGameRequest(socket);
             });
         }
 
@@ -69,7 +70,7 @@ class Scene2 extends Phaser.Scene {
         });
 
         _this.unoButton.on("pointerdown", function (pointer) {
-            currentGame.callUnoRequest();
+            currentGame.callUnoRequest(socket);
         });
 
         _this.deck = _this.physics.add.group();
@@ -102,7 +103,7 @@ class Scene2 extends Phaser.Scene {
 
         _this.topDeckCard.on("pointerdown", function (pointer) {
             console.log("Deck card has been clicked.");
-            currentGame.drawCardRequest(); ////
+            currentGame.drawCardRequest(socket); ////
         });
 
         socket.addEventListener("message", function (e) {
@@ -136,7 +137,7 @@ class Scene2 extends Phaser.Scene {
             else if (status === "end_game") {
                 _this.endGame();
                 // _this.scene.start("bootGame");
-                Game.changeSceneRequest(3);
+                Game.changeSceneRequest(socket, 3);
             }
             else if(status === "play_card") {
                 currentGame.copyData(gameData);
@@ -358,10 +359,35 @@ class Scene2 extends Phaser.Scene {
 
                 _this.moveOrSetTurnIndicator(true);
             }
+            else if(status === "user_left_room") {
+                console.log("USER LEFT ROOM.");
+                let leftUsername = data.left_user_username;
+                if(me !== leftUsername) {
+                    for(let i = 0; i < _this.oppHandGroup.getChildren().length; ++i) {
+                        let oppPlayerSprite = _this.oppHandGroup.getChildren()[i];
+                        let oppUsername = oppPlayerSprite.getData("username");
+                        if(oppUsername === leftUsername) {
+                            _this.tweens.add({
+                                targets: oppPlayerSprite,
+                                x: gameDetails.deckX,
+                                y: gameDetails.deckY,
+                                duration: 700,
+                                repeat: 0,
+                                onComplete: function () {
+                                    oppPlayerSprite.destroy();
+                                    alert(`${leftUsername} has left the game. ${leftUsername}'s card will be included into the deck.`);
+                                },
+                                callbackScope: _this
+                            });
+                            break;
+                        }
+                    }
+                }
+            }
         });
     }
 
-    startTimer() { /// csk
+    startTimer() {
         let _this = this;
         _this.timeRemainingToSkip = 60;// gameDetails.timeOutLimitInSeconds;
         if(_this.timedSkipEvent) {
@@ -382,7 +408,7 @@ class Scene2 extends Phaser.Scene {
         let _this = this;
         _this.timeRemainingToSkip--;
         if(_this.timeRemainingToSkip === 0) {
-            currentGame.timeOutRequest();
+            currentGame.timeOutRequest(socket);
             _this.timedSkipEvent.remove(false);
         }
     }
@@ -529,7 +555,7 @@ class Scene2 extends Phaser.Scene {
                         challengeButton.play("challengeButtonOut");
                     });
                     challengeButton.on("pointerdown", function (pointer) {
-                        currentGame.catchPlayerRequest(otherPlayer);
+                        currentGame.catchPlayerRequest(socket, otherPlayer);
                     });
 
                     _this.challengeButtons.add(challengeButton);
@@ -616,7 +642,7 @@ class Scene2 extends Phaser.Scene {
                 });
 
                 noButton.on("pointerdown", function (pointer) {
-                    currentGame.keepCardAfterDrawingRequest(drawnCardObject);
+                    currentGame.keepCardAfterDrawingRequest(socket, drawnCardObject);
                     yesButton.destroy();
                     noButton.destroy();
 
@@ -643,7 +669,7 @@ class Scene2 extends Phaser.Scene {
                         _this.chooseColorOfWildCards(drawnCardObject, index);
                     }
                     else {
-                        currentGame.playCardRequest(drawnCardObject, index, drawnCardObject.category);
+                        currentGame.playCardRequest(socket, drawnCardObject, index, drawnCardObject.category);
 
                         // Brightening Background
                         _this.dimOrBrightBackground(false);
@@ -690,7 +716,7 @@ class Scene2 extends Phaser.Scene {
             _this.greenButton.destroy();
             _this.redButton.destroy();
             _this.yellowButton.destroy();
-            currentGame.playCardRequest(drawnCardObject, index, "B");
+            currentGame.playCardRequest(socket, drawnCardObject, index, "B");
 
             // Brightening Background
             _this.dimOrBrightBackground(false);
@@ -708,7 +734,7 @@ class Scene2 extends Phaser.Scene {
             _this.greenButton.destroy();
             _this.redButton.destroy();
             _this.yellowButton.destroy();
-            currentGame.playCardRequest(drawnCardObject, index, "G");
+            currentGame.playCardRequest(socket, drawnCardObject, index, "G");
 
             // Brightening Background
             _this.dimOrBrightBackground(false);
@@ -726,7 +752,7 @@ class Scene2 extends Phaser.Scene {
             _this.greenButton.destroy();
             _this.redButton.destroy();
             _this.yellowButton.destroy();
-            currentGame.playCardRequest(drawnCardObject, index, "R");
+            currentGame.playCardRequest(socket, drawnCardObject, index, "R");
 
             // Brightening Background
             _this.dimOrBrightBackground(false);
@@ -744,7 +770,7 @@ class Scene2 extends Phaser.Scene {
             _this.greenButton.destroy();
             _this.redButton.destroy();
             _this.yellowButton.destroy();
-            currentGame.playCardRequest(drawnCardObject, index, "Y");
+            currentGame.playCardRequest(socket, drawnCardObject, index, "Y");
 
             // Brightening Background
             _this.dimOrBrightBackground(false);
@@ -962,7 +988,7 @@ class Scene2 extends Phaser.Scene {
                     _this.chooseColorOfWildCards(card, index);
                 }
                 else {
-                    currentGame.playCardRequest(card, index, card.category);
+                    currentGame.playCardRequest(socket, card, index, card.category);
                 }
             });
         }

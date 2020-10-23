@@ -30,7 +30,8 @@ class Scene3 extends Phaser.Scene {
         _this.timeRemaining--;
 
         if(_this.timeRemaining === 0) {
-            window.location.replace("http://localhost:8080/game/play_now/");
+            window.location.replace(redirectUrl);
+            _this.timedEvent.remove(false);
         }
     }
 

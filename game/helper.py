@@ -319,6 +319,10 @@ class GameServer:
         :param player:
         :return:
         """
+        # Adding cards back to deck.
+        for card in player.hand:
+            self.deck.back_to_deck(card=card)
+        player.hand = []
         self.players.remove(player)
         self.player_usernames.remove(player.username)
         delete_object(player)
