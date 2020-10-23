@@ -5,9 +5,8 @@ class Scene2 extends Phaser.Scene {
     /*
     * TODO: -- Kshitiz.
     *  1. Implement Illegal Wild Four Draw / Challenging when a Wild Four is Drawn.
-    *  2. Implement calling UNO / Challenging if UNO is not called by player left with 1 card.
-    *  3. Try to implement a game tour for new players.
-    *  4. If a player leaves game, his cards should be kept back into deck.
+    *  2. Try to implement a game tour for new players.
+    *  3. If a player leaves game, his cards should be kept back into deck.
     * */
     create() {
         let _this = this;
@@ -16,6 +15,9 @@ class Scene2 extends Phaser.Scene {
 
         _this.table = _this.add.tileSprite(0, 0, config.width, config.height, "table");
         _this.table.setOrigin(0,0);
+
+        _this.timeRemainingToSkip = 60;
+        _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, 20, "pixelFont", _this.timeRemainingToSkip, 50);
 
         // Adding exit button
         _this.exitButton = _this.physics.add.sprite(gameDetails.exitButtonX, gameDetails.exitButtonY, "exitButton");
@@ -120,6 +122,9 @@ class Scene2 extends Phaser.Scene {
                     console.log("Start Game From Scene 2");
                 }
                 currentGame.copyData(gameData);
+
+                _this.startTimer();
+
                 _this.startGameEventConsumer(backendResponse.serializedPlayer);
 
                 if(me !== currentGame.getCurrentPlayer()) {
@@ -133,6 +138,9 @@ class Scene2 extends Phaser.Scene {
             }
             else if(status === "play_card") {
                 currentGame.copyData(gameData);
+
+                _this.startTimer();
+
                 _this.playCardEventConsumer(backendResponse, false);
 
                 if(me !== currentGame.getCurrentPlayer()) {
@@ -146,6 +154,9 @@ class Scene2 extends Phaser.Scene {
 
                 // Play the Card.
                 currentGame.copyData(gameData);
+
+                _this.startTimer();
+
                 _this.playCardEventConsumer(backendResponse, false);
 
                 // Draw card for next player.
@@ -184,6 +195,9 @@ class Scene2 extends Phaser.Scene {
             else if(status === "voluntary_draw_card") {
                 // TODO: Bug when player drew WILD FOUR. Look into it.
                 currentGame.copyData(gameData);
+
+                _this.startTimer();
+
                 let voluntaryDrawData = backendResponse.voluntaryDrawData;
                 let username = voluntaryDrawData.username;
                 let drawnCard = JSON.parse(voluntaryDrawData.drawnCard);
@@ -227,6 +241,8 @@ class Scene2 extends Phaser.Scene {
             else if(status === "keep_card") {
                 currentGame.copyData(gameData);
 
+                _this.startTimer();
+
                 _this.makeHandInteractive();
 
                 if(me !== currentGame.getCurrentPlayer()) {
@@ -235,7 +251,7 @@ class Scene2 extends Phaser.Scene {
 
                 _this.moveOrSetTurnIndicator(true);
             }
-            else if(status === "won_round") {
+            else if(status === "won_round") { // TODO: Add timer or not. -- Kshitiz
                 _this.playCardEventConsumer(backendResponse, true);
             }
             else if(status === "won_game") {
@@ -303,6 +319,32 @@ class Scene2 extends Phaser.Scene {
                 }
             }
         });
+    }
+
+    startTimer() { /// csk
+        let _this = this;
+        _this.timeRemainingToSkip = 60;
+        if(_this.timedSkipEvent) {
+            _this.timedSkipEvent.remove(false);
+        }
+        if(currentGame.getCurrentPlayer() === me) {
+            console.log("TIMER HAS BEEN STARTED.");
+            _this.timedSkipEvent = _this.time.addEvent({
+                delay: 1000,
+                callback: _this.skipTurn,
+                callbackScope: _this,
+                loop: true
+            });
+        }
+    }
+
+    skipTurn() {
+        let _this = this;
+        _this.timeRemainingToSkip--;
+        if(_this.timeRemainingToSkip === 0) {
+            currentGame.skipTurnRequest();
+            _this.timedSkipEvent.remove(false);
+        }
     }
 
     dimOrBrightBackground(dim) {
@@ -1043,6 +1085,7 @@ class Scene2 extends Phaser.Scene {
     }
 
     update() {
-
+        let _this = this;
+        _this.timeRemainingCounter.setText(_this.timeRemainingToSkip);
     }
 }

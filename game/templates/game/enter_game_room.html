@@ -348,6 +348,10 @@
                 }
             }
 
+            skipTurnRequest() {
+                alert("Your turn will be skipped!");
+            }
+
             playCardRequest(card, index, nextTopColor) {
                 // Method to send data to backend using socket and play a card.
                 // If the move is valid, server will respond.
