@@ -15,14 +15,40 @@ class Scene2 extends Phaser.Scene {
         _this.config = game.config;
         let config = _this.config;
 
-        // _this.table = _this.add.tileSprite(0, 0, config.width, config.height, "table");
-        // _this.table.setOrigin(0,0);
-
         _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
         _this.starfield2.setOrigin(0,0);
 
+
+        let FKey = this.input.keyboard.addKey('F');
+
+        FKey.on('down', function () {
+            if (this.scale.isFullscreen) {
+                button.setFrame(0);
+                this.scale.stopFullscreen();
+            }
+            else {
+                button.setFrame(1);
+                this.scale.startFullscreen();
+            }
+
+        }, this);
+
+        let button = _this.add.image(game.config.width-16, 16, 'fullscreen', 0).setOrigin(1, 0).setScale(0.5).setInteractive();
+
+        button.on('pointerup', function () {
+            if (_this.scale.isFullscreen) {
+                button.setFrame(0);
+                _this.scale.stopFullscreen();
+            }
+            else {
+                button.setFrame(1);
+                _this.scale.startFullscreen();
+            }
+        }, _this);
+
+
         _this.timeRemainingToSkip = gameDetails.timeOutLimitInSeconds;
-        _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, 20, "pixelFont", _this.timeRemainingToSkip, 50);
+        _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, _this.config.height - 50, "pixelFont", _this.timeRemainingToSkip, 50);
 
         // Adding exit button
         _this.exitButton = _this.physics.add.sprite(gameDetails.exitButtonX, gameDetails.exitButtonY, "exitButton");

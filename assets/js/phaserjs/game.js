@@ -11,7 +11,7 @@ let currentAnimKeys = [];
 
 window.onload = function () {
 
-	let width = 700, height = 600;
+	let width = 1200, height = 600;
 
 	gameDetails = {
 		deckX: width/2 - 100,

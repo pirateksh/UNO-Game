@@ -15,6 +15,34 @@ class Scene3 extends Phaser.Scene {
         _this.starfield2.setOrigin(0,0);
 
 
+        let FKey = _this.input.keyboard.addKey('F');
+
+        FKey.on('down', function () {
+            if (_this.scale.isFullscreen) {
+                button.setFrame(0);
+                _this.scale.stopFullscreen();
+            }
+            else {
+                button.setFrame(1);
+                _this.scale.startFullscreen();
+            }
+        }, _this);
+
+        let button = _this.add.image(game.config.width-16, 16, 'fullscreen', 0).setOrigin(1, 0).setScale(0.5).setInteractive();
+
+        button.on('pointerup', function () {
+            if (_this.scale.isFullscreen) {
+                button.setFrame(0);
+                _this.scale.stopFullscreen();
+            }
+            else {
+                button.setFrame(1);
+                _this.scale.startFullscreen();
+            }
+        }, _this);
+
+
+
         _this.add.text(config.width / 2 - 200, config.height / 2, "Game has ended! Following are the player's scores.");
 
         let closeIn = _this.add.text(config.width / 2 - 200, config.height / 2 + 50,

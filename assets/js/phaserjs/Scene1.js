@@ -107,6 +107,10 @@ class Scene1 extends Phaser.Scene {
             frameHeight: 130
         });
 
+        this.load.spritesheet('fullscreen', `${generatePath("spritesheets", "fullscreen-white.png")}`, {
+            frameWidth: 64,
+            frameHeight: 64
+        });
 
         this.load.bitmapFont("pixelFont", `${generatePath("font", "font.png")}`, `${generatePath("font", "font.xml")}`);
 
@@ -114,15 +118,37 @@ class Scene1 extends Phaser.Scene {
 
     create() {
         let _this = this;
-        // Center game canvas on page
-        // this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-        // this.game.scale.pageAlignHorizontally = true;
-        // this.game.scale.pageAlignVertically = true;
-        // _this.table = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "table");
-        // _this.table.setOrigin(0,0);
 
         _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
         _this.starfield2.setOrigin(0,0);
+
+
+        let FKey = _this.input.keyboard.addKey('F');
+
+        FKey.on('down', function () {
+            if (_this.scale.isFullscreen) {
+                button.setFrame(0);
+                _this.scale.stopFullscreen();
+            }
+            else {
+                button.setFrame(1);
+                _this.scale.startFullscreen();
+            }
+        }, _this);
+
+        let button = _this.add.image(game.config.width-16, 16, 'fullscreen', 0).setOrigin(1, 0).setScale(0.5).setInteractive();
+
+        button.on('pointerup', function () {
+            if (_this.scale.isFullscreen) {
+                button.setFrame(0);
+                _this.scale.stopFullscreen();
+            }
+            else {
+                button.setFrame(1);
+                _this.scale.startFullscreen();
+            }
+        }, _this);
+
 
         _this.unoLogo = _this.physics.add.sprite(game.config.width/2, 180, "unoLogo");
         _this.unoLogo.setScale(0.8);
