@@ -7,14 +7,14 @@
 
 {% block style %}
     <style type="text/css">
-        canvas {
-                display: block;
-                margin: 0;
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-            }
+        {#canvas {#}
+        {#        display: block;#}
+        {#        margin: 0;#}
+        {#        position: absolute;#}
+        {#        top: 50%;#}
+        {#        left: 50%;#}
+        {#        transform: translate(-50%, -50%);#}
+        {#    }#}
         #VideoGrid{
             border: red dotted 2px;
             width: 40%;
@@ -33,28 +33,25 @@
 
 {% block content %}
     {% if game_room %}
-            <div>
-                Game Room ID: {{ game_room.unique_game_id }}
-                <br/>
-                Game Room Admin: {{ game_room.admin.username }}
-                <br/>
-                <br/>
-            </div>
+        <div style="border-style: dotted;" class="container-fluid" id="id_phaser_game"></div>
+        <div>
+            Game Room ID: {{ game_room.unique_game_id }}
+            <br/>
+            Game Room Admin: {{ game_room.admin.username }}
+            <br/>
+            <br/>
+        </div>
 
-            <div id="VideoGrid">
-    {#            <video >#}
-    {#                <source src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">#}
-    {#                Your browser does not support HTML video.#}
-    {#            </video>#}
-            </div>
-
-
-        {% endif %}
+        <div id="VideoGrid">
+{#            <video >#}
+{#                <source src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">#}
+{#                Your browser does not support HTML video.#}
+{#            </video>#}
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block javascript %}
-
-
     <script>
         // This script tag contains only DOM elements picked using jQuery.
         let connectedList = $("#id_connected_players_{{ game_room.pk }}");
@@ -444,4 +441,5 @@
     <script type="text/javascript" src="{% static 'js/phaserjs/Scene1.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/phaserjs/Scene2.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/phaserjs/Scene3.js' %}"></script>
+
 {% endblock %}

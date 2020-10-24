@@ -114,6 +114,7 @@ class Scene1 extends Phaser.Scene {
 
         this.load.bitmapFont("pixelFont", `${generatePath("font", "font.png")}`, `${generatePath("font", "font.xml")}`);
 
+        this.load.video('wormhole', `${generatePath("video", "wormhole.mp4")}`, 'loadeddata', false, true);
     }
 
     create() {
@@ -122,6 +123,14 @@ class Scene1 extends Phaser.Scene {
         _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
         _this.starfield2.setOrigin(0,0);
 
+        // let text = _this.add.text(320, 128, 'Please set your\nphone to landscape', { font: '48px Courier', fill: '#00ff00', align: 'center' }).setOrigin(0.5);
+        //
+        // checkOriention(_this.scale.orientation, text);
+        //
+        // _this.scale.on('orientationchange', checkOriention, _this);
+        // var vid = this.add.video(100, 100, 'wormhole');
+        //
+        // vid.play(true);
 
         let FKey = _this.input.keyboard.addKey('F');
 
@@ -244,25 +253,40 @@ class Scene1 extends Phaser.Scene {
         let VideoGrid = document.getElementById('VideoGrid');
         let Video = document.createElement('video'); // This video Element will contain users own video
 
+        _this.videoX = 100;
+        _this.videoY = 70;
+        _this.videoGroup = _this.physics.add.group();
         function addVideoStream(Video, stream, label="Some user in Room") {
-            Video.srcObject = stream; // adding the stream as the src of the video to our myVideo video Element
-            Video.addEventListener('loadedmetadata', () => {
-                Video.play()
+            let vidElem = _this.add.video(100, 100);
+            vidElem.depth = 10;
+            vidElem.loadURL("", 'loadeddata', true);
+            vidElem.video.srcObject = stream;
+            vidElem.setScale(0.35);
+            vidElem.video.addEventListener('loadedmetadata', () => {
+                vidElem.video.play();
+                _this.tweens.add({
+                    targets: vidElem,
+                    x: game.config.width,
+                    y: game.config.height,
+                    duration: 2000,
+                    yoyo: true,
+                    callbackScope: _this
+                });
             });
-            let NewVideoCont = document.createElement('div');
-            NewVideoCont.style.display = "inline-block";
-            NewVideoCont.style.boxSizing = "border-box";
-            NewVideoCont.style.width = "100px";
-            let NewVideoLabel = document.createElement('p');
-            NewVideoLabel.innerHTML = label;
-            VideoGrid.append(NewVideoCont);
-            NewVideoCont.append(NewVideoLabel);
-            NewVideoCont.id = "div_" + label;
-            NewVideoLabel.id = label;
-            Video.id = "vid_" + label;
-            NewVideoCont.append(Video);
+            // let NewVideoCont = document.createElement('div');
+            // NewVideoCont.style.display = "inline-block";
+            // NewVideoCont.style.boxSizing = "border-box";
+            // NewVideoCont.style.width = "100px";
+            // let NewVideoLabel = document.createElement('p');
+            // NewVideoLabel.innerHTML = label;
+            // VideoGrid.append(NewVideoCont);
+            // NewVideoCont.append(NewVideoLabel);
+            // NewVideoCont.id = "div_" + label;
+            // NewVideoLabel.id = label;
+            // Video.id = "vid_" + label;
+            // NewVideoCont.append(Video);
             if(label === me){
-                Video.muted = true;
+                vidElem.video.muted = true;
             }
         }
 
@@ -321,11 +345,11 @@ class Scene1 extends Phaser.Scene {
                     for(let i = 0; i < currentGame.players.length; ++i) {
                         let player = currentGame.players[i];
                         if(i % 2) {
-                            _this.add.text(_this.joinedX + 120, _this.joinedY, player);
+                            _this.add.text(_this.joinedX + 120, _this.joinedY, player, {fill: '#00ff00'});
                             _this.joinedY += 20;
                         }
                         else {
-                            _this.add.text(_this.joinedX - 200, _this.joinedY, player);
+                            _this.add.text(_this.joinedX - 200, _this.joinedY, player, {fill: '#00ff00'});
                         }
                     }
                 }
@@ -342,11 +366,11 @@ class Scene1 extends Phaser.Scene {
                     currentGame.players.push(new_user_username);
                     let playerCount = currentGame.players.length - 1;
                     if(playerCount % 2) {
-                        _this.add.text(_this.joinedX + 120, _this.joinedY, new_user_username);
+                        _this.add.text(_this.joinedX + 120, _this.joinedY, new_user_username, {fill: '#00ff00'});
                         _this.joinedY += 20;
                     }
                     else {
-                        _this.add.text(_this.joinedX - 200, _this.joinedY, new_user_username);
+                        _this.add.text(_this.joinedX - 200, _this.joinedY, new_user_username, {fill: '#00ff00'});
                     }
                 }
             }
