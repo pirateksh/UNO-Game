@@ -43,6 +43,7 @@ window.onload = function () {
 	};
 
 	let config = {
+		type: Phaser.WEBGL,
 		width: width,
 		height: height,
 		backgroundColor: 0xffffff,

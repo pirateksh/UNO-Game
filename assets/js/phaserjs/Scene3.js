@@ -8,8 +8,11 @@ class Scene3 extends Phaser.Scene {
         _this.config = game.config;
         let config = _this.config;
 
-        _this.table = _this.add.tileSprite(0, 0, config.width, config.height, "table");
-        _this.table.setOrigin(0,0);
+        // _this.table = _this.add.tileSprite(0, 0, config.width, config.height, "table");
+        // _this.table.setOrigin(0,0);
+
+        _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
+        _this.starfield2.setOrigin(0,0);
 
 
         _this.add.text(config.width / 2 - 200, config.height / 2, "Game has ended! Following are the player's scores.");

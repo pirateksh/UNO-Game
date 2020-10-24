@@ -5,6 +5,13 @@ class Scene1 extends Phaser.Scene {
 
     preload() {
         this.load.image("table", `${generatePath("images", "table.jpg")}`);
+        this.load.image("starfield_1", `${generatePath("images", "starfield_1.png")}`);
+        this.load.image("starfield_2", `${generatePath("images", "starfield_2.jpg")}`);
+
+        this.load.spritesheet("unoLogo", `${generatePath("spritesheets", "uno.png")}`, {
+            frameWidth: 419,
+            frameHeight: 369
+        });
 
         this.load.spritesheet("cardBack", `${generatePath("images", "back.png")}`, {
             frameWidth: 93,
@@ -111,14 +118,25 @@ class Scene1 extends Phaser.Scene {
         // this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
         // this.game.scale.pageAlignHorizontally = true;
         // this.game.scale.pageAlignVertically = true;
-        _this.table = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "table");
-        _this.table.setOrigin(0,0);
+        // _this.table = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "table");
+        // _this.table.setOrigin(0,0);
 
+        _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
+        _this.starfield2.setOrigin(0,0);
 
-        // _this.add.text(20, 20, "Loading Game...", {color: "#fff"});
+        _this.unoLogo = _this.physics.add.sprite(game.config.width/2, 180, "unoLogo");
+        _this.unoLogo.setScale(0.8);
+        this.tweens.add({
+            targets: _this.unoLogo,
+            scale: 0.5,
+            duration: 2000,
+            ease: 'Linear',
+            yoyo: true,
+            loop: -1
+        });
 
         if(me === gameRoomAdmin) {
-            _this.playButton = _this.physics.add.sprite(game.config.width/2, game.config.height/2, "playButton");
+            _this.playButton = _this.physics.add.sprite(game.config.width/2, game.config.height/2 + 100, "playButton");
             _this.playButton.setScale(0.3);
             _this.playButton.setInteractive();
 
@@ -136,11 +154,11 @@ class Scene1 extends Phaser.Scene {
         }
         else { // This will be changed.
             // _this.scene.start("playGame");
-            _this.add.text(game.config.width/2 - 85, game.config.height/2, "Waiting for players to be added....");
+            _this.add.text(game.config.width/2 - 140, game.config.height/2 + 70, "Wait for admin to start the game....");
         }
 
         _this.joinedX = game.config.width / 2;
-        _this.joinedY = game.config.height / 2 + 100;
+        _this.joinedY = game.config.height / 2 + 130;
 
         /*******************************
             WEBSOCKET CONNECTION
@@ -274,10 +292,15 @@ class Scene1 extends Phaser.Scene {
                 if(currentGame == null) {
                     currentGame = new Game(gameData);
                     console.log("Connected Players", currentGame.players);
-                    for(let player of currentGame.players) {
-                        // _this.add.bitmapText( _this.joinedX - 200, _this.joinedY, "pixelFont", player, 20);
-                        _this.add.text(_this.joinedX - 200, _this.joinedY, player);
-                        _this.joinedY += 20;
+                    for(let i = 0; i < currentGame.players.length; ++i) {
+                        let player = currentGame.players[i];
+                        if(i % 2) {
+                            _this.add.text(_this.joinedX + 120, _this.joinedY, player);
+                            _this.joinedY += 20;
+                        }
+                        else {
+                            _this.add.text(_this.joinedX - 200, _this.joinedY, player);
+                        }
                     }
                 }
              }
@@ -291,9 +314,14 @@ class Scene1 extends Phaser.Scene {
                 // currentGame.connectPlayer(new_user_username);
                 if(!currentGame.players.includes(new_user_username)) {
                     currentGame.players.push(new_user_username);
-                    // _this.add.bitmapText( _this.joinedX - 200, _this.joinedY, "pixelFont", new_user_username, 20);
-                    _this.add.text(_this.joinedX - 200, _this.joinedY, new_user_username);
-                    _this.joinedY += 20;
+                    let playerCount = currentGame.players.length - 1;
+                    if(playerCount % 2) {
+                        _this.add.text(_this.joinedX + 120, _this.joinedY, new_user_username);
+                        _this.joinedY += 20;
+                    }
+                    else {
+                        _this.add.text(_this.joinedX - 200, _this.joinedY, new_user_username);
+                    }
                 }
             }
             else if(status === "user_left_room"){
@@ -340,6 +368,8 @@ class Scene1 extends Phaser.Scene {
         /*******************************
             WEBSOCKET CONNECTION ENDED
          *******************************/
+
+
 
         this.anims.create({
 			key: "yourTurnAnim", // Name of animation
