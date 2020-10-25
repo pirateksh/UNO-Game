@@ -6,6 +6,15 @@ User = get_user_model()
 
 class UserProfile(models.Model):
 
+    NOOBIE, EXPERT, CHAMPION, UNIVERSE_BOSS = 1, 2, 3, 4
+
+    league_choices = (
+        (NOOBIE, "Noobie"),
+        (EXPERT, "Expert"),
+        (CHAMPION, "Champion"),
+        (UNIVERSE_BOSS, "Universe Boss"),
+    )
+
     # User whose profile is to be created.
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
@@ -25,12 +34,15 @@ class UserProfile(models.Model):
     winning_streak = models.IntegerField(default=0, verbose_name="Winning Streak")
 
     # current_league/rating = models.CharField()
+    current_league = models.IntegerField(choices=league_choices, default=NOOBIE, verbose_name="Current League")
+
+    maximum_league = models.IntegerField(choices=league_choices, default=NOOBIE, verbose_name="Maximum League")
 
     # maximum_league/rating = models.CharField()
 
     # image/avatar at assets/img/profile_images
 
-    # is_online
+    is_online = models.BooleanField(default=False, verbose_name="Is Online")
 
     def __str__(self):
         return self.user.username
