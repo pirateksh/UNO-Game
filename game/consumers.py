@@ -214,6 +214,49 @@ class GameRoomConsumer(AsyncConsumer):
                 }
             )
 
+            # TODO: Trying match making.
+            if type_of_event == "user.new":
+                if self.game_room_obj.type == GameRoom.PUBLIC:
+                    count = self.game.get_count_of_players()
+                    print("Count so far:", count)
+                    if count == 3:
+                        print("CHANGING SCENE!.")
+                        change_scene_response = {
+                            "status": "change_scene",
+                            "message": "Scene Changed",
+                            "data": {
+                                "sceneNumber": 2,
+                            }
+                        }
+                        await self.channel_layer.group_send(
+                            self.game_room_id,
+                            {
+                                "type": "change.scene",
+                                "text": json.dumps(change_scene_response)
+                            }
+                        )
+
+                        print("Wait for 2 seconds")
+                        await asyncio.sleep(2)
+                        print("2 seconds over")
+                        print("Starting Public Game.")
+                        self.game.start_game()
+                        await self.set_is_game_running_true()
+                        public_response = {
+                            "status": "start_game",
+                            "message": "Public Game has been started.",
+                            "data": text_of_event['data'],
+                            "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder),
+                        }
+                        await self.channel_layer.group_send(
+                            self.game_room_id,
+                            {
+                                "type": "start.game",
+                                "text": json.dumps(public_response)
+                            }
+                        )
+                        print("Started Public Game.")
+
     async def time_out(self, event):
         text = json.loads(event['text'])
         data = text['data']
@@ -386,7 +429,8 @@ class GameRoomConsumer(AsyncConsumer):
 
     async def start_game(self, event):
         await self.increase_total_played_games_count(player_username=self.me.username)
-
+        if self.game_room_obj.type == GameRoom.PUBLIC:
+            print("FFFF: Starting Public Game inside Handler.")
         text = event.get('text', None)
         if text:
             loaded_dict_data = json.loads(text)

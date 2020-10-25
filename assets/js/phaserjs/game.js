@@ -5,7 +5,8 @@ const NONE = 13;
 
 constraintObj = {
 	audio: true,
-	video: false
+	video: true
+
 	// video: {
 	// 	facingMode: "user",
 	// }

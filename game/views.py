@@ -1,8 +1,9 @@
 from django.shortcuts import render, reverse, HttpResponseRedirect, HttpResponse, Http404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from django.db.models import Q
-from .models import GameRoom, Player  #Card, GameRoomDeckCard, PlayerHandCard
+from .models import GameRoom, Player
 from channels.layers import get_channel_layer
 import json
 from asgiref.sync import async_to_sync
@@ -12,7 +13,11 @@ SUCCESS = "success"
 MAX_JOINED_PLAYER_COUNT = 10
 MINIMUM_ONLINE_PLAYER_REQUIRED = 2
 
+ACTIVE_GAME_ROOMS = []  # Will contain unique ID of active game rooms.
+
 channel_layer = get_channel_layer()
+
+User = get_user_model()
 
 
 def broadcast_notification(group_name, message):
@@ -40,6 +45,23 @@ def play_now(request):
     return render(request, 'game/play_now.html', {})
 
 
+# TODO: Play Anonymously option for authenticated users as well.
+def enter_public_play(request):
+    player = request.user
+    if player.is_authenticated:
+        if ACTIVE_GAME_ROOMS:
+            active_unique_id = ACTIVE_GAME_ROOMS[0]
+        else:
+            admin = User.objects.get(username="admin")
+            new_public_game_room = GameRoom.objects.create(admin=admin, type=GameRoom.PUBLIC)
+            active_unique_id = new_public_game_room.unique_game_id
+            ACTIVE_GAME_ROOMS.append(active_unique_id)
+        return HttpResponseRedirect(reverse('join_game_room', kwargs={'unique_id': active_unique_id}))
+    else:
+        message = f"You need to Login/Signup first."
+        raise Http404(message)
+
+
 def enter_friend_play(request):
     if request.method == "GET":
         unique_id = request.GET['friend_unique_id']
@@ -57,7 +79,7 @@ def create_game_room(request):
     user = request.user
     if user.is_authenticated:
         # Creating a new GameRoom Object
-        new_game_room = GameRoom.objects.create(admin=user)
+        new_game_room = GameRoom.objects.create(admin=user, type=GameRoom.FRIEND)
 
         # Creating a Player Object corresponding to admin
         player_obj = Player.objects.create(player=user, game_room=new_game_room)
@@ -162,151 +184,3 @@ def enter_game_room(request, unique_id):
     else:
         error_message = f"Game with unique_id {unique_id} not found."
         raise Http404(error_message)
-
-
-@login_required
-def start_game(request, unique_id):
-    """
-        View to Start a Game in a Game Room. This will be called by an AJAX call.
-    :param request:
-    :param unique_id: Unique Game ID
-    :return:
-    """
-    pass
-    # user = request.user
-    # data = {}
-    # message = ""
-    # if request.method == "GET":
-    #     game_room_qs = GameRoom.objects.filter(unique_game_id=unique_id)
-    #     if game_room_qs:
-    #         game_room = game_room_qs[0]
-    #         online_player_count = Player.objects.filter(game_room=game_room, is_online=True).count()
-    #
-    #         # If current user is not the admin of GameRoom
-    #         if user.username != game_room.admin.username:
-    #             status = ERROR
-    #             message = f"You are not the admin of this Game Room (Unique ID: {unique_id})."
-    #
-    #         # If the Game is already running in this GameRoom
-    #         elif game_room.is_game_running:
-    #             status = ERROR
-    #             message = f"Game is already Running in this Game Room (Unique ID: {unique_id})"
-    #
-    #         # If count of currently online players is less than minimum required players (i.e. 2)
-    #         elif online_player_count < MINIMUM_ONLINE_PLAYER_REQUIRED:
-    #             status = ERROR
-    #             message = f"Sufficient Players have not entered the Game Room yet. Wait for more players to Enter the Room."
-    #
-    #         # If everything is fine
-    #         else:
-    #             # Change is_game_running to True
-    #             game_room.is_game_running = True
-    #             game_room.save()
-    #
-    #             # Preparing Card Deck
-    #             blue_cards, green_cards = Card.objects.filter(category=Card.BLUE), Card.objects.filter(category=Card.GREEN)
-    #             yellow_cards, red_cards = Card.objects.filter(category=Card.YELLOW), Card.objects.filter(category=Card.RED)
-    #             other_cards = Card.objects.filter(Q(category=Card.WILD) | Q(category=Card.WILD_FOUR))
-    #             group_name = game_room.unique_game_id
-    #
-    #             for cards, color in zip([blue_cards, green_cards, yellow_cards, red_cards, other_cards], ["Blue", "Green", "Yellow", "Red", "Wild and Wild Four"]):
-    #                 notification_message = f"Adding {color} Cards to Deck."
-    #                 broadcast_notification(group_name=group_name, message=notification_message)
-    #                 for card in cards:
-    #                     GameRoomDeckCard.objects.create(game_room=game_room, card=card)
-    #
-    #             status = SUCCESS
-    #     else:
-    #         status = ERROR
-    #         message = f"Game Room with Unique ID {unique_id} not found."
-    # else:
-    #     status = ERROR
-    #     message = f"Invalid Request"
-    #
-    # response = {
-    #     "status": status,
-    #     "data": data,
-    #     "message": message,
-    # }
-    # return JsonResponse(response)
-
-
-@login_required
-def end_game(request, unique_id):
-    """
-        View to End a Game Running in a Game Room. This will be called by an AJAX call.
-    :param request:
-    :param unique_id:
-    :return:
-    """
-    pass
-    # user = request.user
-    # data = {}
-    # message = ""
-    # if request.method == "GET":
-    #     game_room_qs = GameRoom.objects.filter(unique_game_id=unique_id)
-    #     if game_room_qs:
-    #         game_room = game_room_qs[0]
-    #         if user.username != game_room.admin.username:
-    #             status = ERROR
-    #             message = f"You are not the admin of this Game Room (Unique ID: {unique_id})."
-    #         elif not game_room.is_game_running:
-    #             status = ERROR
-    #             message = f"No game is Running in this Game Room (Unique ID: {unique_id})"
-    #         else:
-    #             # Change is_game_running to False
-    #             game_room.is_game_running = False
-    #             game_room.save()
-    #
-    #             # Clearing Game Room Deck Cards
-    #             GameRoomDeckCard.objects.filter(game_room=game_room).delete()
-    #
-    #             # Clearing Player Hand Cards for each player in this room
-    #             players_qs = Player.objects.filter(game_room=game_room)
-    #             for player in players_qs:
-    #                 PlayerHandCard.objects.filter(player=player).delete()
-    #
-    #             status = SUCCESS
-    #
-    #     else:
-    #         status = ERROR
-    #         message = f"Game Room with Unique ID {unique_id} not found."
-    # else:
-    #     status = ERROR
-    #     message = f"Invalid Request"
-    #
-    # response = {
-    #     "status": status,
-    #     "data": data,
-    #     "message": message,
-    # }
-    # return JsonResponse(response)
-
-
-@login_required
-def add_cards(request):
-    """
-        A View to add all cards possible in UNO in the Card Model.
-        Ideally, to be called only once by Admin (superuser).
-    :param request:
-    :return:
-    """
-    pass
-    # user = request.user
-    # if user.is_superuser:
-    #     all_cards = Card.objects.all()
-    #     if all_cards:
-    #         return HttpResponse("Cards are already set. If you want to set again, disable this from add_cards view.")
-    #     for category in [Card.BLUE, Card.GREEN, Card.YELLOW, Card.RED]:
-    #         Card.objects.create(category=category, number=Card.ZERO)
-    #
-    #         for number in [Card.ONE, Card.TWO, Card.THREE, Card.FOUR, Card.FIVE, Card.SIX, Card.SEVEN, Card.EIGHT, Card.NINE, Card.SKIP, Card.REVERSE, Card.DRAW_TWO]:
-    #             Card.objects.create(category=category, number=number)
-    #             Card.objects.create(category=category, number=number)
-    #
-    #     for i in range(4):
-    #         Card.objects.create(category=Card.WILD, number=Card.NONE)
-    #         Card.objects.create(category=Card.WILD_FOUR, number=Card.NONE)
-    #     return HttpResponse("Cards have been set successfully.")
-    # else:
-    #     raise Http404(f"You are not authenticated to visit this URL.")

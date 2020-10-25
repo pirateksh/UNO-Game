@@ -7,7 +7,7 @@ User = get_user_model()
 class UserProfile(models.Model):
 
     NOOBIE, EXPERT, CHAMPION, UNIVERSE_BOSS = 1, 2, 3, 4
-
+    # SUPER_NATURAL, AMATEUR, PUPIL, OP
     league_choices = (
         (NOOBIE, "Noobie"),
         (EXPERT, "Expert"),

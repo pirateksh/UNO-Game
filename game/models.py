@@ -15,6 +15,11 @@ def id_generator(size):
 
 
 class GameRoom(models.Model):
+    PUBLIC, FRIEND = 0, 1
+    type_choices = (
+        (PUBLIC, "Public"),
+        (FRIEND, "Friend"),
+    )
 
     admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
@@ -24,6 +29,8 @@ class GameRoom(models.Model):
 
     # Numbers of Player who have joined the game. Max Limit will be 10.
     joined_player_count = models.IntegerField(default=0, verbose_name="Joined Player Count")
+
+    type = models.PositiveSmallIntegerField(default=PUBLIC, choices=type_choices, verbose_name="Type")
 
     def save(self, *args, **kwargs):
         if self.unique_game_id is None:

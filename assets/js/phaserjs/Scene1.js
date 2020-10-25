@@ -258,25 +258,25 @@ class Scene1 extends Phaser.Scene {
         let Video = document.createElement('video'); // This video Element will contain users own video
 
         _this.videoX = 100;
-        _this.videoY = 70;
+        _this.videoY = 100;
         _this.videoGroup = _this.physics.add.group();
         function addVideoStream(Video, stream, label="Some user in Room") {
             let vidElem = _this.add.video(_this.videoX, _this.videoY);
-            _this.videoX += 70;
+            _this.videoY += 130;
             vidElem.depth = 10;
             vidElem.loadURL("", 'loadeddata', true);
             vidElem.video.srcObject = stream;
             vidElem.setScale(0.28);
             vidElem.video.addEventListener('loadedmetadata', () => {
                 vidElem.video.play();
-                _this.tweens.add({
-                    targets: vidElem,
-                    x: game.config.width,
-                    y: game.config.height,
-                    duration: 2000,
-                    yoyo: true,
-                    callbackScope: _this
-                });
+                // _this.tweens.add({
+                //     targets: vidElem,
+                //     x: game.config.width,
+                //     y: game.config.height,
+                //     duration: 2000,
+                //     yoyo: true,
+                //     callbackScope: _this
+                // });
             });
             // let NewVideoCont = document.createElement('div');
             // NewVideoCont.style.display = "inline-block";
