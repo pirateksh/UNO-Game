@@ -6,9 +6,8 @@ class Scene2 extends Phaser.Scene {
     * TODO: -- Kshitiz.
     *  1. Implement Illegal Wild Four Draw / Challenging when a Wild Four is Drawn.
     *  2. Try to implement a game tour for new players.
-    *  3. If a player leaves game, his cards should be kept back into deck.
-    *  4. Show current top color after wild and wild four.
-    *  5. Can make customizable cards available to players of certain league.
+    *  3. Show current top color after wild and wild four.
+    *  4. Can make customizable cards available to players of certain league.
     * */
     create() {
         let _this = this;
@@ -293,6 +292,7 @@ class Scene2 extends Phaser.Scene {
                 let wonScore = wonData.score;
                 Game.addScoreToDOM(wonUsername, wonScore);
                 alert(`${wonUsername} won with score = ${wonScore}. Start a new game or leave the room.`);
+                Game.changeSceneRequest(socket, 3);
             }
             else if(status === "call_uno") {
                 let username = data.username;
@@ -451,7 +451,7 @@ class Scene2 extends Phaser.Scene {
             dimAlpha = 1;
         }
 
-        _this.table.alpha = dimAlpha;
+        _this.starfield2.alpha = dimAlpha;
 
         for(let i = 0; i < myHand.getCount() - 1; ++i) { // Not dimming the just drawn card which is already included in the hand.
             let cardSprite = myHand.getCardSpriteAt(i);

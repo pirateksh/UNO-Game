@@ -66,8 +66,7 @@ def signup(request):
             user.save()
             user = authenticate(username=username, password=password1)
 
-            # Creating user profile
-            user_profile = UserProfile.objects.create(user=user)
+            # Note: UserProfile object is being created using django signals.
 
             if user:
                 login(request, user)
