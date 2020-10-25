@@ -32,8 +32,10 @@
 {% endblock %}
 
 {% block content %}
-    <button onclick="start_recording()"> Start Recoding Game</button>
-    <button onclick="stop_recording()"> Stop Recoding</button>
+    <button id="id_start_btn" onclick="start_recording()"> Start Recoding Game</button>
+    <button id="id_pause_btn" onclick="pause_recording()" disabled> Pause Recoding</button>
+    <button id="id_resume_btn" onclick="resume_recording()" disabled> Resume Recoding</button>
+    <button id="id_stop_btn" onclick="stop_recording()" disabled> Stop Recoding</button>
     {% if game_room %}
         <div style="border-style: dotted;" class="container-fluid" id="id_phaser_game"></div>
         <div>
