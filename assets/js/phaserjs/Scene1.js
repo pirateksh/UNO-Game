@@ -245,9 +245,13 @@ class Scene1 extends Phaser.Scene {
              };
              let response = {"type": "user.new", "text": data};
              socket.send(JSON.stringify(response));
-             STREAM.then(stream => {
-                addVideoStream(Video, stream, me);
-             });
+             STREAM
+                 .then(stream => {
+                    addVideoStream(Video, stream, me);
+                 })
+                 .catch((err) =>{
+                     console.log("Error Occurred While Strating the Stream:", err);
+                 })
         });
 
         let VideoGrid = document.getElementById('VideoGrid');
@@ -294,41 +298,49 @@ class Scene1 extends Phaser.Scene {
             if(MY_UNIQUE_PEER_ID === other_unique_peer_id){
                 return ;
             }
-            STREAM.then(stream => {
-                setTimeout(()=>{
-                    const call = my_peer.call(other_unique_peer_id, stream, {metadata: {"username": me}}); // Calling the Newly Connected peer
-                    const Video = document.createElement('video');
-                    call.on('stream', remoteStream => { // adding the others video element to video-grid on our page.
-                        if(peers[var_new_user_username] !== undefined){
-                            console.log("Second Call");
-                        }
-                        else{
-                            addVideoStream(Video, remoteStream, var_new_user_username);
-                            peers[var_new_user_username] = call;
-                        }
-                    });
-                    call.on('close', () => {
-                        Video.remove();
-                    });
-                }, 2000);
-            });
+            STREAM
+                .then(stream => {
+                    setTimeout(()=>{
+                        const call = my_peer.call(other_unique_peer_id, stream, {metadata: {"username": me}}); // Calling the Newly Connected peer
+                        const Video = document.createElement('video');
+                        call.on('stream', remoteStream => { // adding the others video element to video-grid on our page.
+                            if(peers[var_new_user_username] !== undefined){
+                                console.log("Second Call");
+                            }
+                            else{
+                                addVideoStream(Video, remoteStream, var_new_user_username);
+                                peers[var_new_user_username] = call;
+                            }
+                        });
+                        call.on('close', () => {
+                            Video.remove();
+                        });
+                    }, 2000);
+                })
+                .catch((err)=>{
+                    console.log("Error Occured While Strating the Stream:", err);
+                });
         }
 
-        STREAM.then((stream) => {
-            my_peer.on('call', (call) => { // Someone is Calling me
-                let caller = call.metadata.username;
-                call.answer(stream); // Answer the call with an A/V stream.
-                const othersVideo = document.createElement('video');
-                call.on('stream', (remoteStream) => {
-                     if(peers[caller] !== undefined){ // Already Answered Once
-                     }
-                     else{
-                         peers[caller] = call;
-                         addVideoStream(othersVideo, remoteStream, caller);
-                     }
-                 });
+        STREAM
+            .then((stream) => {
+                my_peer.on('call', (call) => { // Someone is Calling me
+                    let caller = call.metadata.username;
+                    call.answer(stream); // Answer the call with an A/V stream.
+                    const othersVideo = document.createElement('video');
+                    call.on('stream', (remoteStream) => {
+                         if(peers[caller] !== undefined){ // Already Answered Once
+                         }
+                         else{
+                             peers[caller] = call;
+                             addVideoStream(othersVideo, remoteStream, caller);
+                         }
+                     });
+                });
+            })
+            .catch((err) => {
+                console.log("Error Occurred While Strating the Stream:", err);
             });
-        });
 
         socket.addEventListener("message", function (e) {
             let backendResponse = JSON.parse(e.data);
