@@ -6,12 +6,12 @@ const NONE = 13;
 constraintObj = {
 	audio: true,
 	video: true
-
 	// video: {
 	// 	facingMode: "user",
 	// }
 };
 const STREAM = navigator.mediaDevices.getUserMedia(constraintObj);
+// const STREAM = navigator.mediaDevices.getUserMedia({video: true, audio: true});
 const peers = {};
 
 let game, gameDetails, socket;

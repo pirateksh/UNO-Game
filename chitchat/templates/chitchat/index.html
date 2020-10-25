@@ -64,11 +64,11 @@
                          alt="avatar" width="55px" class="rounded-circle" />
                     <div class="chat-about">
                         <div class="chat-with"> </div>
-                        {# <div class="chat-num-messages">already 1 902 messages</div> #}
+                        {# <div class="chat-num-messages">already 1902 messages</div> #}
                     </div>
-                    {# TODO: add user profile visit link --Kshitiz #}
-                    <button type="button" style="float:right;" class="btn btn-primary" href="#">View Profile</button>
+                    {# <button type="button" style="float:right;" class="btn btn-primary" onclick='document.location="{% url 'user_profile' "hemant" %}'>View Profile</button>#}
                 </div>
+
                 {# Chat Chat Header End #}
 
                 {# Chat History Part Start #}
@@ -141,7 +141,7 @@
             {# This div is visible when user click on Add Friend Link #}
             {# Seach Friend Starts #}
             <div class="tab-pane fade" id="add-friend" role="tabpanel" aria-labelledby="v-pills-messages-tab">
-                <div class="chat-header clearfix">
+                <div class="clearfix">
                     <input class="form-control form-control-user" type="text" id="id_find-friend_input" placeholder="Find Friends"/>
                     {# <i class="fa fa-search"></i> #}
                 </div>
@@ -268,6 +268,9 @@
                  }
             });
           });
+
+
+
           {# Function Responsible for Sending/Accepting Friend Requests #}
           $(document).on('click', '.class_change-request-status_button', function(){
               let other_person = $(this).closest('li').attr('value');
@@ -289,7 +292,7 @@
                           new_text = "Request Pending";
                           status_button.addClass('btn btn-warning')
                       }
-                      else if(new_status === true){ // show Friends disbaled button
+                      else if(new_status === true){ // show Friends disabled button
                           new_text = "Friends";
                           status_button.addClass('btn btn-success');
                           $('.class_add_friend').after(`
@@ -307,7 +310,6 @@
                           `);
                       }
                       status_button.text(new_text);
-
                  }
               });
           });
@@ -323,6 +325,9 @@
                     let messages = data.chats;
                     let other_user_first_name = data.other_user_first_name;
                     $(".chat-with").html(`<em>${other_user_first_name}</em>`);
+                    let user_profile_url = "http://" +  window.location.host + "/user_profile/visit/" + other_user;
+                    $(".chat-header a").remove();
+                    $(".chat-header").append(`<a type="button" style="float:right;" class="btn btn-primary" href="${user_profile_url}">View Profile</a>`);
                     $("#id_friends_chat_history_ul").empty();
                     {#console.log(messages, typeof(messages));#}
                     if(messages.length === 0){
@@ -337,7 +342,6 @@
                         `)
                     }
                     else{
-
                         messages.forEach((message_instance)=>{
                             let sender = message_instance[0];
                             let message = message_instance[1];
