@@ -2,11 +2,16 @@ const RED = "R", YELLOW = "Y", GREEN = "G", BLUE = "B", WILD = "W", WILD_FOUR = 
 const ZERO = 0, ONE = 1, TWO = 2, THREE = 3, FOUR = 4, FIVE = 5, SIX = 6, SEVEN = 7, EIGHT = 8, NINE = 9;
 const SKIP = 10, REVERSE = 11, DRAW_TWO = 12;
 const NONE = 13;
-let game, gameDetails;
+
+const STREAM = navigator.mediaDevices.getUserMedia({video: true, audio: false});
+const peers = {};
+
+let game, gameDetails, socket;
 let currentAnimKeys = [];
 
 window.onload = function () {
-	let width = 700, height = 600;
+
+	let width = 1275, height = 610;
 
 	gameDetails = {
 		deckX: width/2 - 100,
@@ -38,9 +43,17 @@ window.onload = function () {
 	};
 
 	let config = {
+		type: Phaser.AUTO,
+		backgroundColor: 0xffffff,
+		// scale: {
+		// 	mode: Phaser.Scale.FIT,
+		// 	// autoCenter: 1,
+		// 	parent: 'id_phaser_game',
+		// 	width: width,
+		// 	height: height,
+		// },
 		width: width,
 		height: height,
-		backgroundColor: 0xffffff,
 		scene: [Scene1, Scene2, Scene3],
 		pixelArt: true,
 		// Added for Physics Engine
@@ -79,6 +92,20 @@ function getImagePoint(category, number) {
 	point *= mul;
 	point += number;
 	return point;
+}
+
+function checkOriention (orientation, text)
+{
+    if (orientation === Phaser.Scale.PORTRAIT)
+    {
+        // ship.alpha = 0.2;
+        text.setVisible(true);
+    }
+    else if (orientation === Phaser.Scale.LANDSCAPE)
+    {
+        // ship.alpha = 1;
+        text.setVisible(false);
+    }
 }
 
 function resize() {

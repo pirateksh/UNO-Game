@@ -59,21 +59,7 @@ class GameRoomConsumer(AsyncConsumer):
             type_of_event = loaded_dict_data['type']
             text_of_event = loaded_dict_data['text']
 
-            if type_of_event == "user.new":
-                # Now we need to broadcast an event that this user has joined the room
-                print(text_of_event, "is sent by the Client")
-                client_data_dict = text_of_event
-                # e.g. client_data_dict = {"new_user_username": "alice", "unique_peer_id": "xyz123XYZ", "game_room_unique_id": "123ABCabc"}
-                print("PRINTED:- ", client_data_dict)
-                await self.channel_layer.group_send(
-                    self.game_room_id,
-                    {
-                        "type": "new_user_entered_room",
-                        "text": json.dumps(client_data_dict), # event['text'] will now be a json string
-                    }
-                )
-                return
-            elif type_of_event == "start.game":
+            if type_of_event == "start.game":
                 # print(f"Before Broadcasting: Going to call start.game")
                 self.game.start_game()
                 # print(f"Deck and Hands are Ready")
@@ -162,11 +148,16 @@ class GameRoomConsumer(AsyncConsumer):
                 if self.game.can_time_out(client_data=client_data, server_data=server_data):
                     time_out_data = self.game.time_out()
 
+            if self.game is not None:
+                game_data = json.dumps(self.game.prepare_client_data(), cls=CustomEncoder)
+            else:
+                game_data = None
+
             response = {
                 "status": text_of_event['status'],
                 "message": text_of_event['message'],
                 "data": text_of_event['data'],
-                "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder),
+                "gameData": game_data,
             }
 
             if time_out_data:
@@ -287,23 +278,10 @@ class GameRoomConsumer(AsyncConsumer):
                 "text": event['text']
             })
 
-    async def new_user_entered_room(self, event):
-        print("new_user_entered_room function Called")
-        # event is a dictionary having keys: type, text
-        client_data_json = event.get('text') # client_data_json is a json string
-        client_data = json.loads(client_data_json) # client_data is a dictionary
-        new_user_username = client_data['new_user_username']
-        unique_peer_id = client_data['unique_peer_id']
-        game_room_unique_id = client_data['game_room_unique_id']
-        response = {
-            "new_user_username": new_user_username,
-            "unique_peer_id": unique_peer_id,
-            "game_room_unique_id": game_room_unique_id
-        }
-        print("Broadcasting,", response, "to all members of the group...")
+    async def user_new(self, event):
         await self.send({
             "type": "websocket.send",
-            "text": json.dumps(response),
+            "text": event['text']
         })
 
     async def won_game(self, event):
@@ -414,61 +392,39 @@ class GameRoomConsumer(AsyncConsumer):
     async def websocket_disconnect(self, event):
         print("disconnected", event)
         me = self.me
-        await self.channel_layer.group_send(
-            self.game_room_id,
-            {
-                "type": "user_left_room",
-                "text": json.dumps({"left_user_username": self.me.username, "game_room_unique_id": self.game_room_id})
-            }
-        )
-
         await self.set_is_online_false()
-
 
         # Leaving current Game
         if len(self.game.players) == 1:
             await self.set_is_game_running_false()
         self.game.leave_game(self.player_server_obj)
         del self.player_server_obj
-
         response = {
-            "status": "disconnected",
+            "status": "user_left_room",
             "message": "Disconnecting...",
             "data": {
-                "username": me.username,
-                "pk": me.pk,
+                "left_user_username": me.username,
+                "game_room_unique_id": self.game_room_id
             },
+            "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder)
         }
         await self.channel_layer.group_send(
             self.game_room_id,
             {
-                "type": "leave.room",
+                "type": "user_left_room",
                 "text": json.dumps(response)
             }
         )
+
         await self.channel_layer.group_discard(
             self.game_room_id,
             self.channel_name
         )
 
     async def user_left_room(self, event):
-        client_data_json = event.get('text')
-        client_data = json.loads(client_data_json)
-        left_user_username = client_data['left_user_username']
-        game_room_unique_id = client_data['game_room_unique_id']
-        response = {
-            "left_user_username": left_user_username,
-            "game_room_unique_id": game_room_unique_id
-        }
         await self.send({
             "type": "websocket.send",
-            "text": json.dumps(response),
-        })
-
-    async def leave_room(self, event):
-        await self.send({
-            "type": "websocket.send",
-            "text": event['text']
+            "text": event['text'],
         })
 
     @database_sync_to_async
