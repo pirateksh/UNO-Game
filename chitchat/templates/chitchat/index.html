@@ -326,6 +326,7 @@
                     let other_user_first_name = data.other_user_first_name;
                     $(".chat-with").html(`<em>${other_user_first_name}</em>`);
                     let user_profile_url = "http://" +  window.location.host + "/user_profile/visit/" + other_user;
+                    $(".chat-header a").remove();
                     $(".chat-header").append(`<a type="button" style="float:right;" class="btn btn-primary" href="${user_profile_url}">View Profile</a>`);
                     $("#id_friends_chat_history_ul").empty();
                     {#console.log(messages, typeof(messages));#}
