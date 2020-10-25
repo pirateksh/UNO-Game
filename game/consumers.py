@@ -5,6 +5,7 @@ from channels.consumer import AsyncConsumer
 from channels.db import database_sync_to_async
 from channels.exceptions import StopConsumer
 
+from user_profile.models import UserProfile
 from .models import GameRoom, Player
 from .helper import Card, PlayerServer, GameServer, Deck, CustomEncoder
 
@@ -26,6 +27,8 @@ class GameRoomConsumer(AsyncConsumer):
 
         player_obj = await self.get_player_obj()
         self.player_obj = player_obj
+
+        self.user_profile_obj = await self.get_user_profile_obj()
 
         # Uncomment if using reconnecting socket
         await self.set_is_online_true()
@@ -78,16 +81,27 @@ class GameRoomConsumer(AsyncConsumer):
                     if returned_data:
                         if returned_data['status'] == "won":
                             won_data = returned_data
-                            won_username = won_data['username']
-                            won_score = int(won_data['score'])
-                            if won_score >= GameServer.WINNING_SCORE:
+                            winner_username = won_data['username']
+                            winner_score = int(won_data['score'])
+                            if winner_score >= GameServer.WINNING_SCORE:
                                 text_of_event['status'] = "won_game"
                                 type_of_event = "won_game"
+
+                                await self.handle_winning_game(winner_username=winner_username)
+
+                                for loser_username in self.game.player_usernames:
+                                    if loser_username != winner_username:
+                                        await self.handle_losing_game(loser_username=loser_username)
+
                                 await self.set_is_game_running_false()
-                                print(f"End Game. {won_username} has scored winning points.")
+
+                                print(f"End Game. {winner_username} has scored winning points.")
                             else:
                                 text_of_event['status'] = "won_round"
                                 type_of_event = "won_round"
+
+                                await self.handle_winning_round(winner_username=winner_username)
+
                                 print(f"This round ended. Get ready for next round.")
 
                         elif returned_data['status'] == "skipped":
@@ -371,6 +385,8 @@ class GameRoomConsumer(AsyncConsumer):
         })
 
     async def start_game(self, event):
+        await self.increase_total_played_games_count(player_username=self.me.username)
+
         text = event.get('text', None)
         if text:
             loaded_dict_data = json.loads(text)
@@ -460,3 +476,77 @@ class GameRoomConsumer(AsyncConsumer):
         me = self.me
         game_room_obj = self.game_room_obj
         return Player.objects.get(player=me, game_room=game_room_obj)
+
+    @database_sync_to_async
+    def get_user_profile_obj(self):
+        me = self.me
+        return UserProfile.objects.get(user=me)
+
+    @database_sync_to_async
+    def increase_total_played_games_count(self, player_username):
+        player = User.objects.get(username=player_username)
+
+        player_profile = UserProfile.objects.get(user=player)
+
+        player_profile.total_games_count += 1
+
+        player_profile.save()
+
+    @database_sync_to_async
+    def handle_winning_game(self, winner_username):
+        """
+        Updates the value in the database when a user wins the game.
+        :param winner_username: Username of player who won the game.
+        :return:
+        """
+        # Fetching User object.
+        winner = User.objects.get(username=winner_username)
+
+        # Fetching UserProfile object.
+        winner_profile = UserProfile.objects.get(user=winner)
+
+        # Updating won games count
+        winner_profile.won_games_count += 1
+
+        # Updating won rounds count
+        winner_profile.won_rounds_count += 1
+
+        # Updating winning streak
+        winner_profile.winning_streak += 1
+
+        winner_profile.save()
+
+    @database_sync_to_async
+    def handle_losing_game(self, loser_username):
+        """
+        Updates the value in the database when a user loses the game.
+        :param loser_username: Username of player who lost the game.
+        :return:
+        """
+
+        loser = User.objects.get(username=loser_username)
+
+        loser_profile = UserProfile.objects.get(user=loser)
+
+        # Resetting Winning streak
+        loser_profile.winning_streak = 0
+
+        loser_profile.save()
+
+    @database_sync_to_async
+    def handle_winning_round(self, winner_username):
+        """
+        Updates the value in the database when a user wins the round.
+        :param winner_username: Username of player who won the round.
+        :return:
+        """
+        # Fetching User object.
+        winner = User.objects.get(username=winner_username)
+
+        # Fetching UserProfile object.
+        winner_profile = UserProfile.objects.get(user=winner)
+
+        # Updating won rounds count
+        winner_profile.won_rounds_count += 1
+
+        winner_profile.save()

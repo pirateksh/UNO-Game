@@ -191,7 +191,7 @@ class PlayerServer:
 
 class GameServer:
 
-    WINNING_SCORE = 500
+    WINNING_SCORE = 50
     current_games = []
     # TODO: What will happen if deck runs out of cards. -- Kshitiz
 
@@ -402,11 +402,6 @@ class GameServer:
         :return:
         """
         previous_player = self.get_previous_player()
-        # If previous player has only 1 card left and didn't yell UNO but also didn't get caught.
-        if previous_player is not None:
-            if previous_player.get_active_hand_size() == 1:
-                if not previous_player.yelled_uno:
-                    previous_player.yelled_uno = True
 
         if card.is_skip() or card.is_draw_two() or card.is_wild_four():
             # Next Player misses turn. Increment/Decrement by 2.
@@ -422,6 +417,14 @@ class GameServer:
         self.previous_player_index = self.current_player_index
         # Updating current player
         self.current_player_index = self.increment_or_decrement_current_player_index(amount=amount)
+
+        current_player = self.get_current_player()
+        # If previous player has only 1 card left and didn't yell UNO but also didn't get caught.
+        if previous_player is not None:
+            if previous_player.username != current_player.username:  # Added for special case when 2 players are playing.
+                if previous_player.get_active_hand_size() == 1:
+                    if not previous_player.yelled_uno:
+                        previous_player.yelled_uno = True
 
     def get_current_player(self):
         return self.players[self.current_player_index]
@@ -695,6 +698,10 @@ class GameServer:
             return False
 
         count = server_current_player.get_active_hand_size()
+
+        if client_username == server_current_player.username and server_current_player.username == server_previous_player.username:
+            if count <= 2:
+                return True
 
         if client_username == server_current_player.username and server_current_player.username != server_previous_player.username and count != 2:
             print(f"Current Player {server_current_player.username} is trying to call UNO! But his/her card count({count}) != 2")

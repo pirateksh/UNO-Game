@@ -215,7 +215,7 @@ class Scene1 extends Phaser.Scene {
         const my_peer = new Peer(undefined, { // making available a Peer Object from peerjs library to work on the root path
             host: '/',
             port: '8001'
-            // host: 'sangwan-b816cac0.localhost.run',
+            // host: 'pirateksh-e2ac36bc.localhost.run',
             // port: ''
         });
 
@@ -257,11 +257,12 @@ class Scene1 extends Phaser.Scene {
         _this.videoY = 70;
         _this.videoGroup = _this.physics.add.group();
         function addVideoStream(Video, stream, label="Some user in Room") {
-            let vidElem = _this.add.video(100, 100);
+            let vidElem = _this.add.video(_this.videoX, _this.videoY);
+            _this.videoX += 70;
             vidElem.depth = 10;
             vidElem.loadURL("", 'loadeddata', true);
             vidElem.video.srcObject = stream;
-            vidElem.setScale(0.35);
+            vidElem.setScale(0.28);
             vidElem.video.addEventListener('loadedmetadata', () => {
                 vidElem.video.play();
                 _this.tweens.add({
