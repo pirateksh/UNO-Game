@@ -30,7 +30,7 @@ class UserProfile(models.Model):
 
     # image/avatar at assets/img/profile_images
 
-    # is_online
+    # is_online = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username
