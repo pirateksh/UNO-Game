@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{% static "css/chat.css"%}">
     <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css"%}">
     <link rel="stylesheet" href="{% static "css/toggle.css"%}">
+    <link rel="stylesheet" href="{% static 'css/chitchat_text.css' %}">
 </head>
 
 <body class="dark-theme">
@@ -56,6 +57,22 @@
         </div>
 
         <div class="chat tab-content" id="v-pills-tabContent">
+            <!-- partial:index.partial.html -->
+            <svg viewBox="0 0 600 300" style="font: 5em/1 Open Sans, Impact;">
+                <!-- Symbol-->
+                <symbol id="s-text">
+                <text text-anchor="middle" x="50%" y="25%" dy=".35em">WELCOME</text>
+                <text text-anchor="middle" x="50%" y="50%" dy=".35em">TO</text>
+                <text text-anchor="middle" x="50%" y="75%" dy=".35em">CHITCHAT</text>
+                </symbol>
+                <!-- Duplicate symbols-->
+                <use class="text" xlink:href="#s-text"></use>
+                <use class="text" xlink:href="#s-text"></use>
+                <use class="text" xlink:href="#s-text"></use>
+                <use class="text" xlink:href="#s-text"></use>
+                <use class="text" xlink:href="#s-text"></use>
+            </svg>
+            <!-- partial -->
             <div class="tab-pane fade" id="chat-1" role="tabpanel" aria-labelledby="v-pills-home-tab">
                 {# Chat Header Start #}
                 <div class="chat-header clearfix">
