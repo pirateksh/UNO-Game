@@ -63,11 +63,11 @@ class Scene2 extends Phaser.Scene {
 
         _this.exitButton.on("pointerdown", function (pointer) {
             // alert("Do you really want to exit?");
-            Game.leaveGameRequest(socket);
+            currentGame.leaveGameRequest(socket);
             _this.scene.start("endGame");
         });
 
-        if(me === gameRoomAdmin) {
+        if(me === currentGame.adminUsername  && (currentGame.gameType !== 0)) { // Game Room is not Public.
             // Adding cross button
             _this.crossButton = _this.physics.add.sprite(gameDetails.crossButtonX, gameDetails.crossButtonY, "crossButton");
             _this.crossButton.setScale(gameDetails.roundButtonScale);
@@ -82,9 +82,12 @@ class Scene2 extends Phaser.Scene {
 
             _this.crossButton.on("pointerdown", function (pointer) {
                 // alert("Do you really want to end the game?");
-                Game.endGameRequest(socket);
+                currentGame.endGameRequest(socket);
             });
         }
+
+        // Adding Unique ID of Game.
+        _this.uniqueIdTag = _this.add.text(50, game.config.height - 50, `Unique ID: ${currentGame.uniqueId}`);
 
         _this.unoButton = _this.physics.add.sprite(gameDetails.unoButtonX, gameDetails.unoButtonY, "unoButton");
         _this.unoButton.setInteractive();
@@ -165,7 +168,7 @@ class Scene2 extends Phaser.Scene {
             else if (status === "end_game") {
                 _this.endGame();
                 // _this.scene.start("bootGame");
-                Game.changeSceneRequest(socket, 3);
+                currentGame.changeSceneRequest(socket, 3);
             }
             else if(status === "play_card") {
                 currentGame.copyData(gameData);
@@ -290,9 +293,9 @@ class Scene2 extends Phaser.Scene {
                 let wonData = backendResponse.wonData;
                 let wonUsername = wonData.username;
                 let wonScore = wonData.score;
-                Game.addScoreToDOM(wonUsername, wonScore);
+                // Game.addScoreToDOM(wonUsername, wonScore);
                 alert(`${wonUsername} won with score = ${wonScore}. Start a new game or leave the room.`);
-                Game.changeSceneRequest(socket, 3);
+                currentGame.changeSceneRequest(socket, 3);
             }
             else if(status === "call_uno") {
                 let username = data.username;
@@ -391,6 +394,12 @@ class Scene2 extends Phaser.Scene {
             else if(status === "user_left_room") {
                 console.log("USER LEFT ROOM.");
                 let leftUsername = data.left_user_username;
+
+                if(currentGame.players.includes(leftUsername)) {
+                    currentGame.players.splice(currentGame.players.indexOf(leftUsername), 1); // TESTING
+                }
+
+
                 if(me !== leftUsername) {
                     for(let i = 0; i < _this.oppHandGroup.getChildren().length; ++i) {
                         let oppPlayerSprite = _this.oppHandGroup.getChildren()[i];
@@ -482,7 +491,7 @@ class Scene2 extends Phaser.Scene {
         let gameData = JSON.parse(backendResponse.gameData);
         let wonUsername = wonData.username;
         let wonScore = wonData.score;
-        Game.addScoreToDOM(wonUsername, wonScore);
+        // Game.addScoreToDOM(wonUsername, wonScore);
         alert(`${wonUsername} won with score = ${wonScore}. New round is going to start.`);
 
         // Emptying Hands.

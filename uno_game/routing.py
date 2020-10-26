@@ -15,7 +15,7 @@ application = ProtocolTypeRouter({
             URLRouter(
                 [
                     #  ws://domainname:<username>
-                    path("game/enter_room/<str:unique_id>/", GameRoomConsumer),
+                    path("game/enter_room/<str:game_type>/<str:unique_id>/", GameRoomConsumer),
                     url(r"^chitchat/(?P<username>[\w.@+-]+)$", ChatConsumer),
                     url(r"^game/bot_game/", BotGameConsumer),
                 ]

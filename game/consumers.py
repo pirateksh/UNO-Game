@@ -18,31 +18,22 @@ class GameRoomConsumer(AsyncConsumer):
     """
 
     async def websocket_connect(self, event):
-        # print("connected", event)
-        unique_id = self.scope['url_route']['kwargs']['unique_id']
         self.me = self.scope['user']
-        game_room_obj = await self.get_game_room(unique_id=unique_id)
 
-        self.game_room_obj = game_room_obj
+        self.unique_id = self.scope['url_route']['kwargs']['unique_id']
 
-        player_obj = await self.get_player_obj()
-        self.player_obj = player_obj
+        self.game_type = int(self.scope['url_route']['kwargs']['game_type'])
 
         self.user_profile_obj = await self.get_user_profile_obj()
 
-        # Uncomment if using reconnecting socket
-        await self.set_is_online_true()
-
-        game_room_id = f"game_room_{unique_id}"
-        self.game_room_id = game_room_id
+        self.game_room_id = f"game_room_{self.unique_id}"
 
         self.player_server_obj = PlayerServer(username=self.me.username)
-        self.game = GameServer.create_new_game(unique_id, self.player_server_obj)
-        # print(self.game)
-        # print(self.game.players)
+
+        self.game = GameServer.create_new_game(unique_id=self.unique_id, player=self.player_server_obj, game_type=self.game_type)
 
         await self.channel_layer.group_add(
-            game_room_id,
+            self.game_room_id,
             self.channel_name
         )
         await self.send({
@@ -50,7 +41,6 @@ class GameRoomConsumer(AsyncConsumer):
         })
 
     async def websocket_receive(self, event):
-        # print("received", event)
         front_text = event.get('text', None)
         forced_draw_data = None  # If some player had to draw cards due to DRAW_TWO or WILD_FOUR.
         voluntary_draw_data = None  # When player voluntary drew a card.
@@ -66,10 +56,10 @@ class GameRoomConsumer(AsyncConsumer):
                 # print(f"Before Broadcasting: Going to call start.game")
                 self.game.start_game()
                 # print(f"Deck and Hands are Ready")
-                await self.set_is_game_running_true()
+                # await self.set_is_game_running_true()
             elif type_of_event == "end.game":
                 self.game.end_game()
-                await self.set_is_game_running_false()
+                # await self.set_is_game_running_false()
             elif type_of_event == "play.card":
                 client_data = text_of_event['data']
                 server_data = {
@@ -93,7 +83,7 @@ class GameRoomConsumer(AsyncConsumer):
                                     if loser_username != winner_username:
                                         await self.handle_losing_game(loser_username=loser_username)
 
-                                await self.set_is_game_running_false()
+                                # await self.set_is_game_running_false()
 
                                 print(f"End Game. {winner_username} has scored winning points.")
                             else:
@@ -174,6 +164,9 @@ class GameRoomConsumer(AsyncConsumer):
                 "gameData": game_data,
             }
 
+            if type_of_event == "won_game":
+                self.game.end_game()
+
             if time_out_data:
                 extra_data = {
                     "timeOutData": time_out_data,
@@ -216,10 +209,11 @@ class GameRoomConsumer(AsyncConsumer):
 
             # TODO: Trying match making.
             if type_of_event == "user.new":
-                if self.game_room_obj.type == GameRoom.PUBLIC:
+                if self.game.game_type == GameServer.PUBLIC:
                     count = self.game.get_count_of_players()
                     print("Count so far:", count)
-                    if count == 3:
+                    if count == 2:
+                        # await asyncio.sleep(2)
                         print("CHANGING SCENE!.")
                         change_scene_response = {
                             "status": "change_scene",
@@ -241,7 +235,7 @@ class GameRoomConsumer(AsyncConsumer):
                         print("2 seconds over")
                         print("Starting Public Game.")
                         self.game.start_game()
-                        await self.set_is_game_running_true()
+                        # await self.set_is_game_running_true()
                         public_response = {
                             "status": "start_game",
                             "message": "Public Game has been started.",
@@ -429,7 +423,7 @@ class GameRoomConsumer(AsyncConsumer):
 
     async def start_game(self, event):
         await self.increase_total_played_games_count(player_username=self.me.username)
-        if self.game_room_obj.type == GameRoom.PUBLIC:
+        if self.game.game_type == GameServer.PUBLIC:
             print("FFFF: Starting Public Game inside Handler.")
         text = event.get('text', None)
         if text:
@@ -452,11 +446,11 @@ class GameRoomConsumer(AsyncConsumer):
     async def websocket_disconnect(self, event):
         print("disconnected", event)
         me = self.me
-        await self.set_is_online_false()
+        # await self.set_is_online_false()
 
         # Leaving current Game
-        if len(self.game.players) == 1:
-            await self.set_is_game_running_false()
+        # if len(self.game.players) == 1:
+        #     await self.set_is_game_running_false()
         self.game.leave_game(self.player_server_obj)
         del self.player_server_obj
         response = {
@@ -487,39 +481,39 @@ class GameRoomConsumer(AsyncConsumer):
             "text": event['text'],
         })
 
-    @database_sync_to_async
-    def set_is_online_false(self):
-        player_obj = self.player_obj
-        player_obj.is_online = False
-        player_obj.save()
+    # @database_sync_to_async
+    # def set_is_online_false(self):
+    #     player_obj = self.player_obj
+    #     player_obj.is_online = False
+    #     player_obj.save()
+    #
+    # @database_sync_to_async
+    # def set_is_online_true(self):
+    #     player_obj = self.player_obj
+    #     player_obj.is_online = True
+    #     player_obj.save()
 
-    @database_sync_to_async
-    def set_is_online_true(self):
-        player_obj = self.player_obj
-        player_obj.is_online = True
-        player_obj.save()
+    # @database_sync_to_async
+    # def get_game_room(self, unique_id):
+    #     return GameRoom.objects.get(unique_game_id=unique_id)
 
-    @database_sync_to_async
-    def get_game_room(self, unique_id):
-        return GameRoom.objects.get(unique_game_id=unique_id)
+    # @database_sync_to_async
+    # def set_is_game_running_true(self):
+    #     game_room_obj = self.game_room_obj
+    #     game_room_obj.is_game_running = True
+    #     game_room_obj.save()
+    #
+    # @database_sync_to_async
+    # def set_is_game_running_false(self):
+    #     game_room_obj = self.game_room_obj
+    #     game_room_obj.is_game_running = False
+    #     game_room_obj.save()
 
-    @database_sync_to_async
-    def set_is_game_running_true(self):
-        game_room_obj = self.game_room_obj
-        game_room_obj.is_game_running = True
-        game_room_obj.save()
-
-    @database_sync_to_async
-    def set_is_game_running_false(self):
-        game_room_obj = self.game_room_obj
-        game_room_obj.is_game_running = False
-        game_room_obj.save()
-
-    @database_sync_to_async
-    def get_player_obj(self):
-        me = self.me
-        game_room_obj = self.game_room_obj
-        return Player.objects.get(player=me, game_room=game_room_obj)
+    # @database_sync_to_async
+    # def get_player_obj(self):
+    #     me = self.me
+    #     game_room_obj = self.game_room_obj
+    #     return Player.objects.get(player=me, game_room=game_room_obj)
 
     @database_sync_to_async
     def get_user_profile_obj(self):

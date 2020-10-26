@@ -170,27 +170,6 @@ class Scene1 extends Phaser.Scene {
             loop: -1
         });
 
-        if(me === gameRoomAdmin) {
-            _this.playButton = _this.physics.add.sprite(game.config.width/2, game.config.height/2 + 100, "playButton");
-            _this.playButton.setScale(0.3);
-            _this.playButton.setInteractive();
-
-            _this.playButton.on("pointerover", function (pointer) {
-                _this.playButton.play("playButtonOver");
-            });
-
-            _this.playButton.on("pointerout", function (pointer) {
-                _this.playButton.play("playButtonOut");
-            });
-
-            _this.playButton.on("pointerdown", function (pointer) {
-                Game.changeSceneRequest(socket, 2);
-            });
-        }
-        else { // This will be changed.
-            // _this.scene.start("playGame");
-            _this.add.text(game.config.width/2 - 140, game.config.height/2 + 70, "Wait for admin to start the game....");
-        }
 
         _this.joinedX = game.config.width / 2;
         _this.joinedY = game.config.height / 2 + 130;
@@ -343,6 +322,8 @@ class Scene1 extends Phaser.Scene {
                 console.log("Error Occurred While Strating the Stream:", err);
             });
 
+        _this.joinedPlayersTag = _this.physics.add.group();
+
         socket.addEventListener("message", function (e) {
             let backendResponse = JSON.parse(e.data);
             let status = backendResponse.status;
@@ -354,16 +335,34 @@ class Scene1 extends Phaser.Scene {
                 gameData = JSON.parse(backendResponse.gameData);
                 if(currentGame == null) {
                     currentGame = new Game(gameData);
-                    console.log("Connected Players", currentGame.players);
+
+                    console.log("GAME TYPE:", currentGame.gameType);
+                    console.log("ADMIN USERNAME:", currentGame.adminUsername);
+                    console.log("ME:", me);
+                    if(me === currentGame.adminUsername && currentGame.gameType === 1) { // Game Type is Friend.
+                        _this.addPlayButton();
+                    }
+                    else { // TODO: Change this
+                        _this.add.text(game.config.width/2 - 140, game.config.height/2 + 70, "Wait for admin to start the game....");
+                    }
+
+                    // Adding Unique ID of Game.
+                    _this.uniqueIdTag = _this.add.text(50, game.config.height - 50, `Unique ID: ${currentGame.uniqueId}`);
+
+
                     for(let i = 0; i < currentGame.players.length; ++i) {
                         let player = currentGame.players[i];
                         if(i % 2) {
-                            _this.add.text(_this.joinedX + 120, _this.joinedY, player, {fill: '#00ff00'});
-                            _this.joinedY += 20;
+                            let playerTag = _this.add.text(_this.joinedX + 120, _this.joinedY, player, {fill: '#00ff00'});
+                            playerTag.setData({'username': player});
+                            _this.joinedPlayersTag.add(playerTag);
                         }
                         else {
-                            _this.add.text(_this.joinedX - 200, _this.joinedY, player, {fill: '#00ff00'});
+                             let playerTag = _this.add.text(_this.joinedX - 200, _this.joinedY, player, {fill: '#00ff00'});
+                             playerTag.setData({'username': player});
+                             _this.joinedPlayersTag.add(playerTag);
                         }
+                        _this.joinedY += 20;
                     }
                 }
              }
@@ -379,16 +378,34 @@ class Scene1 extends Phaser.Scene {
                     currentGame.players.push(new_user_username);
                     let playerCount = currentGame.players.length - 1;
                     if(playerCount % 2) {
-                        _this.add.text(_this.joinedX + 120, _this.joinedY, new_user_username, {fill: '#00ff00'});
-                        _this.joinedY += 20;
+                        let playerTag = _this.add.text(_this.joinedX + 120, _this.joinedY, new_user_username, {fill: '#00ff00'});
+                        playerTag.setData({'username': new_user_username});
+                        _this.joinedPlayersTag.add(playerTag);
                     }
                     else {
-                        _this.add.text(_this.joinedX - 200, _this.joinedY, new_user_username, {fill: '#00ff00'});
+                        let playerTag = _this.add.text(_this.joinedX - 200, _this.joinedY, new_user_username, {fill: '#00ff00'});
+                        playerTag.setData({'username': new_user_username});
+                        _this.joinedPlayersTag.add(playerTag);
                     }
+                    _this.joinedY += 20;
                 }
             }
             else if(status === "user_left_room"){
                 let left_user_username = data.left_user_username;
+
+                if(currentGame.players.includes(left_user_username)) {
+                    currentGame.players.splice(currentGame.players.indexOf(left_user_username), 1); // TESTING
+                }
+
+                for(let i = 0; i < _this.joinedPlayersTag.getChildren().length; ++i) {
+                    let leftPlayerTag = _this.joinedPlayersTag.getChildren()[i];
+                    let leftPlayerUsername = leftPlayerTag.getData("username");
+                    if(left_user_username === leftPlayerUsername) {
+                        leftPlayerTag.destroy();
+                        break;
+                    }
+                }
+
                 if (peers[left_user_username]){
                     peers[left_user_username].close();
                     delete peers[left_user_username];
@@ -413,8 +430,8 @@ class Scene1 extends Phaser.Scene {
                 let sceneNumber = data.sceneNumber;
                 if(sceneNumber === 2) {
                     _this.scene.start("playGame");
-                    if(me === gameRoomAdmin) {
-                        Game.startGameRequest(socket);
+                    if(me === currentGame.adminUsername && (currentGame.gameType !== 0)) { // Game is NOT Public
+                        currentGame.startGameRequest(socket);
                     }
                 }
             }
@@ -432,8 +449,33 @@ class Scene1 extends Phaser.Scene {
             WEBSOCKET CONNECTION ENDED
          *******************************/
 
+        // Calling method to create all the animations used in game.
+        _this.createAllAnimations();
+    }
 
 
+
+    addPlayButton() {
+        let _this = this;
+        _this.playButton = _this.physics.add.sprite(game.config.width/2, game.config.height/2 + 100, "playButton");
+        _this.playButton.setScale(gameDetails.playButtonScale);
+        _this.playButton.setInteractive();
+
+        _this.playButton.on("pointerover", function (pointer) {
+            _this.playButton.play("playButtonOver");
+        });
+
+        _this.playButton.on("pointerout", function (pointer) {
+            _this.playButton.play("playButtonOut");
+        });
+
+        _this.playButton.on("pointerdown", function (pointer) {
+            console.log("PLAY NOW CLICKED!");
+            currentGame.changeSceneRequest(socket, 2);
+        });
+    }
+
+    createAllAnimations() {
         this.anims.create({
 			key: "yourTurnAnim", // Name of animation
 			frames: this.anims.generateFrameNumbers("turnIndicator"), // Using frames from "yourTurn" spritesheet
