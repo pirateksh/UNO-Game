@@ -46,6 +46,37 @@ class Scene2 extends Phaser.Scene {
         }, _this);
 
 
+        _this.videoX = 90;
+        _this.videoY = 90;
+        _this.videoGroup = [];
+        _this.labelGroup = _this.physics.add.group();
+        _this.graphicsGroup = _this.physics.add.group();
+        _this.streamDict = _this.scene.get("bootGame").streamDict;
+
+        for(let label in _this.streamDict) {
+            if(_this.streamDict.hasOwnProperty(label)) {
+                let stream = _this.streamDict[label];
+                let vidElem = _this.add.video(_this.videoX, _this.videoY);
+                _this.videoY += 105;
+                vidElem.loadURL("", 'loadeddata', false);
+                vidElem.video.srcObject = stream;
+                vidElem.video.addEventListener('loadedmetadata', () => {
+                    vidElem.video.play();
+                    vidElem.depth = 0;
+                    vidElem.setData({"username": label});
+                    vidElem.setScale(gameDetails.liveFeedScale);
+                    _this.videoGroup.push(vidElem);
+                    vidElem.setData({"username": label});
+                });
+
+                addLabelOnLiveFeed(_this, vidElem, label);
+
+                if(label === me){
+                    vidElem.video.muted = true;
+                }
+            }
+        }
+
         _this.timeRemainingToSkip = gameDetails.timeOutLimitInSeconds;
         _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, _this.config.height - 50, "pixelFont", _this.timeRemainingToSkip, 50);
 
@@ -420,6 +451,44 @@ class Scene2 extends Phaser.Scene {
                             break;
                         }
                     }
+                }
+
+                for(let i = 0; i < _this.videoGroup.length; ++i) {
+                    let vidElem = _this.videoGroup[i];
+                    let left = vidElem.getData("username");
+                    if(left === leftUsername) {
+                        console.log(leftUsername, left);
+                        _this.videoGroup.splice(i, 1);
+                        vidElem.destroy();
+                        break;
+                    }
+                }
+                for(let i = 0; i < _this.labelGroup.getChildren().length; ++i) {
+                    let labelText = _this.labelGroup.getChildren()[i];
+                    let graphics = _this.graphicsGroup.getChildren()[i];
+                    let leftPlayerUsername = labelText.getData("username");
+                    if(leftUsername === leftPlayerUsername) {
+                        labelText.destroy();
+                        graphics.destroy();
+                        _this.videoY -= 105;
+                        break;
+                    }
+                }
+
+                if (peers[leftUsername]){
+                    peers[leftUsername].close();
+                    delete peers[leftUsername];
+                     if(document.getElementById("div_" + leftUsername)){
+                        document.getElementById("div_" + leftUsername).remove();
+                     }
+                     if(document.getElementById("vid_" + leftUsername)){
+                        document.getElementById("vid_" + leftUsername).remove();
+                     }
+                } else{
+                    console.log("Tha hi nhi");
+                }
+                if(document.getElementById(leftUsername)){
+                    document.getElementById(leftUsername).remove();
                 }
             }
         });

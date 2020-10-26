@@ -60,11 +60,12 @@ def enter_public_play(request):
         if GameServer.AVAILABLE_PUBLIC_GAMES:
             for public_game in GameServer.AVAILABLE_PUBLIC_GAMES:
                 if public_game.get_count_of_players() < MAX_JOINED_PLAYER_COUNT:
-                    if public_game.league == current_player_league:
-                        active_unique_id = public_game.unique_id
-                        return HttpResponseRedirect(
-                            reverse('enter_game_room',
-                                    kwargs={'game_type': GameServer.PUBLIC, 'unique_id': active_unique_id}))
+                    if not public_game.is_game_running:
+                        if public_game.league == current_player_league:
+                            active_unique_id = public_game.unique_id
+                            return HttpResponseRedirect(
+                                reverse('enter_game_room',
+                                        kwargs={'game_type': GameServer.PUBLIC, 'unique_id': active_unique_id}))
         # If no Public Game Room Available, create new.
         active_unique_id = id_generator(10)
         return HttpResponseRedirect(
@@ -85,11 +86,16 @@ def enter_friend_play(request):
         if GameServer.AVAILABLE_FRIEND_GAMES:
             for friend_game in GameServer.AVAILABLE_FRIEND_GAMES:
                 if friend_game.unique_id == unique_id:
-                    if friend_game.get_count_of_players() < MAX_JOINED_PLAYER_COUNT:
-                        return HttpResponseRedirect(
-                            reverse('enter_game_room', kwargs={"game_type": GameServer.FRIEND, "unique_id": unique_id}))
-                    break
-        message = f"Either friendly Game with ID {unique_id} doesn't exist or it is full."
+                    if friend_game.get_count_of_players() == MAX_JOINED_PLAYER_COUNT:
+                        message = f"Friendly Game Room with ID {unique_id} is full."
+                        raise Http404(message)
+                    if not friend_game.is_game_running:
+                        message = f"Game is already running in Friendly Game Room with ID {unique_id}."
+                        raise Http404(message)
+                    return HttpResponseRedirect(
+                        reverse('enter_game_room',
+                                kwargs={"game_type": GameServer.FRIEND, "unique_id": unique_id}))
+        message = f"Friendly Game Room with ID {unique_id} doesn't exist."
         raise Http404(message)
     elif request.method == "GET":  # Creating New Game and Entering
         unique_id = id_generator(10)

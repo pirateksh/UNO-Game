@@ -116,7 +116,6 @@ class Scene1 extends Phaser.Scene {
 
         this.load.video('wormhole', `${generatePath("video", "wormhole.mp4")}`, 'loadeddata', false, true);
 
-        this.load.image('copyIcon', `${generatePath("spritesheets", "copy_inactive.png")}`);
     }
 
     create() {
@@ -212,6 +211,10 @@ class Scene1 extends Phaser.Scene {
             });
         });
 
+        let VideoGrid = document.getElementById('VideoGrid');
+        let Video = document.createElement('video'); // This video Element will contain users own video
+
+
         Promise.all([get_my_peer_id, open_socket]).then(result => {
              console.log("open");
              MY_UNIQUE_PEER_ID = result[0].unique_peer_id;
@@ -235,42 +238,29 @@ class Scene1 extends Phaser.Scene {
                  })
         });
 
-        let VideoGrid = document.getElementById('VideoGrid');
-        let Video = document.createElement('video'); // This video Element will contain users own video
+        _this.videoX = 80;
+        _this.videoY = 80;
+        _this.videoGroup = [];
+        _this.labelGroup = _this.physics.add.group();
+        _this.graphicsGroup = _this.physics.add.group();
+        _this.streamDict = {};
 
-        _this.videoX = 100;
-        _this.videoY = 100;
-        _this.videoGroup = _this.physics.add.group();
         function addVideoStream(Video, stream, label="Some user in Room") {
             let vidElem = _this.add.video(_this.videoX, _this.videoY);
-            _this.videoY += 130;
-            vidElem.depth = 10;
+            _this.videoY += 105;
             vidElem.loadURL("", 'loadeddata', false);
             vidElem.video.srcObject = stream;
-            vidElem.setScale(0.28);
+            _this.streamDict[label] = stream;
             vidElem.video.addEventListener('loadedmetadata', () => {
                 vidElem.video.play();
-                // _this.tweens.add({
-                //     targets: vidElem,
-                //     x: game.config.width,
-                //     y: game.config.height,
-                //     duration: 2000,
-                //     yoyo: true,
-                //     callbackScope: _this
-                // });
+                vidElem.depth = 0;
+                vidElem.setData({"username": label});
+                vidElem.setScale(gameDetails.liveFeedScale);
+                _this.videoGroup.push(vidElem);
             });
-            // let NewVideoCont = document.createElement('div');
-            // NewVideoCont.style.display = "inline-block";
-            // NewVideoCont.style.boxSizing = "border-box";
-            // NewVideoCont.style.width = "100px";
-            // let NewVideoLabel = document.createElement('p');
-            // NewVideoLabel.innerHTML = label;
-            // VideoGrid.append(NewVideoCont);
-            // NewVideoCont.append(NewVideoLabel);
-            // NewVideoCont.id = "div_" + label;
-            // NewVideoLabel.id = label;
-            // Video.id = "vid_" + label;
-            // NewVideoCont.append(Video);
+
+            addLabelOnLiveFeed(_this, vidElem, label);
+
             if(label === me){
                 vidElem.video.muted = true;
             }
@@ -321,7 +311,7 @@ class Scene1 extends Phaser.Scene {
                 });
             })
             .catch((err) => {
-                console.log("Error Occurred While Strating the Stream:", err);
+                console.log("Error Occurred While Starting the Stream:", err);
             });
 
         _this.joinedPlayersTag = _this.physics.add.group();
@@ -406,9 +396,17 @@ class Scene1 extends Phaser.Scene {
 
                 for(let i = 0; i < _this.joinedPlayersTag.getChildren().length; ++i) {
                     let leftPlayerTag = _this.joinedPlayersTag.getChildren()[i];
+                    let labelText = _this.labelGroup.getChildren()[i];
+                    let graphics = _this.graphicsGroup.getChildren()[i];
+                    let vidElem = _this.videoGroup[i];
                     let leftPlayerUsername = leftPlayerTag.getData("username");
                     if(left_user_username === leftPlayerUsername) {
                         leftPlayerTag.destroy();
+                        labelText.destroy();
+                        graphics.destroy();
+                        _this.videoGroup.splice(i, 1);
+                        vidElem.destroy();
+                        _this.videoY -= 105;
                         break;
                     }
                 }
@@ -435,6 +433,10 @@ class Scene1 extends Phaser.Scene {
             }
             else if(status === "change_scene") {
                 let sceneNumber = data.sceneNumber;
+                for(let i = 0; i < _this.videoGroup.length; ++i) {
+                    let vidElem =  _this.videoGroup[i];
+                    vidElem.destroy();
+                }
                 if(sceneNumber === 2) {
                     _this.scene.start("playGame");
                     if(me === currentGame.adminUsername && (currentGame.gameType === Game.FRIEND)) {
@@ -464,8 +466,6 @@ class Scene1 extends Phaser.Scene {
         // Calling method to create all the animations used in game.
         _this.createAllAnimations();
     }
-
-
 
     addPlayButton() {
         let _this = this;
