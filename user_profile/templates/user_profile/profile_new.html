@@ -1,23 +1,19 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Profile - Brand</title>
-    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
-    <link rel="stylesheet" href="assets/fonts/fontawesome-all.min.css">
-    <link rel="stylesheet" href="./style.css">
+{% block styles %}
     <style>
         th {
             vertical-align: middle !important;
         }
     </style>
-</head>
+{% endblock %}
 
-<body id="page-top">
-    
+{% block title %}
+    Profile - Brand
+{% endblock %}
+
+{% block content %}
     <div class="d-flex flex-column" id="content-wrapper">
         <div id="content">
             <div class="container-fluid">
@@ -28,14 +24,14 @@
                                 <h6 class="text-primary font-weight-bold m-0">Avatar</h6>
                             </div>
                             <div class="card-body text-center shadow">
-                                <img class="rounded-circle mb-3 mt-4" src="assets/img/dogs/image.jpeg" width="160" height="160" alt="Avatar">
+                                <img class="rounded-circle mb-3 mt-4" src="{% static 'img/dogs/image.jpeg' %}" width="160" height="160" alt="Avatar">
                                 <div class="mb-3"><button class="btn btn-primary btn-sm" type="button">Change Photo</button></div>
                                 <h4 class="small text-left font-weight-bold">Progress<span class="float-right">Level 3</span></h4>
                                 <div class="progress progress-sm mb-3">
                                     <div class="progress-bar bg-success" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;"><span class="sr-only">100%</span></div>
                                 </div>
                             </div>
-                            
+
                         </div>
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
@@ -102,7 +98,7 @@
                                 </div>
                             </div>
                         </div>
-                
+
                         <div class="col">
                             <div class="card shadow mb-3">
                                 <div class="card-header py-3">
@@ -114,19 +110,19 @@
                                             <thead>
                                                 <tr>
                                                     <th scope="col">
-                                                        <img src="trophy.png" alt="" width="60px"><br>
+                                                        <img src="{% static "img/profile/trophy.png" %}" alt="" width="60px"><br>
                                                         <strong>CURRENT LEAGUE</strong>
                                                     </th>
                                                     <th scope="col">
-                                                        <img src="max-trophy.png" alt="" width="60px"><br>
+                                                        <img src="{% static "img/profile/max-trophy.png" %}" alt="" width="60px"><br>
                                                         <strong>MAXIMUM LEAGUE</strong>
                                                     </th>
                                                     <th scope="col">
-                                                        <img src="win.png" alt="" width="80px"><br>
+                                                        <img src="{% static "img/profile/win.png" %}" alt="" width="80px"><br>
                                                         <strong>No of Wins</strong>
                                                     </th>
                                                     <th scope="col">
-                                                        <img src="played.png" alt="" width="60px"><br>
+                                                        <img src="{% static "img/profile/played.png" %}" alt="" width="60px"><br>
                                                         <strong>NO OF MATCHES PLAYED</strong>
                                                     </th>
                                                 </tr>
@@ -156,13 +152,9 @@
                 </div>
             </div>
         </div>
-    </div> 
-    
-    <a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
-    <script src="assets/js/jquery.min.js"></script>
-    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
-    <script src="assets/js/theme.js"></script>
-</body>
+    </div>
+{% endblock %}
 
-</html>
+{% block javascript %}
+
+{% endblock %}

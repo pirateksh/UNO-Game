@@ -37,7 +37,7 @@ def user_profile_view(request, username):
             'other_game_rooms': other_game_room_qs,
             'joined_game_rooms': joined_game_rooms,
         }
-        return render(request, 'user_profile/profile.html', context=context)
+        return render(request, 'user_profile/profile_new.html', context=context)
     else:
         return HttpResponse(f"Oops! User with username {username} not found!")
 

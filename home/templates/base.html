@@ -50,11 +50,13 @@
         <div class="toggle-switch">
             <div class="toggle-switch-figure"></div>
             <div class="toggle-switch-figureAlt"></div>
-        </div>  
+        </div>
     </div>
     {% block content %}
 
     {% endblock %}
+
+    <a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
 
     {% include 'footer.html' %}
 
@@ -65,6 +67,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
     <script src="{%  static "js/canvas.js" %}"></script>
     <script src="{%  static "js/freelancer.js" %}"></script>
+    <script src="{% static "js/theme.js" %}"></script>
 
     <script>
         {% if messages %}
