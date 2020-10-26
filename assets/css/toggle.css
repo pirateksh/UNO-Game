@@ -191,6 +191,7 @@ body {
   --primary: #18bc9c;
   --h-color: black;
   --bg-07: white;
+  --bg-03: white;
 }
 
 body.dark-theme {
@@ -201,6 +202,7 @@ body.dark-theme {
   --primary: #0e6957;
   --h-color: rgba(255, 255, 255, 0.7);
   --bg-07: rgba(0, 0, 0, 0.7);
+  --bg-03: rgba(0, 0, 0, 0.3);
 }
 
 canvas {
@@ -252,6 +254,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .card-bg {
   background-color: var(--bg-07);
+}
+.card-hd {
+  background-color: var(--bg-03);
 }
 
 .tbl-bg {
