@@ -28,7 +28,7 @@ function start_recording() {
     };
 
     MEDIA_RECORDER.onstop = (ev) => {
-        let blob = new Blob(chunks, {'type': 'video/mp4'});
+        let blob = new Blob(chunks, {'type': 'video/webm'});
         alert("Recording is ready to be Downloaded");
         chunks = [];
         let videoURL = window.URL.createObjectURL(blob);

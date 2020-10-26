@@ -26,11 +26,19 @@ class GameRoomConsumer(AsyncConsumer):
 
         self.user_profile_obj = await self.get_user_profile_obj()
 
+        league = None
+        if self.game_type == GameServer.PUBLIC:
+            league = self.user_profile_obj.current_league
+
         self.game_room_id = f"game_room_{self.unique_id}"
 
         self.player_server_obj = PlayerServer(username=self.me.username)
 
-        self.game = GameServer.create_new_game(unique_id=self.unique_id, player=self.player_server_obj, game_type=self.game_type)
+        self.game = GameServer.create_new_game(unique_id=self.unique_id, player=self.player_server_obj, game_type=self.game_type, league=league)
+
+        if self.game is None:
+            # Connection is rejected because this room is already full.
+            return
 
         await self.channel_layer.group_add(
             self.game_room_id,
@@ -55,8 +63,10 @@ class GameRoomConsumer(AsyncConsumer):
             if type_of_event == "start.game":
                 # print(f"Before Broadcasting: Going to call start.game")
                 self.game.start_game()
-                # print(f"Deck and Hands are Ready")
-                # await self.set_is_game_running_true()
+
+                # This can be called by Friend Game only.
+                if self.game.game_type == GameServer.FRIEND:
+                    GameServer.AVAILABLE_FRIEND_GAMES.remove(self.game)
             elif type_of_event == "end.game":
                 self.game.end_game()
                 # await self.set_is_game_running_false()
@@ -209,10 +219,13 @@ class GameRoomConsumer(AsyncConsumer):
 
             # TODO: Trying match making.
             if type_of_event == "user.new":
+                if self.game.game_type == GameServer.FRIEND:
+                    if self.game.get_count_of_players() == 10:
+                        GameServer.AVAILABLE_FRIEND_GAMES.remove(self.game)
                 if self.game.game_type == GameServer.PUBLIC:
                     count = self.game.get_count_of_players()
                     print("Count so far:", count)
-                    if count == 2:
+                    if count == GameServer.PUBLIC_ROOM_LIMIT:
                         # await asyncio.sleep(2)
                         print("CHANGING SCENE!.")
                         change_scene_response = {
@@ -235,7 +248,8 @@ class GameRoomConsumer(AsyncConsumer):
                         print("2 seconds over")
                         print("Starting Public Game.")
                         self.game.start_game()
-                        # await self.set_is_game_running_true()
+                        if self.game.game_type == GameServer.PUBLIC:
+                            GameServer.AVAILABLE_PUBLIC_GAMES.remove(self.game)
                         public_response = {
                             "status": "start_game",
                             "message": "Public Game has been started.",
@@ -445,35 +459,32 @@ class GameRoomConsumer(AsyncConsumer):
 
     async def websocket_disconnect(self, event):
         print("disconnected", event)
-        me = self.me
-        # await self.set_is_online_false()
-
         # Leaving current Game
-        # if len(self.game.players) == 1:
-        #     await self.set_is_game_running_false()
-        self.game.leave_game(self.player_server_obj)
-        del self.player_server_obj
-        response = {
-            "status": "user_left_room",
-            "message": "Disconnecting...",
-            "data": {
-                "left_user_username": me.username,
-                "game_room_unique_id": self.game_room_id
-            },
-            "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder)
-        }
-        await self.channel_layer.group_send(
-            self.game_room_id,
-            {
-                "type": "user_left_room",
-                "text": json.dumps(response)
+        if self.game is not None:
+            me = self.me
+            self.game.leave_game(self.player_server_obj)
+            del self.player_server_obj
+            response = {
+                "status": "user_left_room",
+                "message": "Disconnecting...",
+                "data": {
+                    "left_user_username": me.username,
+                    "game_room_unique_id": self.game_room_id
+                },
+                "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder)
             }
-        )
+            await self.channel_layer.group_send(
+                self.game_room_id,
+                {
+                    "type": "user_left_room",
+                    "text": json.dumps(response)
+                }
+            )
 
-        await self.channel_layer.group_discard(
-            self.game_room_id,
-            self.channel_name
-        )
+            await self.channel_layer.group_discard(
+                self.game_room_id,
+                self.channel_name
+            )
 
     async def user_left_room(self, event):
         await self.send({

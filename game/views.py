@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from .models import GameRoom, Player, id_generator
 from .helper import GameServer
+from user_profile.models import UserProfile
 
 from channels.layers import get_channel_layer
 import json
@@ -14,8 +15,6 @@ ERROR = "error"
 SUCCESS = "success"
 MAX_JOINED_PLAYER_COUNT = 10
 MINIMUM_ONLINE_PLAYER_REQUIRED = 2
-
-AVAILABLE_GAME_ROOMS = []  # Will contain unique ID of active game rooms.
 
 channel_layer = get_channel_layer()
 
@@ -49,13 +48,25 @@ def play_now(request):
 
 # TODO: Play Anonymously option for authenticated users as well.
 def enter_public_play(request):
+    """
+    View to enter Public Game Room
+    :param request:
+    :return:
+    """
     player = request.user
     if player.is_authenticated:
-        if AVAILABLE_GAME_ROOMS:
-            active_unique_id = AVAILABLE_GAME_ROOMS[0]
-        else:
-            active_unique_id = id_generator(10)
-            AVAILABLE_GAME_ROOMS.append(active_unique_id)
+        player_profile = UserProfile.objects.get(user=player)
+        current_player_league = player_profile.current_league
+        if GameServer.AVAILABLE_PUBLIC_GAMES:
+            for public_game in GameServer.AVAILABLE_PUBLIC_GAMES:
+                if public_game.get_count_of_players() < MAX_JOINED_PLAYER_COUNT:
+                    if public_game.league == current_player_league:
+                        active_unique_id = public_game.unique_id
+                        return HttpResponseRedirect(
+                            reverse('enter_game_room',
+                                    kwargs={'game_type': GameServer.PUBLIC, 'unique_id': active_unique_id}))
+        # If no Public Game Room Available, create new.
+        active_unique_id = id_generator(10)
         return HttpResponseRedirect(
             reverse('enter_game_room', kwargs={'game_type': GameServer.PUBLIC, 'unique_id': active_unique_id}))
     else:
@@ -64,10 +75,22 @@ def enter_public_play(request):
 
 
 def enter_friend_play(request):
+    """
+    View to enter Friendly Game Room.
+    :param request:
+    :return:
+    """
     if request.method == "POST":  # Enter Existing Game
         unique_id = request.POST['friend_unique_id']
-        return HttpResponseRedirect(
-            reverse('enter_game_room', kwargs={"game_type": GameServer.FRIEND, "unique_id": unique_id}))
+        if GameServer.AVAILABLE_FRIEND_GAMES:
+            for friend_game in GameServer.AVAILABLE_FRIEND_GAMES:
+                if friend_game.unique_id == unique_id:
+                    if friend_game.get_count_of_players() < MAX_JOINED_PLAYER_COUNT:
+                        return HttpResponseRedirect(
+                            reverse('enter_game_room', kwargs={"game_type": GameServer.FRIEND, "unique_id": unique_id}))
+                    break
+        message = f"Either friendly Game with ID {unique_id} doesn't exist or it is full."
+        raise Http404(message)
     elif request.method == "GET":  # Creating New Game and Entering
         unique_id = id_generator(10)
         return HttpResponseRedirect(

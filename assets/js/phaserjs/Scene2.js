@@ -67,7 +67,7 @@ class Scene2 extends Phaser.Scene {
             _this.scene.start("endGame");
         });
 
-        if(me === currentGame.adminUsername  && (currentGame.gameType !== 0)) { // Game Room is not Public.
+        if(me === currentGame.adminUsername  && currentGame.gameType === Game.FRIEND) {
             // Adding cross button
             _this.crossButton = _this.physics.add.sprite(gameDetails.crossButtonX, gameDetails.crossButtonY, "crossButton");
             _this.crossButton.setScale(gameDetails.roundButtonScale);

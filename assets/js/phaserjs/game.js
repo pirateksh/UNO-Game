@@ -134,3 +134,11 @@ function resize() {
         canvas.style.height = windowHeight + "px";
     }
 }
+
+function copyToClipboard(text) {
+	navigator.clipboard.writeText(text).then(function() {
+		alert("Unique ID has been copied to clipboard.")
+	}, function(err) {
+		alert("Alas! Unique ID could not be copied to clipboard.");
+	});
+}

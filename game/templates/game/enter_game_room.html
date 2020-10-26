@@ -156,8 +156,11 @@
         }
 
         class Game {
+
+            static PUBLIC = 0;
+            static FRIEND = 1;
+
             constructor(gameData) {
-                {#console.log(gameData);#}
                 this.uniqueId = gameData.uniqueId;
                 this.adminUsername = gameData.adminUsername;
                 this.gameType = parseInt(gameData.gameType);
@@ -169,12 +172,9 @@
                 this.isGameRunning = false;
                 this.canDrawCard = false;
                 this.coordinatesOfPlayers = {};
-                // Adding Players to DOM.
-                // Game.addPlayersToDOM(this.players);
             }
 
             copyData(gameData) {
-                {#console.log(gameData);#}
                 if(gameData.topCard) {
                     this.topCard = new Card(gameData.topCard.category, gameData.topCard.number);
                     this.topColor = gameData.topColor;

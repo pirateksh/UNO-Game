@@ -115,6 +115,8 @@ class Scene1 extends Phaser.Scene {
         this.load.bitmapFont("pixelFont", `${generatePath("font", "font.png")}`, `${generatePath("font", "font.xml")}`);
 
         this.load.video('wormhole', `${generatePath("video", "wormhole.mp4")}`, 'loadeddata', false, true);
+
+        this.load.image('copyIcon', `${generatePath("spritesheets", "copy_inactive.png")}`);
     }
 
     create() {
@@ -243,7 +245,7 @@ class Scene1 extends Phaser.Scene {
             let vidElem = _this.add.video(_this.videoX, _this.videoY);
             _this.videoY += 130;
             vidElem.depth = 10;
-            vidElem.loadURL("", 'loadeddata', true);
+            vidElem.loadURL("", 'loadeddata', false);
             vidElem.video.srcObject = stream;
             vidElem.setScale(0.28);
             vidElem.video.addEventListener('loadedmetadata', () => {
@@ -335,11 +337,7 @@ class Scene1 extends Phaser.Scene {
                 gameData = JSON.parse(backendResponse.gameData);
                 if(currentGame == null) {
                     currentGame = new Game(gameData);
-
-                    console.log("GAME TYPE:", currentGame.gameType);
-                    console.log("ADMIN USERNAME:", currentGame.adminUsername);
-                    console.log("ME:", me);
-                    if(me === currentGame.adminUsername && currentGame.gameType === 1) { // Game Type is Friend.
+                    if(me === currentGame.adminUsername && currentGame.gameType === Game.FRIEND) { // Game Type is Friend.
                         _this.addPlayButton();
                     }
                     else { // TODO: Change this
@@ -347,8 +345,17 @@ class Scene1 extends Phaser.Scene {
                     }
 
                     // Adding Unique ID of Game.
-                    _this.uniqueIdTag = _this.add.text(50, game.config.height - 50, `Unique ID: ${currentGame.uniqueId}`);
-
+                    _this.uniqueIdTag = _this.add.text(15, game.config.height - 30, `Unique ID: ${currentGame.uniqueId} (Click to Copy)`);
+                    _this.uniqueIdTag.setInteractive();
+                    _this.uniqueIdTag.on("pointerover", function (pointer) {
+                        document.querySelector("canvas").style.cursor = "pointer";
+                    });
+                    _this.uniqueIdTag.on("pointerout", function (pointer) {
+                        document.querySelector("canvas").style.cursor = "default";
+                    });
+                    _this.uniqueIdTag.on("pointerdown", function (pointer) {
+                        copyToClipboard(currentGame.uniqueId);
+                    });
 
                     for(let i = 0; i < currentGame.players.length; ++i) {
                         let player = currentGame.players[i];
@@ -430,15 +437,20 @@ class Scene1 extends Phaser.Scene {
                 let sceneNumber = data.sceneNumber;
                 if(sceneNumber === 2) {
                     _this.scene.start("playGame");
-                    if(me === currentGame.adminUsername && (currentGame.gameType !== 0)) { // Game is NOT Public
+                    if(me === currentGame.adminUsername && (currentGame.gameType === Game.FRIEND)) {
                         currentGame.startGameRequest(socket);
                     }
                 }
+            }
+            else if(status === "room_full") {
+                alert("This room is already full.");
             }
         });
 
         socket.onerror = function (e) {
             console.log("error");
+            alert("This Game is Probably Full. Try Another One!");
+            window.location.replace(redirectUrl);
         };
 
         socket.onclose = function (e) {
