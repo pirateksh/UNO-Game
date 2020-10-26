@@ -4,8 +4,8 @@ const SKIP = 10, REVERSE = 11, DRAW_TWO = 12;
 const NONE = 13;
 
 constraintObj = {
-	audio: true,
-	video: false
+	audio: false,
+	video: true
 	// video: {
 	// 	facingMode: "user",
 	// }
@@ -49,6 +49,7 @@ window.onload = function () {
         chooseColorButtonScale: 0.5,
         dimAlpha: 0.2,
 		timeOutLimitInSeconds: 10,
+        liveFeedScale: 0.2,
 	};
 
 	let config = {
@@ -141,4 +142,94 @@ function copyToClipboard(text) {
 	}, function(err) {
 		alert("Alas! Unique ID could not be copied to clipboard.");
 	});
+}
+
+function addLabelOnLiveFeed(scene, vidElem, label) {
+    let _this = scene;
+    let scale = gameDetails.liveFeedScale;
+    let scaledWidth = 640 * scale;
+    let scaledHeight = 480 * scale;
+    let graphics = _this.add.graphics();
+    graphics.fillStyle(0xffffff, 1);
+    // Draw the Polygon Lines with coordinates.
+    graphics.beginPath();
+    let graphicsX = vidElem.x - (scaledWidth/2), graphicsY = vidElem.y - (scaledHeight/2);
+    graphics.moveTo(graphicsX, graphicsY);
+    graphics.lineTo(vidElem.x - (scaledWidth/2), vidElem.y + 20 - (scaledHeight/2));
+    graphics.lineTo(vidElem.x + (scaledWidth/2), vidElem.y + 20 - (scaledHeight/2));
+    graphics.lineTo(vidElem.x + (scaledWidth/2), vidElem.y - (scaledHeight/2));
+    graphics.lineTo(vidElem.x + (scaledWidth/2), vidElem.y - (scaledHeight/2));
+
+
+    // Close the path and fill the shape.
+    graphics.closePath();
+    graphics.fillPath();
+    graphics.setData({"username": label});
+    _this.graphicsGroup.add(graphics);
+    graphics.depth = 1;
+
+
+    let labelText;
+    if(label === me) {
+        labelText =  _this.add.text(graphicsX, graphicsY, `${label}(me)`, {fill: "0x000000"});
+    }
+    else {
+        labelText = _this.add.text(graphicsX, graphicsY, label, {fill: "0x000000"});
+    }
+
+    labelText.setInteractive();
+    labelText.setData({"username": label});
+    _this.labelGroup.add(labelText);
+    labelText.depth = 1;
+    labelText.on("pointerover", function (pointer) {
+        document.querySelector("canvas").style.cursor = "pointer";
+    }, _this);
+
+    labelText.on("pointerout", function (pointer) {
+        document.querySelector("canvas").style.cursor = "default";
+    }, _this);
+
+    let origVidX = vidElem.x, origVidY = vidElem.y;
+    labelText.on("pointerdown", function (pointer) {
+        _this.tweens.add({
+            targets: vidElem,
+            x: game.config.width/2,
+            y: game.config.height/2,
+            depth: 20,
+            scale: 1,
+            ease: "Power1",
+            duration: 500,
+            onComplete: function() {
+                _this.starfield2.setInteractive();
+                _this.starfield2.alpha = 0.2;
+                vidElem.on("pointerover", function (pointer) {
+                    document.querySelector("canvas").style.cursor = "default";
+                });
+
+                _this.starfield2.on("pointerover", function (pointer) {
+                    document.querySelector("canvas").style.cursor = "pointer";
+                });
+                _this.starfield2.on("pointerout", function (pointer) {
+                    document.querySelector("canvas").style.cursor = "default";
+                });
+                _this.starfield2.on("pointerdown", function (pointer) {
+                    _this.tweens.add({
+                        targets: vidElem,
+                        x: origVidX,
+                        y: origVidY,
+                        depth: 0,
+                        ease: "Power1",
+                        scale: scale,
+                        duration: 500,
+                        onComplete: function() {
+                            _this.starfield2.disableInteractive();
+                            _this.starfield2.alpha = 1;
+                        },
+                        callbackScope: _this
+                    });
+                });
+            },
+            callbackScope: _this,
+        });
+    }, _this);
 }
