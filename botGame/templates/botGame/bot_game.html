@@ -41,7 +41,7 @@
         var pathname = loc.pathname;
 
         var wsStart = 'ws://';
-        if(loc.protocol == 'https:'){
+        if(loc.protocol === 'https:'){
             wsStart = 'wss://';
         }
 
@@ -109,7 +109,7 @@
 
             if(choose_to_play_or_keep !== undefined){
                 let user_input = prompt("The drawn Card[ " + drawn_card_val + " ] is Playable. Enter \n 'P' to Play it.\n 'K' to Continue Keeping it.");
-                if(user_input == 'P'){ // Play
+                if(user_input === 'P'){ // Play
                     send_card_play_request(undefined, drawn_card_val)
                 }
                 else{ // Keep

@@ -353,15 +353,27 @@ class Scene1 extends Phaser.Scene {
 
                     for(let i = 0; i < currentGame.players.length; ++i) {
                         let player = currentGame.players[i];
+                        let playerTag;
                         if(i % 2) {
-                            let playerTag = _this.add.text(_this.joinedX + 120, _this.joinedY, player, {fill: '#00ff00'});
+                            if(player === currentGame.adminUsername && currentGame.gameType === Game.FRIEND) {
+                                playerTag = _this.add.text(_this.joinedX + 120, _this.joinedY, `${player}(admin)`, {fill: '#00ff00'});
+                            }
+                            else {
+                                playerTag = _this.add.text(_this.joinedX + 120, _this.joinedY, player, {fill: '#00ff00'});
+                            }
+
                             playerTag.setData({'username': player});
                             _this.joinedPlayersTag.add(playerTag);
                         }
                         else {
-                             let playerTag = _this.add.text(_this.joinedX - 200, _this.joinedY, player, {fill: '#00ff00'});
-                             playerTag.setData({'username': player});
-                             _this.joinedPlayersTag.add(playerTag);
+                            if(player === currentGame.adminUsername && currentGame.gameType === Game.FRIEND) {
+                                playerTag = _this.add.text(_this.joinedX - 200, _this.joinedY, `${player}(admin)`, {fill: '#00ff00'});
+                            }
+                            else {
+                                playerTag = _this.add.text(_this.joinedX - 200, _this.joinedY, player, {fill: '#00ff00'});
+                            }
+                            playerTag.setData({'username': player});
+                            _this.joinedPlayersTag.add(playerTag);
                         }
                         _this.joinedY += 20;
                     }
@@ -475,7 +487,7 @@ class Scene1 extends Phaser.Scene {
 
     addPlayButton() {
         let _this = this;
-        _this.playButton = _this.physics.add.sprite(game.config.width/2, game.config.height/2 + 100, "playButton");
+        _this.playButton = _this.physics.add.sprite(game.config.width/2, game.config.height/2 + 80, "playButton");
         _this.playButton.setScale(gameDetails.playButtonScale);
         _this.playButton.setInteractive();
 
