@@ -30,7 +30,7 @@
                                         {% if 'cook_user' and 'cook_pass' in request.COOKIES %}
                                             <div class="form-group">
                                                 <input class="form-control form-control-user" type="text" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Enter Username/Email..." value="{{request.COOKIES.cook_user}}" required>
-                                                <input id="login_username_hidden" name="username" name="username" type="hidden">
+                                                <input id="login_username_hidden" name="username" type="hidden">
                                             </div>
                                             <div class="form-group">
                                                 <input class="form-control form-control-user" type="password" id="exampleInputPassword" placeholder="Password" value="{{request.COOKIES.cook_pass}}" required>
