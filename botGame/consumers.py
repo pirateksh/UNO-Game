@@ -164,9 +164,9 @@ def recover_deck(player_state, bot_game_state, bot_state):
 def can_play_wild_four(player_state, top_color):
     for card in player_state.cards:
         if card.category == top_color:
-            print("Cannot Play Wild Four")
+            # print("Cannot Play Wild Four")
             return 0
-    print("Can Play Wild Four")
+    # print("Can Play Wild Four")
     return 1
 
 
@@ -190,6 +190,29 @@ def get_playable_cards(player_state, bot_game_state, top_color=None):
     return player_state.allowed_cards
 
 
+
+def check_drawn_card_playable(drawn_card_object, player_state, bot_game_state):
+
+    category = bot_game_state.top_card.category
+    number = bot_game_state.top_card.number
+    drawn_card_category = drawn_card_object.category
+    drawn_card_number = drawn_card_object.number
+
+    if drawn_card_category in ['W']:
+        return True
+    elif drawn_card_category in ['WF']: 
+        if can_play_wild_four(player_state, bot_game_state.top_card.category) == 1:
+            return True
+        else:
+            return False
+    elif str(drawn_card_number) == str(number):
+        return True
+    elif (drawn_card_category) == str(category):
+        return True
+    else:
+        return False
+
+
 def update_state_request(player_card_value, player_state, bot_game_state, bot_state):
     """
         This function updates the player_state[Removes the played card from hand] and the game_state[Changes the Top Card]
@@ -202,7 +225,15 @@ def update_state_request(player_card_value, player_state, bot_game_state, bot_st
             print("length of new deck-usr:", len(bot_game_state.deck.cards))
         drawn_card_object = bot_game_state.deck.deal()
         print("Card Drawn from the Deck is", drawn_card_object.show_card())
-        player_state.cards.append(drawn_card_object)
+        is_drawn_card_playable = check_drawn_card_playable(drawn_card_object, player_state, bot_game_state)
+        if is_drawn_card_playable:
+            player_state.cards.append(drawn_card_object)
+            print('Drawn Card is Playable')
+            return drawn_card_object
+        else:
+            player_state.cards.append(drawn_card_object)
+            print('Drawn Card is Not Playable')
+            return None
     else:
         number, category = player_card_value.split(" of ")
         valid_card = False
@@ -221,7 +252,7 @@ def update_state_request(player_card_value, player_state, bot_game_state, bot_st
                 for card in cards:
                     if card.show_card() == bot_game_state.top_card.show_card():
                         player_state.cards.remove(card)
-                        break
+                        return None
             except:
                 print("WHOA! This should not Happen!")
         else:
@@ -367,7 +398,7 @@ def bot_decide_card(bot_state):
         # print("Cnt of Allowed Cards:", len(cards))
         cards.sort(key=compare)
         for card_val in cards:
-            print("Allowed Card", card_val)
+            # print("Allowed Card", card_val)
             number, category = card_val.split(" of ")
             if number in ['10', '11', '12', '13']:
                 print("Special Card Available, hence Played")
@@ -390,7 +421,6 @@ def bot_decide_card(bot_state):
         print("Decided Card to play is", card_play_val)
         return card_play_val
     else:
-        print("Bot Played DRAW_CARD")
         return "DRAW_CARD"
 
 
@@ -529,132 +559,203 @@ class BotGameConsumer(AsyncConsumer):
         )
 
     async def websocket_receive(self, event):
+        """
+        Note 1:
+            With every server_response, in addition to other response values, server must send:
+                Current Version:
+                    1. response_player_state
+                    2. response_bot_state
+                    3. response_bot_game_state
+                    4. response_playable_cards
+                    5. response_bot_played_cards
+                For Final Version:
+                    1. response_player_state
+                    2. response_bot_game_state
+                    3. response_playable_cards
+                    4. response_bot_played_cards        
+            Optional Possible Values are: 
+                1. response_drawn_card_val
+                2. response_top_color
+                3. response_bot_says_uno
+                4. response_bot_won
+        Note 2:
+            "response_" prefix signifies that this value we will send as server response, if it is not some constant value.
+        """
+
         # When a message is received from the Websocket
         data_received_dict = json.loads(event.get('text', None))
-        card_played_value = data_received_dict.get('card_played_value')
-        color_changed_to = data_received_dict.get('color_changed_to')
-        print("Card played by Client is ", card_played_value)
-
-        if card_played_value == 'DRAW_CARD':
-            print("Player played DRAW_CARD")
-            update_state_request("DRAW_CARD", self.game.player_state, self.game.bot_game_state, self.game.bot_state)
-            # Now Bot will Play its Turn
-        elif card_played_value == 'END_GAME':
-            BotGameServer.delete_bot_game(self.game.bot_game_state.bot_game_room)
-            # Game Ended
-            return
-        else:
-            # Updating the State of player and bot_game
-            update_state_request(card_played_value, self.game.player_state, self.game.bot_game_state, self.game.bot_state)
-            response_player_state = self.game.player_state.get_all_cards()
-            if len(response_player_state) == 0:
-                # Generating the server_response
-                response_bot_state = self.game.bot_state.get_all_cards()
-                response_bot_game_state = self.game.bot_game_state.get_top_card()
-                response_playable_cards = get_playable_cards(self.game.player_state, self.game.bot_game_state)
-                response_bot_played_cards = []
-                server_response = {
-                    "player_state": json.dumps(response_player_state),
-                    "bot_state": json.dumps(response_bot_state),
-                    "bot_game_state": json.dumps(response_bot_game_state),
-                    "playable_cards": response_playable_cards,
-                    "bot_played_cards": [],
-                    "player_won": 1
-                }
-                await self.channel_layer.group_send(
-                    self.bot_game_room,  # name of the Chat root
-                    {
-                        'type': "send_to_player",
-                        'text': json.dumps(server_response)
+        card_played_value = data_received_dict.get('card_played_value', None)
+        color_changed_to = data_received_dict.get('color_changed_to', None)
+        play_keep_decision = data_received_dict.get('play_keep_decision', None)
+        bot_turn = False
+        if play_keep_decision is not None:
+            if play_keep_decision == 1: # Play
+                print("Player Decided to Play the earlier Drawn Card")
+                card_played_value = data_received_dict.get('drawn_card_val', None) # As if Player has played this card.
+                # Now player will Play this Card
+            else: # Keep
+                print("Player Decided to Keep the earlier Drawn Card")
+                bot_turn = True
+                pass
+                # When card_played_value was DRAW_CARD just now then we have already appended the card in the Players Deck
+                # So, nothing is required to be done for player_state and bot_game_state 
+                # Now BOT will Play
+        if bot_turn is False:
+            if card_played_value == 'DRAW_CARD':
+                print("Player asked to play DRAW_CARD")
+                drawn_card = update_state_request("DRAW_CARD", self.game.player_state, self.game.bot_game_state, self.game.bot_state)
+                if drawn_card is not None: # Drawn Card Was Playable
+                    # Generating the server_response
+                    response_player_state = self.game.player_state.get_all_cards()
+                    response_bot_state = self.game.bot_state.get_all_cards()
+                    response_bot_game_state = self.game.bot_game_state.get_top_card()
+                    response_playable_cards = get_playable_cards(self.game.player_state, self.game.bot_game_state)
+                    response_bot_played_cards = []
+                    response_drawn_card_val = drawn_card.show_card()
+                    server_response = {
+                        "player_state": json.dumps(response_player_state),
+                        "bot_state": json.dumps(response_bot_state),
+                        "bot_game_state": json.dumps(response_bot_game_state),
+                        "playable_cards": response_playable_cards,
+                        "bot_played_cards": response_bot_played_cards,
+                        "drawn_card_val": response_drawn_card_val,
+                        "choose_to_play_or_keep": True
                     }
-                )
+                    await self.channel_layer.group_send(
+                        self.bot_game_room,  # name of the Bot Game Room
+                        {
+                            'type': "send_to_player",
+                            'text': json.dumps(server_response)
+                        }
+                    )
+                    return
+                else: 
+                    # Drawn Card Was Not Playable
+                    # Now Bot will Play its Turn
+                    pass
+            elif card_played_value == 'END_GAME':
+                print("Player asked to End the Game")
+                BotGameServer.delete_bot_game(self.game.bot_game_state.bot_game_room)
+                # Game Ended
                 return
-            number, category = card_played_value.split(" of ")
-            if number == '10' or number == '11':  # Skip or Reverse => Bot is not allowed to play
-                print("Player Played Skip")
-                # Generating the server_response
-                response_bot_state = self.game.bot_state.get_all_cards()
-                response_bot_game_state = self.game.bot_game_state.get_top_card()
-                response_playable_cards = get_playable_cards(self.game.player_state, self.game.bot_game_state)
-                response_bot_played_cards = []
-                server_response = {
-                    "player_state": json.dumps(response_player_state),
-                    "bot_state": json.dumps(response_bot_state),
-                    "bot_game_state": json.dumps(response_bot_game_state),
-                    "playable_cards": response_playable_cards,
-                    "bot_played_cards": [],
-                }
-
-                await self.channel_layer.group_send(
-                    self.bot_game_room,  # name of the Chat root
-                    {
-                        'type': "send_to_player",
-                        'text': json.dumps(server_response)
-                    }
-                )
-                # Bot Turn Skipped
-                return
-            elif number == '13' and category == 'W':
-                print("Player Played Wild Card")
-                print("Player asked to Change the Color to", color_changed_to)
-                # Updating the Game State i.e. setting the Top Card Color
-                update_bot_game_state_only(color_changed_to, self.game.bot_game_state)
-                # Now Bot will Play its Turn
-            elif number == '12' or number == '13':
-                # DRAW_TWO/DRAW_FOUR => Bot have to draw 2/4 Cards and Player will play again
-                print("Player Played DRAW_TWO/DRAW_FOUR")
-                # Bot will need to Draw the Cards
-                update_other_player_state_only(number, self.game.bot_state, self.game.bot_game_state,
-                                               self.game.player_state)
-                # Updating the Game State i.e. setting the Top Card Color
-                update_bot_game_state_only(color_changed_to, self.game.bot_game_state)
-
-                # Generating the server_response
+            else:
+                # Updating the State of player and bot_game
+                print("Player asked to play", card_played_value)
+                update_state_request(card_played_value, self.game.player_state, self.game.bot_game_state, self.game.bot_state)
                 response_player_state = self.game.player_state.get_all_cards()
-                response_bot_state = self.game.bot_state.get_all_cards()
-                response_bot_game_state = self.game.bot_game_state.get_top_card()
-                response_playable_cards = get_playable_cards(self.game.player_state, self.game.bot_game_state)
-                response_bot_played_cards = []
-                server_response = {
-                    "player_state": json.dumps(response_player_state),
-                    "bot_state": json.dumps(response_bot_state),
-                    "bot_game_state": json.dumps(response_bot_game_state),
-                    "playable_cards": response_playable_cards,
-                    "bot_played_cards": response_bot_played_cards
-                }
-
-                await self.channel_layer.group_send(
-                    self.bot_game_room,  # name of the Chat root
-                    {
-                        'type': "send_to_player",
-                        'text': json.dumps(server_response)
+                if len(response_player_state) == 0:
+                    # Generating the server_response
+                    response_bot_state = self.game.bot_state.get_all_cards()
+                    response_bot_game_state = self.game.bot_game_state.get_top_card()
+                    response_playable_cards = get_playable_cards(self.game.player_state, self.game.bot_game_state)
+                    response_bot_played_cards = []
+                    server_response = {
+                        "player_state": json.dumps(response_player_state),
+                        "bot_state": json.dumps(response_bot_state),
+                        "bot_game_state": json.dumps(response_bot_game_state),
+                        "playable_cards": response_playable_cards,
+                        "bot_played_cards": [],
+                        "player_won": 1
                     }
-                )
-                # Bot Turn Skipped
-                return
+                    await self.channel_layer.group_send(
+                        self.bot_game_room,  # name of the Chat root
+                        {
+                            'type': "send_to_player",
+                            'text': json.dumps(server_response)
+                        }
+                    )
+                    return
+                number, category = card_played_value.split(" of ")
+                if number == '10' or number == '11':  # Skip or Reverse => Bot is not allowed to play
+                    print("Player Played Skip")
+                    # Generating the server_response
+                    response_bot_state = self.game.bot_state.get_all_cards()
+                    response_bot_game_state = self.game.bot_game_state.get_top_card()
+                    response_playable_cards = get_playable_cards(self.game.player_state, self.game.bot_game_state)
+                    response_bot_played_cards = []
+                    server_response = {
+                        "player_state": json.dumps(response_player_state),
+                        "bot_state": json.dumps(response_bot_state),
+                        "bot_game_state": json.dumps(response_bot_game_state),
+                        "playable_cards": response_playable_cards,
+                        "bot_played_cards": [],
+                    }
+
+                    await self.channel_layer.group_send(
+                        self.bot_game_room,  # name of the Chat root
+                        {
+                            'type': "send_to_player",
+                            'text': json.dumps(server_response)
+                        }
+                    )
+                    # Bot Turn Skipped
+                    return
+                elif number == '13' and category == 'W':
+                    print("Player Played Wild Card")
+                    print("Player asked to Change the Color to", color_changed_to)
+                    # Updating the Game State i.e. setting the Top Card Color
+                    update_bot_game_state_only(color_changed_to, self.game.bot_game_state)
+                    # Now Bot will Play its Turn
+                elif number == '12' or number == '13':
+                    # DRAW_TWO/DRAW_FOUR => Bot have to draw 2/4 Cards and Player will play again
+                    print("Player Played DRAW_TWO/DRAW_FOUR")
+                    # Bot will need to Draw the Cards
+                    update_other_player_state_only(number, self.game.bot_state, self.game.bot_game_state,
+                                                   self.game.player_state)
+                    # Updating the Game State i.e. setting the Top Card Color
+                    update_bot_game_state_only(color_changed_to, self.game.bot_game_state)
+
+                    # Generating the server_response
+                    response_player_state = self.game.player_state.get_all_cards()
+                    response_bot_state = self.game.bot_state.get_all_cards()
+                    response_bot_game_state = self.game.bot_game_state.get_top_card()
+                    response_playable_cards = get_playable_cards(self.game.player_state, self.game.bot_game_state)
+                    response_bot_played_cards = []
+                    server_response = {
+                        "player_state": json.dumps(response_player_state),
+                        "bot_state": json.dumps(response_bot_state),
+                        "bot_game_state": json.dumps(response_bot_game_state),
+                        "playable_cards": response_playable_cards,
+                        "bot_played_cards": response_bot_played_cards
+                    }
+
+                    await self.channel_layer.group_send(
+                        self.bot_game_room,  # name of the Chat root
+                        {
+                            'type': "send_to_player",
+                            'text': json.dumps(server_response)
+                        }
+                    )
+                    # Bot Turn Skipped
+                    return
+        else:
+            # It is Bot's Turn So, Bot will Play
+            pass
 
         # Now Bot will Play:-
         bot_played_cards = []
-        top_color = None
+        response_top_color = None
         response_bot_won = 0
         while True and response_bot_won == 0:
-            played_card = bot_play_card(self.game.bot_state, self.game.bot_game_state, self.game.player_state, top_color)
+            played_card = bot_play_card(self.game.bot_state, self.game.bot_game_state, self.game.player_state, response_top_color)
             bot_played_cards.append(played_card)
             if played_card == "DRAW_CARD":  # DRAW_CARD played by bot
                 print("Draw Card Played By Bot")
                 break
             elif played_card == "13 of W":
                 print("Wild Card Played By Bot")  # Wild played by bot
-                top_color = bot_choose_top_color(self.game.bot_state)
-                print("Bot Chose Color:", top_color)
+                response_top_color = bot_choose_top_color(self.game.bot_state)
+                print("Bot Chose Color:", response_top_color)
+                update_bot_game_state_only(color_changed_to=response_top_color, bot_game_state=self.game.bot_game_state)
                 break
             elif played_card == "13 of WF":
                 number, category = played_card.split(" of ")
                 print("Draw Four Card Played By Bot")  # Draw Four played by bot
                 update_other_player_state_only(number, self.game.player_state, self.game.bot_game_state,
                                                self.game.bot_state)
-                top_color = bot_choose_top_color(self.game.bot_state)
-                print("Bot Chose Color:", top_color)
+                response_top_color = bot_choose_top_color(self.game.bot_state)
+                print("Bot Chose Color:", response_top_color)
+                update_bot_game_state_only(color_changed_to=response_top_color, bot_game_state=self.game.bot_game_state)
                 if len(self.game.player_state.get_all_cards()) == 0:
                     response_bot_won = 1
                 continue
@@ -681,7 +782,7 @@ class BotGameConsumer(AsyncConsumer):
         response_player_state = self.game.player_state.get_all_cards()
         response_bot_state = self.game.bot_state.get_all_cards()
         response_bot_game_state = self.game.bot_game_state.get_top_card()
-        response_playable_cards = get_playable_cards(self.game.player_state, self.game.bot_game_state, top_color)
+        response_playable_cards = get_playable_cards(self.game.player_state, self.game.bot_game_state, response_top_color)
         response_bot_played_cards = bot_played_cards
         response_bot_says_uno = 0
         if len(response_bot_state) == 1:
@@ -694,7 +795,7 @@ class BotGameConsumer(AsyncConsumer):
             "bot_game_state": json.dumps(response_bot_game_state),
             "playable_cards": response_playable_cards,
             "bot_played_cards": response_bot_played_cards,
-            "top_color": top_color,
+            "top_color": response_top_color,
             "bot_says_uno": response_bot_says_uno,
             "bot_won": response_bot_won
         }
