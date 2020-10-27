@@ -35,8 +35,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
 
-    # Social Media Login
-    'social_django',
+    # 3rd Party Libraries
+    'social_django',  # Social Media Login
+    'imagekit',
 ]
 
 MIDDLEWARE = [
@@ -64,8 +65,10 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.template.context_processors.media',  # To access Media URL in templates
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+
 
                 # Context Preprocessors for Social media login
                 'social_django.context_processors.backends',
@@ -131,6 +134,11 @@ PROJECT_ROOT = os.path.join(os.path.abspath(__file__))
 STATIC_URL = '/static/'
 STATIC_ROOT = 'static'
 # STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
+
+# Settings for uploading Media (User's Avatar)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+# os.path.join(BASE_DIR, 'media')
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'assets'),

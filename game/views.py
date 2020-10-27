@@ -1,8 +1,7 @@
 from django.shortcuts import render, reverse, HttpResponseRedirect, HttpResponse, Http404
-from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.contrib import messages
 from .models import GameRoom, Player, id_generator
 from .helper import GameServer
 from user_profile.models import UserProfile
@@ -43,6 +42,11 @@ def broadcast_notification(group_name, message):
 
 
 def play_now(request):
+    player = request.user
+    player_profile = UserProfile.objects.get(user=player)
+    if not player_profile.is_email_verified:
+        messages.info(request, f"Your email is not verified.")
+        return HttpResponseRedirect(reverse('user_profile', kwargs={"username": player.username}))
     return render(request, 'game/play_now.html', {})
 
 
@@ -56,6 +60,9 @@ def enter_public_play(request):
     player = request.user
     if player.is_authenticated:
         player_profile = UserProfile.objects.get(user=player)
+        if not player_profile.is_email_verified:
+            messages.info(request, f"Your email is not verified.")
+            return HttpResponseRedirect(reverse('user_profile', kwargs={"username": player.username}))
         current_player_league = player_profile.current_league
         if GameServer.AVAILABLE_PUBLIC_GAMES:
             for public_game in GameServer.AVAILABLE_PUBLIC_GAMES:
@@ -81,6 +88,12 @@ def enter_friend_play(request):
     :param request:
     :return:
     """
+    player = request.user
+    player_profile = UserProfile.objects.get(user=player)
+    if not player_profile.is_email_verified:
+        messages.info(request, f"Your email is not verified.")
+        return HttpResponseRedirect(reverse('user_profile', kwargs={"username": player.username}))
+
     if request.method == "POST":  # Enter Existing Game
         unique_id = request.POST['friend_unique_id']
         if GameServer.AVAILABLE_FRIEND_GAMES:
@@ -89,7 +102,7 @@ def enter_friend_play(request):
                     if friend_game.get_count_of_players() == MAX_JOINED_PLAYER_COUNT:
                         message = f"Friendly Game Room with ID {unique_id} is full."
                         raise Http404(message)
-                    if not friend_game.is_game_running:
+                    if friend_game.is_game_running:
                         message = f"Game is already running in Friendly Game Room with ID {unique_id}."
                         raise Http404(message)
                     return HttpResponseRedirect(
@@ -104,66 +117,6 @@ def enter_friend_play(request):
 
 
 @login_required
-def create_game_room(request):
-    """
-        View to Create Game Room
-    :param request:
-    :return:
-    """
-    user = request.user
-    if user.is_authenticated:
-        # Creating a new GameRoom Object
-        new_game_room = GameRoom.objects.create(admin=user, type=GameRoom.FRIEND)
-
-        # Creating a Player Object corresponding to admin
-        player_obj = Player.objects.create(player=user, game_room=new_game_room)
-
-        return HttpResponseRedirect(reverse('user_profile', kwargs={'username': user.username}))
-    else:
-        return HttpResponse(f"Oops! User with username {user.username} not found!")
-
-
-@login_required
-def join_game_room(request, unique_id):
-    """
-        View to Join Existing Game Room, if not already joined.
-    :param request:
-    :param unique_id: Unique Game ID of the Game Room
-    :return:
-    """
-    game_room_qs = GameRoom.objects.filter(unique_game_id=unique_id)
-    user = request.user
-
-    if not user.is_authenticated:
-        error_message = f"Login / Signup to join a Game Room."
-        raise Http404(error_message)
-
-    if game_room_qs:
-
-        game_room = game_room_qs[0]
-        player_obj = Player.objects.filter(game_room=game_room, player=user)
-        if player_obj:
-            error_message = f"You are already in this Game Room (Unique ID: {unique_id})."
-            raise Http404(error_message)
-
-        # If there are already 10 i.e. maximum players who have joined this Game Room.
-        if game_room.joined_player_count == MAX_JOINED_PLAYER_COUNT:
-            error_message = f"This Game Room (Unique ID: {unique_id}) has reached it's maximum player limit. You won't be able to join this. "
-            raise Http404(error_message)
-
-        # Creating new Player Object if this user has not joined the room
-        Player.objects.create(player=user, game_room=game_room)
-
-        try:
-            return HttpResponseRedirect(reverse('enter_game_room', kwargs={'unique_id': unique_id}))
-        except Http404:
-            return HttpResponseRedirect(reverse('user_profile', kwargs={'username': user.username}))
-    else:
-        error_message = f"Game with unique_id {unique_id} not found."
-        raise Http404(error_message)
-
-
-@login_required
 def enter_game_room(request, game_type, unique_id):
     """
         View to Enter the Game Room. This can be called only after
@@ -173,9 +126,14 @@ def enter_game_room(request, game_type, unique_id):
     :param unique_id:
     :return:
     """
-    # game_room_qs = GameRoom.objects.filter(unique_game_id=unique_id)
-    user = request.user
-    if not user.is_authenticated:
+
+    player = request.user
+    player_profile = UserProfile.objects.get(user=player)
+    if not player_profile.is_email_verified:
+        messages.info(request, f"Your email is not verified.")
+        return HttpResponseRedirect(reverse('user_profile', kwargs={"username": player.username}))
+
+    if not player.is_authenticated:
         error_message = f"Login / Signup to enter a Game Room."
         raise Http404(error_message)
 
@@ -227,3 +185,63 @@ def enter_game_room(request, game_type, unique_id):
     # else:
     #     error_message = f"Game with unique_id {unique_id} not found."
     #     raise Http404(error_message)
+
+
+# @login_required
+# def create_game_room(request):
+#     """
+#         View to Create Game Room
+#     :param request:
+#     :return:
+#     """
+#     user = request.user
+#     if user.is_authenticated:
+#         # Creating a new GameRoom Object
+#         new_game_room = GameRoom.objects.create(admin=user, type=GameRoom.FRIEND)
+#
+#         # Creating a Player Object corresponding to admin
+#         player_obj = Player.objects.create(player=user, game_room=new_game_room)
+#
+#         return HttpResponseRedirect(reverse('user_profile', kwargs={'username': user.username}))
+#     else:
+#         return HttpResponse(f"Oops! User with username {user.username} not found!")
+#
+#
+# @login_required
+# def join_game_room(request, unique_id):
+#     """
+#         View to Join Existing Game Room, if not already joined.
+#     :param request:
+#     :param unique_id: Unique Game ID of the Game Room
+#     :return:
+#     """
+#     game_room_qs = GameRoom.objects.filter(unique_game_id=unique_id)
+#     user = request.user
+#
+#     if not user.is_authenticated:
+#         error_message = f"Login / Signup to join a Game Room."
+#         raise Http404(error_message)
+#
+#     if game_room_qs:
+#
+#         game_room = game_room_qs[0]
+#         player_obj = Player.objects.filter(game_room=game_room, player=user)
+#         if player_obj:
+#             error_message = f"You are already in this Game Room (Unique ID: {unique_id})."
+#             raise Http404(error_message)
+#
+#         # If there are already 10 i.e. maximum players who have joined this Game Room.
+#         if game_room.joined_player_count == MAX_JOINED_PLAYER_COUNT:
+#             error_message = f"This Game Room (Unique ID: {unique_id}) has reached it's maximum player limit. You won't be able to join this. "
+#             raise Http404(error_message)
+#
+#         # Creating new Player Object if this user has not joined the room
+#         Player.objects.create(player=user, game_room=game_room)
+#
+#         try:
+#             return HttpResponseRedirect(reverse('enter_game_room', kwargs={'unique_id': unique_id}))
+#         except Http404:
+#             return HttpResponseRedirect(reverse('user_profile', kwargs={'username': user.username}))
+#     else:
+#         error_message = f"Game with unique_id {unique_id} not found."
+#         raise Http404(error_message)

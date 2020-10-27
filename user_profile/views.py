@@ -1,4 +1,5 @@
-from django.shortcuts import render, get_object_or_404, HttpResponse, HttpResponseRedirect, reverse
+import magic
+from django.shortcuts import render, get_object_or_404, HttpResponse, HttpResponseRedirect, reverse, Http404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -18,24 +19,21 @@ from django.utils.html import strip_tags
 from game.models import GameRoom, Player
 from .models import UserProfile
 
+from .forms import AvatarUploadForm
+
 User = get_user_model()
 
 
 def user_profile_view(request, username):
-    if request.user.username != username:
-        return HttpResponse(f"Other Profile Access try for user: {username}, by user: {request.user.username}")
-    user = get_object_or_404(User, username=username)
-    if user.is_authenticated:
-        user_game_room_qs = GameRoom.objects.filter(admin=user)
-        other_game_room_qs = GameRoom.objects.exclude(admin=user)
-        player_qs = Player.objects.filter(player=user)
-        joined_game_rooms = []
-        for player in player_qs:
-            joined_game_rooms.append(player.game_room)
+    visitor = request.user
+    visited_user = get_object_or_404(User, username=username)
+    if visitor.is_authenticated:
+        visited_profile = UserProfile.objects.get(user=visited_user)
+        avatar_upload_form = AvatarUploadForm()
         context = {
-            'user_game_rooms': user_game_room_qs,
-            'other_game_rooms': other_game_room_qs,
-            'joined_game_rooms': joined_game_rooms,
+            "visited_user": visited_user,
+            "visited_profile": visited_profile,
+            "avatar_upload_form": avatar_upload_form,
         }
         return render(request, 'user_profile/profile_new.html', context=context)
     else:
@@ -97,3 +95,54 @@ def activate(request, uidb64, token):
             messages.success(request, f"Login to verify email.")
             return HttpResponseRedirect(reverse('home'))
     return HttpResponse('Activation link is invalid!')
+
+
+def clean_file(request, form):
+    file = form.cleaned_data['avatar']
+    if file.size > 5242880:
+        return False
+    return True
+
+
+def check_in_memory_mime(request):
+    mime = magic.from_buffer(request.FILES.get('avatar').read(), mime=True)
+    return mime
+
+
+@login_required
+def avatar_upload(request, username):
+    """
+        This function uploads/re-uploads profile picture of a user.
+    """
+    if request.method == 'POST':
+        avatar_form = AvatarUploadForm(request.POST, request.FILES)
+        print(request.FILES)
+
+        if avatar_form.is_valid():
+            # print("Hello")
+            user = User.objects.get(username=username)
+            user_prof = UserProfile.objects.get(user=user)
+            if clean_file(request, avatar_form):
+                mime = check_in_memory_mime(request)
+                if mime == 'image/jpg' or mime == 'image/jpeg' or mime == 'image/png':
+                    img = avatar_form.cleaned_data['avatar']
+                    user_prof.avatar = img
+                    user_prof.save()
+                    messages.success(request, f"Avatar uploaded successfully!")
+                    return HttpResponseRedirect(reverse("user_profile", kwargs={'username': username}))
+                else:
+                    messages.success(request, f"Please upload an Image File only of jpeg/jpg/png format only...")
+                    return HttpResponseRedirect(reverse("user_profile", kwargs={'username': username}))
+            else:
+                messages.success(request, f"File too Large to be uploaded...")
+                return HttpResponseRedirect(reverse("user_profile", kwargs={'username': username}))
+        else:
+            if avatar_form.errors:
+                for field in avatar_form:
+                    for error in field.errors:
+                        print(error)
+                        messages.success(request, error)
+            return HttpResponseRedirect(reverse("user_profile", kwargs={'username': username}))
+    else:
+        message = f"Something went wrong! Try Again!"
+        raise Http404(message)

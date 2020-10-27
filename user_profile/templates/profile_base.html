@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=7">
+    <meta name="color-scheme" content="dark light">
+
+    <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
+    <link rel="shortcut icon" href="{% static 'img/logo.png' %}" type="image/x-icon">
+
+    <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+    <link rel="stylesheet" href="{% static "fonts/font-awesome.min.css"%}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/toggle.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/phaserjs/phaser.min.js' %}"></script>
+    <title>
+        {% block title %}
+            Base
+        {% endblock %}
+    </title>
+
+    {% block styles %}
+        {% include 'styles.html' %}
+    {% endblock %}
+
+</head>
+<body id="page-top" class="dark-theme">
+        {% include 'user_profile/navbar_profile.html' %}
+        <canvas id="canvas-id"></canvas>
+        {% comment %} meteor {% endcomment %}
+        <img style="z-index:2; overflow:hidden" alt=""
+            id="text1" src="{% static 'img/meteor.png' %}"
+                width="80">
+        <img style="z-index:2; overflow:hidden" alt=""
+            id="text2" src="{% static 'img/meteor.png' %}"
+                width="80">
+        <img style="z-index:2; overflow:hidden" alt=""
+            id="text3" src="{% static 'img/meteor.png' %}"
+                width="80">
+
+        {% comment %} meteor ends {% endcomment %}
+
+    <div class="toggle">
+        <input class="toggle-input" type="checkbox">
+        <div class="toggle-bg"></div>
+        <div class="toggle-switch">
+            <div class="toggle-switch-figure"></div>
+            <div class="toggle-switch-figureAlt"></div>
+        </div>
+    </div>
+    {% block content %}
+
+    {% endblock %}
+
+    <a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
+
+    {% include 'footer.html' %}
+
+    <script src=" {% static 'js/jquery.min.js' %} "></script>
+    <script src=" {% static 'bootstrap/js/bootstrap.min.js' %} "></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.2.0/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
+    <script src="{%  static "js/canvas.js" %}"></script>
+    <script src="{%  static "js/freelancer.js" %}"></script>
+    <script src="{% static "js/theme.js" %}"></script>
+    <script src=" {% static 'js/bs-init.js' %} "></script>
+
+    <script>
+        {% if messages %}
+            {% for message in messages %}
+                alert("{{ message }}");
+                 {# TODO: Hanle invalid Creds message here... -- Vishwajeet #}
+                {#<div class="alert alert-{{ message.tags }}">  <!-- singular -->#}
+                {#    <a class="close" data-dismiss="alert">×</a>#}
+                {#    {{ message|safe }}#}
+                {#</div>#}
+            {% endfor %}
+        {% endif %}
+    </script>
+    {% include 'scripts.html' %}
+    {% block javascript %}
+    {% endblock %}
+</body>
+</html>
