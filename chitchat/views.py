@@ -5,6 +5,7 @@ from django.http import Http404, HttpResponse
 from django.db.models import Q
 from django.contrib.auth.models import User
 from .models import ChatMessage, Thread, Friend
+from user_profile.models import UserProfile
 
 
 # View Classes
@@ -16,6 +17,22 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from django.http import JsonResponse
+
+# Helper Function for getting the recent conversation days difference in string format
+import datetime
+from pytz import timezone
+
+def get_last_updated_string_of_most_recent_message(updated):
+    date_of_message = updated.date()
+    delta = datetime.date.today() - date_of_message 
+    print("PRINTED:", datetime.date.today(), date_of_message, delta)
+    if delta.days == 0:
+        return "Most recent conversation was Today"
+    elif delta.days == 1:
+        return "Most recent conversation was Yesterday"
+    else:
+        return f'Most recent conversation was {delta.days} days back'
+
 
 @login_required
 def main(request):
@@ -86,9 +103,9 @@ def main(request):
             threads_query_set = Thread.objects.all().filter(Q(person1=request.user) | Q(person2=request.user)).order_by('-updated')
             for thread in threads_query_set:
                 if thread.person1 == request.user:
-                    friends.append(thread.person2.username)
+                    friends.append((thread.person2.username, get_last_message(thread)))
                 else:
-                    friends.append(thread.person1.username)
+                    friends.append((thread.person1.username, get_last_message(thread)))
             requester_list = []
             requests_query_set = Friend.objects.all().filter(Q(receiver=request.user) & Q(friend_status=False))
             for row_instance in requests_query_set:
@@ -100,6 +117,12 @@ def main(request):
             return render(request, 'chitchat/index.html', context)
 
 
+def get_last_message(thread):
+    chat_message_instance = ChatMessage.objects.filter(thread=thread).order_by('-timestamp').first()
+    return chat_message_instance.message
+
+
+# Answering the AJAX Call
 class Chat(LoginRequiredMixin, View):
     def get(self, request, username):
         person1 = request.user.username
@@ -121,15 +144,19 @@ class Chat(LoginRequiredMixin, View):
                 # print("Fetching Chats of", person1, "with ", person2)
                 # print("Inst:", thread_instance)
                 thread_id = thread_instance.id
+                updated = thread_instance.updated
+                tz = timezone('Asia/Kolkata')
+                updated_time_string = get_last_updated_string_of_most_recent_message(updated.astimezone(tz))
                 chats = ChatMessage.objects.all().filter(thread=thread_id).order_by('timestamp')
                 first_name = User.objects.all().get(username=person2).first_name
                 messages = []
                 for chat in chats:
-                    messages.append([chat.sender.username, chat.message, chat.timestamp])
+                    messages.append([chat.sender.username, chat.message, chat.timestamp.astimezone(tz)])
                 context = {
                     # 'chats': serializers.serialize('json', chats),
                     'chats': messages,
-                    'other_user_first_name': first_name
+                    'other_user_first_name': first_name,
+                    'updated_time_string': updated_time_string 
                 }
                 # return render(request, 'chitchat/chat.html', context)
                 return JsonResponse(context)

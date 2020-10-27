@@ -286,7 +286,7 @@ def update_other_player_state_only(number, other_player_state, bot_game_state, p
         print("DRAW_FOUR was played by the player")
         if len(bot_game_state.deck.cards) < 4:
             print("DECK EXHAUSTED!!!")
-            recover_deck(other_player_state, bot_game_state, player)
+            recover_deck(other_player_state, bot_game_state, player_state)
         # Drawing First Card
         drawn_card_object = bot_game_state.deck.deal()
         print("Card Drawn from the Deck is", drawn_card_object.show_card())

@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=7">
+    <meta name="color-scheme" content="dark light">
+    <link rel="shortcut icon" href="{% static 'img/logo.png' %}" type="image/x-icon">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <title>
+        {% block title %}
+            ChitChat
+        {% endblock %}
+    </title>
+
+    {% block styles %}
+        {% include 'styles.html' %}
+    {% endblock %}
+
+</head>
+<body id="page-top" class="dark-theme">
+        {% include 'navbar.html' %}
+        <canvas id="canvas-id"></canvas>
+        
+        {% comment %} meteor {% endcomment %}
+        <img style="z-index:2; overflow:hidden" alt=""
+            id="text1" src="{% static 'img/meteor.png' %}"
+                width="80">
+        <img style="z-index:2; overflow:hidden" alt=""
+            id="text2" src="{% static 'img/meteor.png' %}"
+                width="80">
+        <img style="z-index:2; overflow:hidden" alt=""
+            id="text3" src="{% static 'img/meteor.png' %}"
+                width="80">
+        {% comment %} meteor ends {% endcomment %}
+
+    <div class="toggle">
+        <input class="toggle-input" type="checkbox">
+        <div class="toggle-bg"></div>
+        <div class="toggle-switch">
+            <div class="toggle-switch-figure"></div>
+            <div class="toggle-switch-figureAlt"></div>
+        </div>
+    </div>
+    {% block content %}
+
+    {% endblock %}
+
+    <a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
+
+    {% include 'chitchat_scripts.html' %}
+</body>
+</html>
