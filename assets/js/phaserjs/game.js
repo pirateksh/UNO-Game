@@ -3,16 +3,6 @@ const ZERO = 0, ONE = 1, TWO = 2, THREE = 3, FOUR = 4, FIVE = 5, SIX = 6, SEVEN 
 const SKIP = 10, REVERSE = 11, DRAW_TWO = 12;
 const NONE = 13;
 
-constraintObj = {
-	audio: true,
-	video: true
-	// video: {
-	// 	facingMode: "user",
-	// }
-};
-const STREAM = navigator.mediaDevices.getUserMedia(constraintObj);
-// const STREAM = navigator.mediaDevices.getUserMedia({video: true, audio: true});
-const peers = {};
 
 let game, gameDetails, socket;
 let currentAnimKeys = [];

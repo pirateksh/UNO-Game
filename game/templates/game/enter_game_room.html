@@ -46,13 +46,13 @@
             <br/>
         </div>
 
-{#        <div id="VideoGrid">#}
-{#            <video id="id_recorded_video" controls></video>#}
+        <div id="VideoGrid">
+{#            <video id="id_stream_video" controls></video>#}
 {#            <video >#}
 {#                <source src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">#}
 {#                Your browser does not support HTML video.#}
 {#            </video>#}
-{#        </div>#}
+        </div>
 
         <ol id="id_download_links">
         </ol>
@@ -431,7 +431,16 @@
 
     <script>
         // Constants
-
+        constraintObj = {
+            audio: true,
+            video: true
+            // video: {
+            // 	facingMode: "user",
+            // }
+        };
+        {#const STREAM = navigator.mediaDevices.getUserMedia(constraintObj);#}
+        const STREAM = navigator.mediaDevices.getUserMedia({video: true, audio: true});
+        const peers = {};
 
         let currentGame = null;
         let myHand = new Hand();
@@ -441,8 +450,7 @@
         let redirectUrl = "{% url 'play_now' %}";
         let MY_UNIQUE_PEER_ID;
     </script>
-
-    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+{#    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>#}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.3.1/peerjs.min.js"></script>
     <script src=" {% static 'js/jquery.min.js' %} "></script>
     <script type="text/javascript" src="{% static 'js/phaserjs/game.js' %}"></script>

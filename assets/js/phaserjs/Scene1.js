@@ -261,10 +261,20 @@ class Scene1 extends Phaser.Scene {
         _this.videoY = 100;
         _this.videoGroup = _this.physics.add.group();
         function addVideoStream(Video, stream, label="Some user in Room") {
+
+        // Just for testing Stream outside the Canvas.
+            // Video.srcObject = stream;
+            // Video.style.border = 'solid';
+            // document.getElementById('VideoGrid').appendChild(Video);
+            // Video.muted = false;
+            // Video.addEventListener('loadedmetadata', () => {
+            //     Video.play();
+            // });
+
             let vidElem = _this.add.video(_this.videoX, _this.videoY);
             _this.videoY += 130;
             vidElem.depth = 10;
-            vidElem.loadURL("", 'loadeddata', true);
+            vidElem.loadURL("", 'loadeddata', false);
             vidElem.video.srcObject = stream;
             vidElem.setScale(0.28);
             vidElem.video.addEventListener('loadedmetadata', () => {
@@ -291,12 +301,13 @@ class Scene1 extends Phaser.Scene {
             // Video.id = "vid_" + label;
             // NewVideoCont.append(Video);
             if(label === me){
-                vidElem.video.muted = true;
+                // vidElem.video.muted = true;
+                console.log("Self Stream Was Muted.")
             }
         }
 
         function connectToNewUser(other_unique_peer_id, var_new_user_username){
-            if(MY_UNIQUE_PEER_ID === other_unique_peer_id){
+            if(MY_UNIQUE_PEER_ID === other_unique_peer_id){ // My own stream was already added
                 return ;
             }
             STREAM
@@ -306,20 +317,21 @@ class Scene1 extends Phaser.Scene {
                         const Video = document.createElement('video');
                         call.on('stream', remoteStream => { // adding the others video element to video-grid on our page.
                             if(peers[var_new_user_username] !== undefined){
-                                console.log("Second Call");
+                                console.log("Made Second Call to", var_new_user_username);
                             }
                             else{
                                 addVideoStream(Video, remoteStream, var_new_user_username);
                                 peers[var_new_user_username] = call;
+                                console.log("Made First Call to", var_new_user_username);
                             }
                         });
                         call.on('close', () => {
                             Video.remove();
                         });
-                    }, 2000);
+                    }, 5000);
                 })
                 .catch((err)=>{
-                    console.log("Error Occured While Strating the Stream:", err);
+                    console.log("Error Occurred while starting the stream:", err);
                 });
         }
 
@@ -331,16 +343,18 @@ class Scene1 extends Phaser.Scene {
                     const othersVideo = document.createElement('video');
                     call.on('stream', (remoteStream) => {
                          if(peers[caller] !== undefined){ // Already Answered Once
+                            console.log("Second Answer to", caller);
                          }
                          else{
                              peers[caller] = call;
                              addVideoStream(othersVideo, remoteStream, caller);
+                             console.log("First Answer to", caller);
                          }
                      });
                 });
             })
             .catch((err) => {
-                console.log("Error Occurred While Strating the Stream:", err);
+                console.log("Error Occurred While Starting the Stream:", err);
             });
 
         socket.addEventListener("message", function (e) {
@@ -399,7 +413,7 @@ class Scene1 extends Phaser.Scene {
                         document.getElementById("vid_" + left_user_username).remove();
                      }
                 } else{
-                    console.log("Tha hi nhi");
+                    console.log("This user was not yet added in the Peers Network.");
                 }
                 if(document.getElementById(left_user_username)){
                     document.getElementById(left_user_username).remove();

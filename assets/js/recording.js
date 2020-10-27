@@ -3,24 +3,34 @@ let video_recoding = document.getElementById("id_recorded_video");
 let chunks;
 let VIDEO_COUNT = 1;
 let BLOB_DATA_RECEIVED_COUNTER = 0;
+
 function start_recording() {
     $('#id_start_btn').prop('disabled', true);
     $('#id_stop_btn').prop('disabled', false);
     $('#id_pause_btn').prop('disabled', false);
     let canvas = document.querySelector("canvas");
-    let recorded_video = document.getElementById("id_recorded_video");
+
     let stream = canvas.captureStream();
+
+    STREAM.then((mediaStream)=>{
+        stream.addTrack(mediaStream.getAudioTracks()[0]);
+        MEDIA_RECORDER = new MediaRecorder(stream);
+        chunks = [];
+        MEDIA_RECORDER.start(10000); // 10 seconds in ms, means ondataavailable event is called in every 10 secondsalert("Recoding Started for Video: " + VIDEO_COUNT);
+        console.log(MEDIA_RECORDER.state);
+    });
+
     MEDIA_RECORDER = new MediaRecorder(stream);
     chunks = [];
-    MEDIA_RECORDER.start(10000); // 5 seconds in ms, means ondataavailable event is called in every 5seconds
-    alert("Recoding Started for Video: " + VIDEO_COUNT);
+    MEDIA_RECORDER.start(10000); // 10 seconds in ms, means ondataavailable event is called in every 10 secondsalert("Recoding Started for Video: " + VIDEO_COUNT);
     console.log(MEDIA_RECORDER.state);
+
 
     MEDIA_RECORDER.ondataavailable = (ev) => {
         console.log("Called");
         chunks.push(ev.data);
         BLOB_DATA_RECEIVED_COUNTER += 1;
-        if(BLOB_DATA_RECEIVED_COUNTER === 180){ // for 30 mins
+        if(BLOB_DATA_RECEIVED_COUNTER === 180){ // for 30 minutes
             BLOB_DATA_RECEIVED_COUNTER = 0;
             MEDIA_RECORDER.stop();
             MEDIA_RECORDER.start(10000);
@@ -28,7 +38,7 @@ function start_recording() {
     };
 
     MEDIA_RECORDER.onstop = (ev) => {
-        let blob = new Blob(chunks, {'type': 'video/mp4'});
+        let blob = new Blob(chunks, {'type': 'video/webm'});
         alert("Recording is ready to be Downloaded");
         chunks = [];
         let videoURL = window.URL.createObjectURL(blob);
