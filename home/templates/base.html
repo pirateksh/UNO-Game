@@ -31,7 +31,7 @@
 </head>
 <body id="page-top" class="dark-theme">
         {% include 'navbar.html' %}
-        <canvas></canvas>
+        <canvas id="canvas-id"></canvas>
         {% comment %} meteor {% endcomment %}
         <img style="z-index:2; overflow:hidden" alt=""
             id="text1" src="{% static 'img/meteor.png' %}"
@@ -69,6 +69,7 @@
     <script src="{%  static "js/canvas.js" %}"></script>
     <script src="{%  static "js/freelancer.js" %}"></script>
     <script src="{% static "js/theme.js" %}"></script>
+    <script src=" {% static 'js/bs-init.js' %} "></script>
 
     <script>
         {% if messages %}
