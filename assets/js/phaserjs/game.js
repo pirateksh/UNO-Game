@@ -149,34 +149,15 @@ function addLabelOnLiveFeed(scene, vidElem, label) {
     let scale = gameDetails.liveFeedScale;
     let scaledWidth = 640 * scale;
     let scaledHeight = 480 * scale;
-    let graphics = _this.add.graphics();
-    graphics.fillStyle(0xffffff, 1);
-    // Draw the Polygon Lines with coordinates.
-    graphics.beginPath();
-    let graphicsX = vidElem.x - (scaledWidth/2), graphicsY = vidElem.y - (scaledHeight/2);
-    graphics.moveTo(graphicsX, graphicsY);
-    graphics.lineTo(vidElem.x - (scaledWidth/2), vidElem.y + 20 - (scaledHeight/2));
-    graphics.lineTo(vidElem.x + (scaledWidth/2), vidElem.y + 20 - (scaledHeight/2));
-    graphics.lineTo(vidElem.x + (scaledWidth/2), vidElem.y - (scaledHeight/2));
-    graphics.lineTo(vidElem.x + (scaledWidth/2), vidElem.y - (scaledHeight/2));
-
-
-    // Close the path and fill the shape.
-    graphics.closePath();
-    graphics.fillPath();
-    graphics.setData({"username": label});
-    _this.graphicsGroup.add(graphics);
-    graphics.depth = 1;
-
+    let labelX = vidElem.x - (scaledWidth/2), labelY = vidElem.y - (scaledHeight/2);
 
     let labelText;
     if(label === me) {
-        labelText =  _this.add.text(graphicsX, graphicsY, `${label}(me)`, {fill: "0x000000"});
+        labelText =  _this.add.text(labelX, labelY, `${label}(me)`, {backgroundColor: "0xffffff"});
     }
     else {
-        labelText = _this.add.text(graphicsX, graphicsY, label, {fill: "0x000000"});
+        labelText = _this.add.text(labelX, labelY, label, {backgroundColor: "0xffffff"});
     }
-
     labelText.setInteractive();
     labelText.setData({"username": label});
     _this.labelGroup.add(labelText);
@@ -191,6 +172,16 @@ function addLabelOnLiveFeed(scene, vidElem, label) {
 
     let origVidX = vidElem.x, origVidY = vidElem.y;
     labelText.on("pointerdown", function (pointer) {
+        _this.tweens.add({
+            targets: labelText,
+            x: game.config.width/2 - (scaledWidth*5)/2,
+            y: game.config.height/2 - (scaledHeight*5)/2,
+            duration: 500,
+            depth: 21,
+            scale: 3,
+            ease: "Power1",
+            callbackScope: _this,
+        });
         _this.tweens.add({
             targets: vidElem,
             x: game.config.width/2,
@@ -213,6 +204,17 @@ function addLabelOnLiveFeed(scene, vidElem, label) {
                     document.querySelector("canvas").style.cursor = "default";
                 });
                 _this.starfield2.on("pointerdown", function (pointer) {
+                    _this.tweens.add({
+                        targets: labelText,
+                        x: labelX,
+                        y: labelY,
+                        duration: 500,
+                        depth: 1,
+                        scale: 1,
+                        ease: "Power1",
+                        callbackScope: _this,
+                    });
+
                     _this.tweens.add({
                         targets: vidElem,
                         x: origVidX,

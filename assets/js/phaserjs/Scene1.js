@@ -124,15 +124,6 @@ class Scene1 extends Phaser.Scene {
         _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
         _this.starfield2.setOrigin(0,0);
 
-        // let text = _this.add.text(320, 128, 'Please set your\nphone to landscape', { font: '48px Courier', fill: '#00ff00', align: 'center' }).setOrigin(0.5);
-        //
-        // checkOriention(_this.scale.orientation, text);
-        //
-        // _this.scale.on('orientationchange', checkOriention, _this);
-        // var vid = this.add.video(100, 100, 'wormhole');
-        //
-        // vid.play(true);
-
         let FKey = _this.input.keyboard.addKey('F');
 
         FKey.on('down', function () {
@@ -234,7 +225,7 @@ class Scene1 extends Phaser.Scene {
                     addVideoStream(Video, stream, me);
                  })
                  .catch((err) =>{
-                     console.log("Error Occurred While Strating the Stream:", err);
+                     console.log("Error Occurred While Starting the Stream:", err);
                  })
         });
 
@@ -242,10 +233,19 @@ class Scene1 extends Phaser.Scene {
         _this.videoY = 80;
         _this.videoGroup = [];
         _this.labelGroup = _this.physics.add.group();
-        _this.graphicsGroup = _this.physics.add.group();
         _this.streamDict = {};
 
         function addVideoStream(Video, stream, label="Some user in Room") {
+
+        // Just for testing Stream outside the Canvas.
+            // Video.srcObject = stream;
+            // Video.style.border = 'solid';
+            // document.getElementById('VideoGrid').appendChild(Video);
+            // Video.muted = false;
+            // Video.addEventListener('loadedmetadata', () => {
+            //     Video.play();
+            // });
+
             let vidElem = _this.add.video(_this.videoX, _this.videoY);
             _this.videoY += 105;
             vidElem.loadURL("", 'loadeddata', false);
@@ -262,12 +262,13 @@ class Scene1 extends Phaser.Scene {
             addLabelOnLiveFeed(_this, vidElem, label);
 
             if(label === me){
-                vidElem.video.muted = true;
+                // vidElem.video.muted = true;
+                console.log("Self Stream Was Muted.")
             }
         }
 
         function connectToNewUser(other_unique_peer_id, var_new_user_username){
-            if(MY_UNIQUE_PEER_ID === other_unique_peer_id){
+            if(MY_UNIQUE_PEER_ID === other_unique_peer_id){ // My own stream was already added
                 return ;
             }
             STREAM
@@ -277,20 +278,21 @@ class Scene1 extends Phaser.Scene {
                         const Video = document.createElement('video');
                         call.on('stream', remoteStream => { // adding the others video element to video-grid on our page.
                             if(peers[var_new_user_username] !== undefined){
-                                console.log("Second Call");
+                                console.log("Made Second Call to", var_new_user_username);
                             }
                             else{
                                 addVideoStream(Video, remoteStream, var_new_user_username);
                                 peers[var_new_user_username] = call;
+                                console.log("Made First Call to", var_new_user_username);
                             }
                         });
                         call.on('close', () => {
                             Video.remove();
                         });
-                    }, 2000);
+                    }, 5000);
                 })
                 .catch((err)=>{
-                    console.log("Error Occured While Strating the Stream:", err);
+                    console.log("Error Occurred while starting the stream:", err);
                 });
         }
 
@@ -302,10 +304,12 @@ class Scene1 extends Phaser.Scene {
                     const othersVideo = document.createElement('video');
                     call.on('stream', (remoteStream) => {
                          if(peers[caller] !== undefined){ // Already Answered Once
+                            console.log("Second Answer to", caller);
                          }
                          else{
                              peers[caller] = call;
                              addVideoStream(othersVideo, remoteStream, caller);
+                             console.log("First Answer to", caller);
                          }
                      });
                 });
@@ -397,13 +401,11 @@ class Scene1 extends Phaser.Scene {
                 for(let i = 0; i < _this.joinedPlayersTag.getChildren().length; ++i) {
                     let leftPlayerTag = _this.joinedPlayersTag.getChildren()[i];
                     let labelText = _this.labelGroup.getChildren()[i];
-                    let graphics = _this.graphicsGroup.getChildren()[i];
                     let vidElem = _this.videoGroup[i];
                     let leftPlayerUsername = leftPlayerTag.getData("username");
                     if(left_user_username === leftPlayerUsername) {
                         leftPlayerTag.destroy();
                         labelText.destroy();
-                        graphics.destroy();
                         _this.videoGroup.splice(i, 1);
                         vidElem.destroy();
                         _this.videoY -= 105;
@@ -421,10 +423,7 @@ class Scene1 extends Phaser.Scene {
                         document.getElementById("vid_" + left_user_username).remove();
                      }
                 } else{
-                    console.log("Tha hi nhi");
-                }
-                if(document.getElementById(left_user_username)){
-                    document.getElementById(left_user_username).remove();
+                    console.log("This user was not yet added in the Peers Network.");
                 }
             }
             else if(status === "broadcast_notification") {
@@ -438,10 +437,17 @@ class Scene1 extends Phaser.Scene {
                     vidElem.destroy();
                 }
                 if(sceneNumber === 2) {
-                    _this.scene.start("playGame");
-                    if(me === currentGame.adminUsername && (currentGame.gameType === Game.FRIEND)) {
-                        currentGame.startGameRequest(socket);
-                    }
+                    let wormhole = _this.add.video(game.config.width/2, game.config.height/2, "wormhole");
+                    wormhole.setScale(1.6, 1);
+                    wormhole.depth = 10;
+                    wormhole.play();
+                    _this.time.delayedCall(3000, function () {
+                        wormhole.destroy();
+                        _this.scene.start("playGame");
+                        if(me === currentGame.adminUsername && (currentGame.gameType === Game.FRIEND)) {
+                            currentGame.startGameRequest(socket);
+                        }
+                    }, [], _this);
                 }
             }
             else if(status === "room_full") {

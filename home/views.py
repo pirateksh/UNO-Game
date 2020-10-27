@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, HttpResponseRedirect, reverse
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
-from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 
@@ -16,7 +15,7 @@ def home_view(request):
             user_profile = user_profile_qs[0]
             if not user_profile.is_email_verified:
                 messages.info(request, f"Your email is not verified.")
-                return render(request, 'home/verify_email.html', {})
+                return HttpResponseRedirect(reverse('user_profile', kwargs={"username": user.username}))
     return render(request, 'home/index.html', {})
 
 
@@ -70,8 +69,8 @@ def signup(request):
 
             if user:
                 login(request, user)
-                messages.error(request, "Sign Up successful!")
-                return HttpResponseRedirect(reverse('home'))
+                messages.error(request, "Sign Up successful! Verify Your Email to Continue!")
+                return HttpResponseRedirect(reverse('user_profile', kwargs={"username": user.username}))
             else:
                 messages.error(request, "Some error occurred Try logging-in again")
         else:
@@ -79,18 +78,6 @@ def signup(request):
             return redirect(request.path)
     else:
         return render(request, 'home/signup.html', {})
-
-        # form = UserCreationForm(request.POST)
-        # if form.is_valid():
-        #     form.save()
-        #     username = form.cleaned_data.get('username')
-        #     raw_password = form.cleaned_data.get('password1')
-        #     user = authenticate(username=username, password=raw_password)
-        #     login(request, user)
-        #     return HttpResponseRedirect(reverse('home'))
-    # else:
-    #     form = UserCreationForm()
-    # return render(request, 'home/signup.html', {'form': form})
 
 
 def login_view(request):
@@ -104,7 +91,11 @@ def login_view(request):
         password = request.POST['password']
         remember_me = request.POST.get('remember_me', None)
         user = authenticate(username=username, password=password)
-        response = redirect(request.GET.get('next', 'home'))
+        user_profile = UserProfile.objects.get(user=user)
+        if user_profile.is_email_verified:
+            response = redirect(request.GET.get('next', 'home'))
+        else:
+            response = HttpResponseRedirect(reverse('user_profile', kwargs={'username': user.username}))
         if user is not None:
             login(request, user)
             if remember_me is None:
@@ -125,17 +116,6 @@ def login_view(request):
             print(request.get_full_path_info())
             messages.error(request, "Invalid Credentials")
             return redirect(request.path)
-        # form = AuthenticationForm(data=request.POST)
-        # print(form.is_valid())
-        # if form.is_valid():
-        #     username = form.cleaned_data.get('username')
-        #     raw_password = form.cleaned_data.get('password')
-        #     user = authenticate(username=username, password=raw_password)
-        #     login(request, user)
-        #     return redirect('home')
-    # else:
-        # form = AuthenticationForm()
-    # return render(request, 'home/login.html', {'form': form})
     else:
         return render(request, 'home/login.html', {})
 
@@ -143,6 +123,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
+
 
 def play(request):
     return render(request, 'home/play.html', {})

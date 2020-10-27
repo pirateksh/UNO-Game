@@ -50,7 +50,6 @@ class Scene2 extends Phaser.Scene {
         _this.videoY = 90;
         _this.videoGroup = [];
         _this.labelGroup = _this.physics.add.group();
-        _this.graphicsGroup = _this.physics.add.group();
         _this.streamDict = _this.scene.get("bootGame").streamDict;
 
         for(let label in _this.streamDict) {
@@ -465,11 +464,9 @@ class Scene2 extends Phaser.Scene {
                 }
                 for(let i = 0; i < _this.labelGroup.getChildren().length; ++i) {
                     let labelText = _this.labelGroup.getChildren()[i];
-                    let graphics = _this.graphicsGroup.getChildren()[i];
                     let leftPlayerUsername = labelText.getData("username");
                     if(leftUsername === leftPlayerUsername) {
                         labelText.destroy();
-                        graphics.destroy();
                         _this.videoY -= 105;
                         break;
                     }
@@ -478,17 +475,9 @@ class Scene2 extends Phaser.Scene {
                 if (peers[leftUsername]){
                     peers[leftUsername].close();
                     delete peers[leftUsername];
-                     if(document.getElementById("div_" + leftUsername)){
-                        document.getElementById("div_" + leftUsername).remove();
-                     }
-                     if(document.getElementById("vid_" + leftUsername)){
-                        document.getElementById("vid_" + leftUsername).remove();
-                     }
-                } else{
-                    console.log("Tha hi nhi");
                 }
-                if(document.getElementById(leftUsername)){
-                    document.getElementById(leftUsername).remove();
+                else {
+                    console.log("Tha hi nhi");
                 }
             }
         });
@@ -642,11 +631,11 @@ class Scene2 extends Phaser.Scene {
                 repeat: 0,
                 onComplete: function (){
                     // Adding Player's name.
-                    let nameBitMap = _this.add.bitmapText(newX, newY + 20, "pixelFont", otherPlayer, 20);
+                    let nameBitMap = _this.add.text(newX - 30, newY + 20, otherPlayer, {backgroundColor: "0x000000"});
                     _this.playerNameBitMap.add(nameBitMap);
 
                     // Adding Player's card count.
-                    let cardCountBitMap = _this.add.bitmapText(newX + 50, newY, "pixelFont", "7", 30);
+                    let cardCountBitMap = _this.add.text(newX + 50, newY, "7", {fontSize: 25, backgroundColor: "0x000000"});
                     cardCountBitMap.setData({"username": otherPlayer});
                     _this.playerRemainingCardsCountBitMap.add(cardCountBitMap);
 
