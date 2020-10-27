@@ -32,7 +32,7 @@ var i = undefined;
 var j = undefined;
 var k = undefined;
 window.addEventListener('resize', () => {
-    console.log(innerWidth);
+    
     i = Math.abs( Math.random() -0.3)*innerWidth;
     j = Math.abs( Math.random() -0.3)*innerWidth;
     k = Math.abs( Math.random() -0.3)*innerWidth;
@@ -68,11 +68,11 @@ var maxRad = 40;
 var minRad = 0;
 
 var colArr = [ 
-    '#F2F0D8',
-    '#F2EFBD',
-    '#F2C3A7',
-    '#FFBC47',
-    '#F65E5D',
+    '#9E1151',
+    '#EBD200',
+    '#EB026A',
+    '#1ACBEB',
+    '#05879E',
 ];
 
 window.addEventListener('mousemove', (event) => {
@@ -144,7 +144,7 @@ const init = () => {
     }
 }
 
-console.log(circleArray);
+// console.log(circleArray);
 
 const animate = ()=> {
     requestAnimationFrame(animate);

@@ -187,11 +187,12 @@ body {
   --text-color: #222;
   --bkg-color: #fff;
   --anchor-color: #0033cc;
-  --can-bg: rgba(255, 255, 255, 1);
+  --can-bg: linear-gradient( 135deg, #FFF6B7 10%, #F6416C 100%);
   --primary: #18bc9c;
   --h-color: black;
   --bg-07: white;
   --bg-03: white;
+  --about-bg: rgba(255, 255, 255, 0.1);
 }
 
 body.dark-theme {
@@ -203,10 +204,11 @@ body.dark-theme {
   --h-color: rgba(255, 255, 255, 0.7);
   --bg-07: rgba(0, 0, 0, 0.7);
   --bg-03: rgba(0, 0, 0, 0.3);
+  --about-bg: rgba(0, 0, 0, 0.7);
 }
 
 canvas {
-  background-color: var(--can-bg);
+  background: var(--can-bg);
   z-index: -1;
   position: fixed;
   top: 0;
@@ -245,7 +247,7 @@ p {
 }
   
 .about-bg {
-  background-color: var(--bkg-color);
+  background-color: var(--about-bg);
 }
 
 h1, h2, h3, h4, h5, h6 {
