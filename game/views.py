@@ -89,7 +89,7 @@ def enter_friend_play(request):
                     if friend_game.get_count_of_players() == MAX_JOINED_PLAYER_COUNT:
                         message = f"Friendly Game Room with ID {unique_id} is full."
                         raise Http404(message)
-                    if not friend_game.is_game_running:
+                    if friend_game.is_game_running:
                         message = f"Game is already running in Friendly Game Room with ID {unique_id}."
                         raise Http404(message)
                     return HttpResponseRedirect(
