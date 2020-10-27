@@ -115,6 +115,7 @@ class Scene1 extends Phaser.Scene {
         this.load.bitmapFont("pixelFont", `${generatePath("font", "font.png")}`, `${generatePath("font", "font.xml")}`);
 
         this.load.video('wormhole', `${generatePath("video", "wormhole.mp4")}`, 'loadeddata', false, true);
+
     }
 
     create() {
@@ -122,15 +123,6 @@ class Scene1 extends Phaser.Scene {
 
         _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
         _this.starfield2.setOrigin(0,0);
-
-        // let text = _this.add.text(320, 128, 'Please set your\nphone to landscape', { font: '48px Courier', fill: '#00ff00', align: 'center' }).setOrigin(0.5);
-        //
-        // checkOriention(_this.scale.orientation, text);
-        //
-        // _this.scale.on('orientationchange', checkOriention, _this);
-        // var vid = this.add.video(100, 100, 'wormhole');
-        //
-        // vid.play(true);
 
         let FKey = _this.input.keyboard.addKey('F');
 
@@ -170,27 +162,6 @@ class Scene1 extends Phaser.Scene {
             loop: -1
         });
 
-        if(me === gameRoomAdmin) {
-            _this.playButton = _this.physics.add.sprite(game.config.width/2, game.config.height/2 + 100, "playButton");
-            _this.playButton.setScale(0.3);
-            _this.playButton.setInteractive();
-
-            _this.playButton.on("pointerover", function (pointer) {
-                _this.playButton.play("playButtonOver");
-            });
-
-            _this.playButton.on("pointerout", function (pointer) {
-                _this.playButton.play("playButtonOut");
-            });
-
-            _this.playButton.on("pointerdown", function (pointer) {
-                Game.changeSceneRequest(socket, 2);
-            });
-        }
-        else { // This will be changed.
-            // _this.scene.start("playGame");
-            _this.add.text(game.config.width/2 - 140, game.config.height/2 + 70, "Wait for admin to start the game....");
-        }
 
         _this.joinedX = game.config.width / 2;
         _this.joinedY = game.config.height / 2 + 130;
@@ -231,6 +202,10 @@ class Scene1 extends Phaser.Scene {
             });
         });
 
+        let VideoGrid = document.getElementById('VideoGrid');
+        let Video = document.createElement('video'); // This video Element will contain users own video
+
+
         Promise.all([get_my_peer_id, open_socket]).then(result => {
              console.log("open");
              MY_UNIQUE_PEER_ID = result[0].unique_peer_id;
@@ -250,16 +225,16 @@ class Scene1 extends Phaser.Scene {
                     addVideoStream(Video, stream, me);
                  })
                  .catch((err) =>{
-                     console.log("Error Occurred While Strating the Stream:", err);
+                     console.log("Error Occurred While Starting the Stream:", err);
                  })
         });
 
-        let VideoGrid = document.getElementById('VideoGrid');
-        let Video = document.createElement('video'); // This video Element will contain users own video
+        _this.videoX = 80;
+        _this.videoY = 80;
+        _this.videoGroup = [];
+        _this.labelGroup = _this.physics.add.group();
+        _this.streamDict = {};
 
-        _this.videoX = 100;
-        _this.videoY = 100;
-        _this.videoGroup = _this.physics.add.group();
         function addVideoStream(Video, stream, label="Some user in Room") {
 
         // Just for testing Stream outside the Canvas.
@@ -272,34 +247,20 @@ class Scene1 extends Phaser.Scene {
             // });
 
             let vidElem = _this.add.video(_this.videoX, _this.videoY);
-            _this.videoY += 130;
-            vidElem.depth = 10;
+            _this.videoY += 105;
             vidElem.loadURL("", 'loadeddata', false);
             vidElem.video.srcObject = stream;
-            vidElem.setScale(0.28);
+            _this.streamDict[label] = stream;
             vidElem.video.addEventListener('loadedmetadata', () => {
                 vidElem.video.play();
-                // _this.tweens.add({
-                //     targets: vidElem,
-                //     x: game.config.width,
-                //     y: game.config.height,
-                //     duration: 2000,
-                //     yoyo: true,
-                //     callbackScope: _this
-                // });
+                vidElem.depth = 0;
+                vidElem.setData({"username": label});
+                vidElem.setScale(gameDetails.liveFeedScale);
+                _this.videoGroup.push(vidElem);
             });
-            // let NewVideoCont = document.createElement('div');
-            // NewVideoCont.style.display = "inline-block";
-            // NewVideoCont.style.boxSizing = "border-box";
-            // NewVideoCont.style.width = "100px";
-            // let NewVideoLabel = document.createElement('p');
-            // NewVideoLabel.innerHTML = label;
-            // VideoGrid.append(NewVideoCont);
-            // NewVideoCont.append(NewVideoLabel);
-            // NewVideoCont.id = "div_" + label;
-            // NewVideoLabel.id = label;
-            // Video.id = "vid_" + label;
-            // NewVideoCont.append(Video);
+
+            addLabelOnLiveFeed(_this, vidElem, label);
+
             if(label === me){
                 // vidElem.video.muted = true;
                 console.log("Self Stream Was Muted.")
@@ -357,6 +318,8 @@ class Scene1 extends Phaser.Scene {
                 console.log("Error Occurred While Starting the Stream:", err);
             });
 
+        _this.joinedPlayersTag = _this.physics.add.group();
+
         socket.addEventListener("message", function (e) {
             let backendResponse = JSON.parse(e.data);
             let status = backendResponse.status;
@@ -368,16 +331,39 @@ class Scene1 extends Phaser.Scene {
                 gameData = JSON.parse(backendResponse.gameData);
                 if(currentGame == null) {
                     currentGame = new Game(gameData);
-                    console.log("Connected Players", currentGame.players);
+                    if(me === currentGame.adminUsername && currentGame.gameType === Game.FRIEND) { // Game Type is Friend.
+                        _this.addPlayButton();
+                    }
+                    else { // TODO: Change this
+                        _this.add.text(game.config.width/2 - 140, game.config.height/2 + 70, "Wait for admin to start the game....");
+                    }
+
+                    // Adding Unique ID of Game.
+                    _this.uniqueIdTag = _this.add.text(15, game.config.height - 30, `Unique ID: ${currentGame.uniqueId} (Click to Copy)`);
+                    _this.uniqueIdTag.setInteractive();
+                    _this.uniqueIdTag.on("pointerover", function (pointer) {
+                        document.querySelector("canvas").style.cursor = "pointer";
+                    });
+                    _this.uniqueIdTag.on("pointerout", function (pointer) {
+                        document.querySelector("canvas").style.cursor = "default";
+                    });
+                    _this.uniqueIdTag.on("pointerdown", function (pointer) {
+                        copyToClipboard(currentGame.uniqueId);
+                    });
+
                     for(let i = 0; i < currentGame.players.length; ++i) {
                         let player = currentGame.players[i];
                         if(i % 2) {
-                            _this.add.text(_this.joinedX + 120, _this.joinedY, player, {fill: '#00ff00'});
-                            _this.joinedY += 20;
+                            let playerTag = _this.add.text(_this.joinedX + 120, _this.joinedY, player, {fill: '#00ff00'});
+                            playerTag.setData({'username': player});
+                            _this.joinedPlayersTag.add(playerTag);
                         }
                         else {
-                            _this.add.text(_this.joinedX - 200, _this.joinedY, player, {fill: '#00ff00'});
+                             let playerTag = _this.add.text(_this.joinedX - 200, _this.joinedY, player, {fill: '#00ff00'});
+                             playerTag.setData({'username': player});
+                             _this.joinedPlayersTag.add(playerTag);
                         }
+                        _this.joinedY += 20;
                     }
                 }
              }
@@ -393,16 +379,40 @@ class Scene1 extends Phaser.Scene {
                     currentGame.players.push(new_user_username);
                     let playerCount = currentGame.players.length - 1;
                     if(playerCount % 2) {
-                        _this.add.text(_this.joinedX + 120, _this.joinedY, new_user_username, {fill: '#00ff00'});
-                        _this.joinedY += 20;
+                        let playerTag = _this.add.text(_this.joinedX + 120, _this.joinedY, new_user_username, {fill: '#00ff00'});
+                        playerTag.setData({'username': new_user_username});
+                        _this.joinedPlayersTag.add(playerTag);
                     }
                     else {
-                        _this.add.text(_this.joinedX - 200, _this.joinedY, new_user_username, {fill: '#00ff00'});
+                        let playerTag = _this.add.text(_this.joinedX - 200, _this.joinedY, new_user_username, {fill: '#00ff00'});
+                        playerTag.setData({'username': new_user_username});
+                        _this.joinedPlayersTag.add(playerTag);
                     }
+                    _this.joinedY += 20;
                 }
             }
             else if(status === "user_left_room"){
                 let left_user_username = data.left_user_username;
+
+                if(currentGame.players.includes(left_user_username)) {
+                    currentGame.players.splice(currentGame.players.indexOf(left_user_username), 1); // TESTING
+                }
+
+                for(let i = 0; i < _this.joinedPlayersTag.getChildren().length; ++i) {
+                    let leftPlayerTag = _this.joinedPlayersTag.getChildren()[i];
+                    let labelText = _this.labelGroup.getChildren()[i];
+                    let vidElem = _this.videoGroup[i];
+                    let leftPlayerUsername = leftPlayerTag.getData("username");
+                    if(left_user_username === leftPlayerUsername) {
+                        leftPlayerTag.destroy();
+                        labelText.destroy();
+                        _this.videoGroup.splice(i, 1);
+                        vidElem.destroy();
+                        _this.videoY -= 105;
+                        break;
+                    }
+                }
+
                 if (peers[left_user_username]){
                     peers[left_user_username].close();
                     delete peers[left_user_username];
@@ -415,9 +425,6 @@ class Scene1 extends Phaser.Scene {
                 } else{
                     console.log("This user was not yet added in the Peers Network.");
                 }
-                if(document.getElementById(left_user_username)){
-                    document.getElementById(left_user_username).remove();
-                }
             }
             else if(status === "broadcast_notification") {
                 // let elementToAppend = `<li>${message}</li>`;
@@ -425,17 +432,33 @@ class Scene1 extends Phaser.Scene {
             }
             else if(status === "change_scene") {
                 let sceneNumber = data.sceneNumber;
-                if(sceneNumber === 2) {
-                    _this.scene.start("playGame");
-                    if(me === gameRoomAdmin) {
-                        Game.startGameRequest(socket);
-                    }
+                for(let i = 0; i < _this.videoGroup.length; ++i) {
+                    let vidElem =  _this.videoGroup[i];
+                    vidElem.destroy();
                 }
+                if(sceneNumber === 2) {
+                    let wormhole = _this.add.video(game.config.width/2, game.config.height/2, "wormhole");
+                    wormhole.setScale(1.6, 1);
+                    wormhole.depth = 10;
+                    wormhole.play();
+                    _this.time.delayedCall(3000, function () {
+                        wormhole.destroy();
+                        _this.scene.start("playGame");
+                        if(me === currentGame.adminUsername && (currentGame.gameType === Game.FRIEND)) {
+                            currentGame.startGameRequest(socket);
+                        }
+                    }, [], _this);
+                }
+            }
+            else if(status === "room_full") {
+                alert("This room is already full.");
             }
         });
 
         socket.onerror = function (e) {
             console.log("error");
+            alert("This Game is Probably Full. Try Another One!");
+            window.location.replace(redirectUrl);
         };
 
         socket.onclose = function (e) {
@@ -446,8 +469,31 @@ class Scene1 extends Phaser.Scene {
             WEBSOCKET CONNECTION ENDED
          *******************************/
 
+        // Calling method to create all the animations used in game.
+        _this.createAllAnimations();
+    }
 
+    addPlayButton() {
+        let _this = this;
+        _this.playButton = _this.physics.add.sprite(game.config.width/2, game.config.height/2 + 100, "playButton");
+        _this.playButton.setScale(gameDetails.playButtonScale);
+        _this.playButton.setInteractive();
 
+        _this.playButton.on("pointerover", function (pointer) {
+            _this.playButton.play("playButtonOver");
+        });
+
+        _this.playButton.on("pointerout", function (pointer) {
+            _this.playButton.play("playButtonOut");
+        });
+
+        _this.playButton.on("pointerdown", function (pointer) {
+            console.log("PLAY NOW CLICKED!");
+            currentGame.changeSceneRequest(socket, 2);
+        });
+    }
+
+    createAllAnimations() {
         this.anims.create({
 			key: "yourTurnAnim", // Name of animation
 			frames: this.anims.generateFrameNumbers("turnIndicator"), // Using frames from "yourTurn" spritesheet

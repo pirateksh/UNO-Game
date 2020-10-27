@@ -36,15 +36,15 @@
     <button id="id_pause_btn" onclick="pause_recording()" disabled> Pause Recoding</button>
     <button id="id_resume_btn" onclick="resume_recording()" disabled> Resume Recoding</button>
     <button id="id_stop_btn" onclick="stop_recording()" disabled> Stop Recoding</button>
-    {% if game_room %}
-        <div style="border-style: dotted;" class="container-fluid" id="id_phaser_game"></div>
-        <div>
-            Game Room ID: {{ game_room.unique_game_id }}
-            <br/>
-            Game Room Admin: {{ game_room.admin.username }}
-            <br/>
-            <br/>
-        </div>
+{#    {% if game_room %}#}
+{#        <div style="border-style: dotted;" class="container-fluid" id="id_phaser_game"></div>#}
+{#        <div>#}
+{#            Game Room ID: {{ game_room.unique_game_id }}#}
+{#            <br/>#}
+{#            Game Room Admin: {{ game_room.admin.username }}#}
+{#            <br/>#}
+{#            <br/>#}
+{#        </div>#}
 
         <div id="VideoGrid">
 {#            <video id="id_stream_video" controls></video>#}
@@ -56,7 +56,7 @@
 
         <ol id="id_download_links">
         </ol>
-    {% endif %}
+{#    {% endif %}#}
 {% endblock %}
 
 {% block javascript %}
@@ -156,9 +156,14 @@
         }
 
         class Game {
+
+            static PUBLIC = 0;
+            static FRIEND = 1;
+
             constructor(gameData) {
-                {#console.log(gameData);#}
                 this.uniqueId = gameData.uniqueId;
+                this.adminUsername = gameData.adminUsername;
+                this.gameType = parseInt(gameData.gameType);
                 this.players = gameData.players;
                 this.topCard = gameData.topCard;
                 this.topColor = gameData.topColor;
@@ -167,12 +172,9 @@
                 this.isGameRunning = false;
                 this.canDrawCard = false;
                 this.coordinatesOfPlayers = {};
-                // Adding Players to DOM.
-                // Game.addPlayersToDOM(this.players);
             }
 
             copyData(gameData) {
-                {#console.log(gameData);#}
                 if(gameData.topCard) {
                     this.topCard = new Card(gameData.topCard.category, gameData.topCard.number);
                     this.topColor = gameData.topColor;
@@ -280,16 +282,16 @@
                 }
             }
 
-            static changeSceneRequest(socket, sceneNumber) {
-                if(me === gameRoomAdmin) {
+            changeSceneRequest(socket, sceneNumber) {
+                if(me === this.adminUsername) {
                     let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": sceneNumber}};
                     let response = {"type": "change.scene", "text": data};
                     socket.send(JSON.stringify(response));
                 }
             }
 
-            static startGameRequest(socket) {
-                if(me === gameRoomAdmin) {
+            startGameRequest(socket) {
+                if(me === this.adminUsername) {
                     let data = {"status": "start_game", "message": "Game is being started.", "data": {}};
                     let response = {"type": "start.game", "text": data};
                     socket.send(JSON.stringify(response));
@@ -299,8 +301,8 @@
                 }
             }
 
-            static endGameRequest(socket) {
-                if(me === gameRoomAdmin) {
+            endGameRequest(socket) {
+                if(me === this.adminUsername) {
                     let data = {"status": "end_game", "message": "Game is being ended.", "data": {}};
                     let response = {"type": "end.game", "text": data};
                     socket.send(JSON.stringify(response));
@@ -395,36 +397,17 @@
                 socket.send(JSON.stringify(response));
             }
 
-            static leaveGameRequest(socket) {
+            leaveGameRequest(socket) {
                 let data = {
                     "status": "user_left_room",
                     "message": "Disconnecting...",
                     "data": {
                         "left_user_username": me,
-                        "game_room_unique_id": gameRoomUniqueId
+                        "game_room_unique_id": this.uniqueId
                     },
                 };
                 let response = {"type": "user_left_room", "text": data};
                 socket.send(JSON.stringify(response));
-            }
-
-            static addPlayersToDOM(players) {
-                for (let player of players) {
-                    let appendIt = `<li id="id_connected_players_${player}_{{ game_room.pk }}">${player}</li>`;
-                    connectedList.append(appendIt);
-                }
-            }
-
-            static addScoreToDOM(player, score) {
-                let editElem = $(`#id_connected_players_${player}_{{ game_room.pk }}`);
-                editElem.html(`${player} (${score})`);
-            }
-
-            static removePlayersFromDOM(players) {
-                for (let player of players) {
-                    let removeID = `#id_connected_players_${player}_{{ game_room.pk }}`;
-                    $(removeID).remove();
-                }
             }
         }
     </script>

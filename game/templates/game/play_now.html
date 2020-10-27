@@ -31,11 +31,13 @@
             <li id="id_friend">
                 With Friends Multi-player
                 <p><b>Join Existing Game Room</b></p>
-                <form id="id_form_friend" method="get" action="{% url 'enter_friend_play' %}">
+                <form id="id_form_friend" method="post" action="{% url 'enter_friend_play' %}">
+                    {% csrf_token %}
                     <input name="friend_unique_id" id="id_input_friend" type="text" placeholder="Unique Room ID">
                     <input type="submit"/>
                 </form>
-                <p><b>Create New Game Room</b> &nbsp; <a href="{% url 'create_game_room' %}">Create</a></p>
+                <h3>OR</h3>
+                <p><b>Create New Game Room</b> &nbsp; <a href="{% url 'enter_friend_play' %}">Create</a></p>
             </li>
             <li><a id="id_bot" href="{% url 'bot_game' %}">With UNO Bot</a></li>
         </ul>

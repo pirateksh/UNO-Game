@@ -3,6 +3,16 @@ const ZERO = 0, ONE = 1, TWO = 2, THREE = 3, FOUR = 4, FIVE = 5, SIX = 6, SEVEN 
 const SKIP = 10, REVERSE = 11, DRAW_TWO = 12;
 const NONE = 13;
 
+constraintObj = {
+	audio: false,
+	video: true
+	// video: {
+	// 	facingMode: "user",
+	// }
+};
+const STREAM = navigator.mediaDevices.getUserMedia(constraintObj);
+// const STREAM = navigator.mediaDevices.getUserMedia({video: true, audio: true});
+const peers = {};
 
 let game, gameDetails, socket;
 let currentAnimKeys = [];
@@ -35,9 +45,11 @@ window.onload = function () {
 		crossButtonX: 60,
 		crossButtonY: 20,
         roundButtonScale: 0.4,
+		playButtonScale: 0.3,
         chooseColorButtonScale: 0.5,
         dimAlpha: 0.2,
 		timeOutLimitInSeconds: 10,
+        liveFeedScale: 0.2,
 	};
 
 	let config = {
@@ -122,4 +134,104 @@ function resize() {
         canvas.style.width = (windowHeight * gameRatio) + "px";
         canvas.style.height = windowHeight + "px";
     }
+}
+
+function copyToClipboard(text) {
+	navigator.clipboard.writeText(text).then(function() {
+		alert("Unique ID has been copied to clipboard.")
+	}, function(err) {
+		alert("Alas! Unique ID could not be copied to clipboard.");
+	});
+}
+
+function addLabelOnLiveFeed(scene, vidElem, label) {
+    let _this = scene;
+    let scale = gameDetails.liveFeedScale;
+    let scaledWidth = 640 * scale;
+    let scaledHeight = 480 * scale;
+    let labelX = vidElem.x - (scaledWidth/2), labelY = vidElem.y - (scaledHeight/2);
+
+    let labelText;
+    if(label === me) {
+        labelText =  _this.add.text(labelX, labelY, `${label}(me)`, {backgroundColor: "0xffffff"});
+    }
+    else {
+        labelText = _this.add.text(labelX, labelY, label, {backgroundColor: "0xffffff"});
+    }
+    labelText.setInteractive();
+    labelText.setData({"username": label});
+    _this.labelGroup.add(labelText);
+    labelText.depth = 1;
+    labelText.on("pointerover", function (pointer) {
+        document.querySelector("canvas").style.cursor = "pointer";
+    }, _this);
+
+    labelText.on("pointerout", function (pointer) {
+        document.querySelector("canvas").style.cursor = "default";
+    }, _this);
+
+    let origVidX = vidElem.x, origVidY = vidElem.y;
+    labelText.on("pointerdown", function (pointer) {
+        _this.tweens.add({
+            targets: labelText,
+            x: game.config.width/2 - (scaledWidth*5)/2,
+            y: game.config.height/2 - (scaledHeight*5)/2,
+            duration: 500,
+            depth: 21,
+            scale: 3,
+            ease: "Power1",
+            callbackScope: _this,
+        });
+        _this.tweens.add({
+            targets: vidElem,
+            x: game.config.width/2,
+            y: game.config.height/2,
+            depth: 20,
+            scale: 1,
+            ease: "Power1",
+            duration: 500,
+            onComplete: function() {
+                _this.starfield2.setInteractive();
+                _this.starfield2.alpha = 0.2;
+                vidElem.on("pointerover", function (pointer) {
+                    document.querySelector("canvas").style.cursor = "default";
+                });
+
+                _this.starfield2.on("pointerover", function (pointer) {
+                    document.querySelector("canvas").style.cursor = "pointer";
+                });
+                _this.starfield2.on("pointerout", function (pointer) {
+                    document.querySelector("canvas").style.cursor = "default";
+                });
+                _this.starfield2.on("pointerdown", function (pointer) {
+                    _this.tweens.add({
+                        targets: labelText,
+                        x: labelX,
+                        y: labelY,
+                        duration: 500,
+                        depth: 1,
+                        scale: 1,
+                        ease: "Power1",
+                        callbackScope: _this,
+                    });
+
+                    _this.tweens.add({
+                        targets: vidElem,
+                        x: origVidX,
+                        y: origVidY,
+                        depth: 0,
+                        ease: "Power1",
+                        scale: scale,
+                        duration: 500,
+                        onComplete: function() {
+                            _this.starfield2.disableInteractive();
+                            _this.starfield2.alpha = 1;
+                        },
+                        callbackScope: _this
+                    });
+                });
+            },
+            callbackScope: _this,
+        });
+    }, _this);
 }

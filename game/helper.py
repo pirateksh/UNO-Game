@@ -1,5 +1,5 @@
 import json
-import asyncio
+import string
 from json import JSONEncoder
 import random
 
@@ -190,13 +190,18 @@ class PlayerServer:
 
 
 class GameServer:
-
+    PUBLIC, FRIEND = 0, 1
+    PUBLIC_ROOM_LIMIT = 2
     WINNING_SCORE = 50
-    current_games = []
+    AVAILABLE_FRIEND_GAMES = []
+    AVAILABLE_PUBLIC_GAMES = []
     # TODO: What will happen if deck runs out of cards. -- Kshitiz
 
-    def __init__(self, unique_id, player):
+    def __init__(self, unique_id, player, game_type, league=None):
         self.unique_id = unique_id
+        self.game_type = game_type
+        self.league = league
+        self.admin_username = player.username
         self.players = []
         self.player_usernames = []
         self.players.append(player)
@@ -214,17 +219,33 @@ class GameServer:
         print(f"Game with unique ID {self.unique_id} is deleted.")
 
     @classmethod
-    def create_new_game(cls, unique_id, player):
-        for game in cls.current_games:
-            if game.unique_id == unique_id:
-                # print("Returning Existing Game.")
-                game.players.append(player)
-                game.player_usernames.append(player.username)
-                return game
-        # print("Creating New Game.")
-        new_game = GameServer(unique_id, player)
-        cls.current_games.append(new_game)
-        return new_game
+    def create_new_game(cls, unique_id, player, game_type, league):
+        if game_type == cls.PUBLIC:
+            for public_game in cls.AVAILABLE_PUBLIC_GAMES:
+                if public_game.unique_id == unique_id:
+                    if public_game.get_count_of_players() < 10:
+                        print("Returning Existing Public Game.")
+                        public_game.players.append(player)
+                        public_game.player_usernames.append(player.username)
+                        return public_game
+                    return None
+            print("Creating New Public Game.")
+            new_public_game = GameServer(unique_id, player=player, game_type=game_type, league=league)
+            cls.AVAILABLE_PUBLIC_GAMES.append(new_public_game)
+            return new_public_game
+        elif game_type == cls.FRIEND:
+            for friend_game in cls.AVAILABLE_FRIEND_GAMES:
+                if friend_game.unique_id == unique_id:
+                    if friend_game.get_count_of_players() < 10:
+                        print("Returning Existing Friend Game.")
+                        friend_game.players.append(player)
+                        friend_game.player_usernames.append(player.username)
+                        return friend_game
+                    return None
+            print("Creating New Friend Game.")
+            new_friend_game = GameServer(unique_id, player=player, game_type=game_type, league=league)
+            cls.AVAILABLE_FRIEND_GAMES.append(new_friend_game)
+            return new_friend_game
 
     def deal_hands(self, cards_per_player=7):
         """
@@ -291,19 +312,19 @@ class GameServer:
         """
         if self.is_game_running:
             for player in self.players:
-                if player.hand:
-                    for card in player.hand:
-                        if card is not None:
-                            self.deck.cards.append(card)
-                            player.hand.clear()
+                delete_object(player)
+                # if player.hand:
+                #     for card in player.hand:
+                #         if card is not None:
+                #             self.deck.cards.append(card)
+                #             player.hand.clear()
 
             if self.top_card:
                 self.deck.cards.append(self.top_card)
                 self.top_card = None
 
             self.is_game_running = False
-
-            self.decide_winner()
+            delete_object(self)
 
     def get_count_of_players(self):
         return int(len(self.players))
@@ -327,7 +348,6 @@ class GameServer:
         self.player_usernames.remove(player.username)
         delete_object(player)
         if len(self.players) == 0:
-            GameServer.current_games.remove(self)
             delete_object(self)
 
     def calculate_score(self, player):
@@ -450,6 +470,8 @@ class GameServer:
             "topColor": self.top_color,
             "direction": self.direction,
             "currentPlayerIndex": self.current_player_index,
+            "adminUsername": self.admin_username,
+            "gameType": self.game_type,
         }
 
     def can_play_over_top(self, player, card):
@@ -571,7 +593,7 @@ class GameServer:
             self.direction = '+'
             self.current_player_index = 0
             if current_player_obj.get_score() >= GameServer.WINNING_SCORE:
-                self.end_game()
+                self.decide_winner()
                 won_data = {
                     "status": "won",
                     "username": self.winner,
@@ -672,6 +694,8 @@ class GameServer:
         # Fetching current player as stored on the server
         server_current_player = self.get_current_player()
 
+        server_current_player.yelled_uno = False
+
         # Set current player as the previous player
         self.previous_player_index = self.current_player_index
 
@@ -769,6 +793,8 @@ class GameServer:
         for _ in range(draw_count):
             drawn_cards.append(server_caught_player.draw(self.deck))
 
+        server_caught_player.yelled_uno = False
+
         response = {
             "drawnCards": json.dumps(drawn_cards, cls=CustomEncoder),
         }
@@ -799,6 +825,8 @@ class GameServer:
 
         for _ in range(draw_count):
             drawn_cards.append(server_current_player.draw(self.deck))
+
+        server_current_player.yelled_uno = False
 
         response = {
             "drawnCards": json.dumps(drawn_cards, cls=CustomEncoder),

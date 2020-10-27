@@ -1,0 +1,198 @@
+{% extends 'profile_base.html' %}
+{% load static %}
+{% comment %}
+    context = {
+        "visited_user": visited_user,
+        "visited_profile": visited_profile,
+        "avatar_upload_form": avatar_upload_form,
+    }
+{% endcomment %}
+{% block styles %}
+    <style>
+        th {
+            vertical-align: middle !important;
+        }
+        canvas {
+            position: fixed;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    Profile - Brand
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid" style="padding-top: 4rem;">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="card mb-3" data-aos="zoom-in" data-aos-duration="500" data-aos-delay="150">
+                    <div class="card-header py-3">
+                        <h6 class="text-primary font-weight-bold m-0">Name</h6>
+                    </div>
+                    <div class="card-body card-bg text-center shadow">
+                        <img class="rounded-circle mb-3 mt-4" src="{{ visited_profile.avatar.url }}" width="160" height="160" alt="Avatar">
+                        {% if visited_user.username == user.username %}
+                            <form class="" method="post" enctype="multipart/form-data" action="{% url "avatar_upload" visited_user.username %}">
+                                <div class="mb-3">
+                                    {% csrf_token %}
+                                    {{ avatar_upload_form }}
+                                    <div class="">
+                                        <button class="btn btn-primary btn-sm" type="submit">Change Photo</button>
+                                    </div>
+                                </div>
+                                <div class="divider"></div>
+                            </form>
+{#                                    <div class="mb-3"><button class="btn btn-primary btn-sm" type="button">Change Photo</button></div>#}
+                        {% endif %}
+
+                        <h4 class="small text-left font-weight-bold">Progress<span class="float-right">Level 3</span></h4>
+                        <div class="progress progress-sm mb-3">
+                            <div class="progress-bar bg-success" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;"><span class="sr-only">100%</span></div>
+                        </div>
+                    </div>
+                    {% if visited_user.username != user.username %}
+                        <div class="card-footer">
+                            <a class="btn btn-info">Add Friend</a>
+                        </div>
+                    {% endif %}
+
+                </div>
+
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="text-primary font-weight-bold m-0">Win Stats</h6>
+                    </div>
+                    <div class="card-body card-bg">
+                        <h4 class="small font-weight-bold">Win Rate of Current League<span class="float-right">20%</span></h4>
+                        <div class="progress progress-sm mb-3">
+                            <div class="progress-bar bg-danger" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 20%;"><span class="sr-only">20%</span></div>
+                        </div>
+                        <h4 class="small font-weight-bold">Last Month Win Rate<span class="float-right">40%</span></h4>
+                        <div class="progress progress-sm mb-3">
+                            <div class="progress-bar bg-warning" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%;"><span class="sr-only">40%</span></div>
+                        </div>
+                        <h4 class="small font-weight-bold">Overall Win Rate<span class="float-right">60%</span></h4>
+                        <div class="progress progress-sm mb-3">
+                            <div class="progress-bar bg-primary" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;"><span class="sr-only">60%</span></div>
+                        </div>
+                        <h4 class="small font-weight-bold">Win Rate VS Friends<span class="float-right">80%</span></h4>
+                        <div class="progress progress-sm mb-3">
+                            <div class="progress-bar bg-info" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%;"><span class="sr-only">80%</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8"> {# 4 #}
+                <div class="col">
+                    <div class="card shadow mb-3">
+                        <div class="card-header py-3">
+                            <p class="text-primary m-0 font-weight-bold">User Details</p>
+                        </div>
+
+                        <div class="card-body card-bg">
+                            <form>
+                                <div class="form-row">
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label for="username"><strong>Handle Name</strong></label>
+                                            <input class="form-control" type="text" placeholder="{{ visited_user.username }}" name="username" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label for="email"><strong>Email Address</strong></label>
+                                            <input class="form-control" type="email" placeholder="{{ visited_user.email }}" name="email" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label for="first_name"><strong>First Name</strong></label>
+                                            <input class="form-control" type="text" placeholder="{{ visited_user.first_name }}" name="first_name" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label for="last_name"><strong>Last Name</strong></label>
+                                            <input class="form-control" type="text" placeholder="{{ visited_user.last_name }}" name="last_name" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if visited_user.username == user.username %}
+                                    <div class="form-group"><button class="btn btn-primary btn-sm" type="submit">Edit Details</button></div>
+                                {% endif %}
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="card shadow mb-3">
+                        <div class="card-header py-3">
+                            <p class="text-primary m-0 font-weight-bold">Game Stats</p>
+                        </div>
+
+                        <div class="card-body tbl-bg">
+                            <div class="table-responsive text-center">
+                                <table class="table table-borderless text-uppercase tbl-bg">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">
+                                                <img src="{% static "img/profile/trophy.png" %}" alt="" width="60px"><br>
+                                                <strong>CURRENT LEAGUE</strong>
+                                            </th>
+                                            <th scope="col">
+                                                <img src="{% static "img/profile/max-trophy.png" %}" alt="" width="60px"><br>
+                                                <strong>MAXIMUM LEAGUE</strong>
+                                            </th>
+                                            <th scope="col">
+                                                <img src="{% static "img/profile/win.png" %}" alt="" width="80px"><br>
+                                                <strong>NO OF WINS</strong>
+                                            </th>
+                                            <th scope="col">
+                                                <img src="{% static "img/profile/played.png" %}" alt="" width="60px"><br>
+                                                <strong>NO OF MATCHES PLAYED</strong>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                {{ visited_profile.current_league }}
+                                            </td>
+                                            <td>
+                                                {{ visited_profile.maximum_league }}
+                                            </td>
+                                            <td>
+                                                {{ visited_profile.won_games_count }}
+                                            </td>
+                                            <td>
+                                                {{ visited_profile.total_games_count }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+            </div> {# 4 #}
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+
+{% endblock %}

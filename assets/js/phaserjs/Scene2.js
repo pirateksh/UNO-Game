@@ -46,6 +46,36 @@ class Scene2 extends Phaser.Scene {
         }, _this);
 
 
+        _this.videoX = 90;
+        _this.videoY = 90;
+        _this.videoGroup = [];
+        _this.labelGroup = _this.physics.add.group();
+        _this.streamDict = _this.scene.get("bootGame").streamDict;
+
+        for(let label in _this.streamDict) {
+            if(_this.streamDict.hasOwnProperty(label)) {
+                let stream = _this.streamDict[label];
+                let vidElem = _this.add.video(_this.videoX, _this.videoY);
+                _this.videoY += 105;
+                vidElem.loadURL("", 'loadeddata', false);
+                vidElem.video.srcObject = stream;
+                vidElem.video.addEventListener('loadedmetadata', () => {
+                    vidElem.video.play();
+                    vidElem.depth = 0;
+                    vidElem.setData({"username": label});
+                    vidElem.setScale(gameDetails.liveFeedScale);
+                    _this.videoGroup.push(vidElem);
+                    vidElem.setData({"username": label});
+                });
+
+                addLabelOnLiveFeed(_this, vidElem, label);
+
+                if(label === me){
+                    vidElem.video.muted = true;
+                }
+            }
+        }
+
         _this.timeRemainingToSkip = gameDetails.timeOutLimitInSeconds;
         _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, _this.config.height - 50, "pixelFont", _this.timeRemainingToSkip, 50);
 
@@ -63,11 +93,11 @@ class Scene2 extends Phaser.Scene {
 
         _this.exitButton.on("pointerdown", function (pointer) {
             // alert("Do you really want to exit?");
-            Game.leaveGameRequest(socket);
+            currentGame.leaveGameRequest(socket);
             _this.scene.start("endGame");
         });
 
-        if(me === gameRoomAdmin) {
+        if(me === currentGame.adminUsername  && currentGame.gameType === Game.FRIEND) {
             // Adding cross button
             _this.crossButton = _this.physics.add.sprite(gameDetails.crossButtonX, gameDetails.crossButtonY, "crossButton");
             _this.crossButton.setScale(gameDetails.roundButtonScale);
@@ -82,9 +112,12 @@ class Scene2 extends Phaser.Scene {
 
             _this.crossButton.on("pointerdown", function (pointer) {
                 // alert("Do you really want to end the game?");
-                Game.endGameRequest(socket);
+                currentGame.endGameRequest(socket);
             });
         }
+
+        // Adding Unique ID of Game.
+        _this.uniqueIdTag = _this.add.text(50, game.config.height - 50, `Unique ID: ${currentGame.uniqueId}`);
 
         _this.unoButton = _this.physics.add.sprite(gameDetails.unoButtonX, gameDetails.unoButtonY, "unoButton");
         _this.unoButton.setInteractive();
@@ -165,7 +198,7 @@ class Scene2 extends Phaser.Scene {
             else if (status === "end_game") {
                 _this.endGame();
                 // _this.scene.start("bootGame");
-                Game.changeSceneRequest(socket, 3);
+                currentGame.changeSceneRequest(socket, 3);
             }
             else if(status === "play_card") {
                 currentGame.copyData(gameData);
@@ -290,9 +323,9 @@ class Scene2 extends Phaser.Scene {
                 let wonData = backendResponse.wonData;
                 let wonUsername = wonData.username;
                 let wonScore = wonData.score;
-                Game.addScoreToDOM(wonUsername, wonScore);
+                // Game.addScoreToDOM(wonUsername, wonScore);
                 alert(`${wonUsername} won with score = ${wonScore}. Start a new game or leave the room.`);
-                Game.changeSceneRequest(socket, 3);
+                currentGame.changeSceneRequest(socket, 3);
             }
             else if(status === "call_uno") {
                 let username = data.username;
@@ -391,6 +424,12 @@ class Scene2 extends Phaser.Scene {
             else if(status === "user_left_room") {
                 console.log("USER LEFT ROOM.");
                 let leftUsername = data.left_user_username;
+
+                if(currentGame.players.includes(leftUsername)) {
+                    currentGame.players.splice(currentGame.players.indexOf(leftUsername), 1); // TESTING
+                }
+
+
                 if(me !== leftUsername) {
                     for(let i = 0; i < _this.oppHandGroup.getChildren().length; ++i) {
                         let oppPlayerSprite = _this.oppHandGroup.getChildren()[i];
@@ -411,6 +450,34 @@ class Scene2 extends Phaser.Scene {
                             break;
                         }
                     }
+                }
+
+                for(let i = 0; i < _this.videoGroup.length; ++i) {
+                    let vidElem = _this.videoGroup[i];
+                    let left = vidElem.getData("username");
+                    if(left === leftUsername) {
+                        console.log(leftUsername, left);
+                        _this.videoGroup.splice(i, 1);
+                        vidElem.destroy();
+                        break;
+                    }
+                }
+                for(let i = 0; i < _this.labelGroup.getChildren().length; ++i) {
+                    let labelText = _this.labelGroup.getChildren()[i];
+                    let leftPlayerUsername = labelText.getData("username");
+                    if(leftUsername === leftPlayerUsername) {
+                        labelText.destroy();
+                        _this.videoY -= 105;
+                        break;
+                    }
+                }
+
+                if (peers[leftUsername]){
+                    peers[leftUsername].close();
+                    delete peers[leftUsername];
+                }
+                else {
+                    console.log("Tha hi nhi");
                 }
             }
         });
@@ -482,7 +549,7 @@ class Scene2 extends Phaser.Scene {
         let gameData = JSON.parse(backendResponse.gameData);
         let wonUsername = wonData.username;
         let wonScore = wonData.score;
-        Game.addScoreToDOM(wonUsername, wonScore);
+        // Game.addScoreToDOM(wonUsername, wonScore);
         alert(`${wonUsername} won with score = ${wonScore}. New round is going to start.`);
 
         // Emptying Hands.
@@ -564,11 +631,11 @@ class Scene2 extends Phaser.Scene {
                 repeat: 0,
                 onComplete: function (){
                     // Adding Player's name.
-                    let nameBitMap = _this.add.bitmapText(newX, newY + 20, "pixelFont", otherPlayer, 20);
+                    let nameBitMap = _this.add.text(newX - 30, newY + 20, otherPlayer, {backgroundColor: "0x000000"});
                     _this.playerNameBitMap.add(nameBitMap);
 
                     // Adding Player's card count.
-                    let cardCountBitMap = _this.add.bitmapText(newX + 50, newY, "pixelFont", "7", 30);
+                    let cardCountBitMap = _this.add.text(newX + 50, newY, "7", {fontSize: 25, backgroundColor: "0x000000"});
                     cardCountBitMap.setData({"username": otherPlayer});
                     _this.playerRemainingCardsCountBitMap.add(cardCountBitMap);
 
