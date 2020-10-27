@@ -1,0 +1,305 @@
+{% load static %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js"></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.0/handlebars.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/list.js/1.1.1/list.min.js'></script>
+<script src="{% static "js/chat.js"%}"></script>
+<script src="{% static "bootstrap/js/bootstrap.min.js"%}"></script>
+<script>
+    tinymce.init({
+        selector: "#id_message",
+        plugins: "emoticons",
+        toolbar: "emoticons",
+        toolbar_location: "bottom",
+        height: 100,
+        menubar: false,
+        statusbar: false,
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
+<script src="{% static 'js/canvas.js' %}"></script>
+<script src="{% static 'js/toggle.js' %}"></script>
+
+<!-- jQuery Ajax Script -->
+<script type="text/javascript">
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function format_AM_PM(date) {
+      let hours = date.getHours();
+      let minutes = date.getMinutes();
+      let am_pm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // the hour '0' should be '12'
+      minutes = minutes < 10 ? '0'+ minutes : minutes;
+      let strTime = hours + ':' + minutes + ' ' + am_pm;
+      return strTime;
+  }
+  var ALL_SOCKETS = {}; // An object having username as key and socket corresponding to this user as value.
+  // This helps in preventing multiple socket connections with the same user.
+  // More Importantly this will help us in not sending messages on sockets that were formed earlier but are
+  // closed now.
+
+  $(document).ready(function(){
+      {# Function Responsible for Showing Search Results #}
+      $("#id_find-friend_input").keyup(function(){
+        let search_query = $(this).val();
+        $.ajax({
+             type:'GET',
+             data:{
+                'search_query' : search_query,
+             },
+             dataType: 'json', // type of data received from Server-Side
+             success:function(data){ // data is what we have recieved as json response
+                  let users_list = data.result;
+                  $("#id_find-friend_ul").empty();
+                  if(data.result.length){
+                      users_list.forEach((pair)=>{
+                          let person2 = pair[0];
+                          let friend_status = pair[1]; // a number
+                          if(friend_status === 0){ // show add friend button
+                              friend_status = "Send Friend Request";
+                              $("#id_find-friend_ul").append(`
+                                <li class="list-group-item d-flex justify-content-between align-items-center" value="${person2}">${person2}<button value=${pair[1]} class="class_change-request-status_button btn btn-danger"> ${friend_status} </button></li>
+                              `);
+                          }
+                          else if(friend_status === 1){ // show disabled Pending button
+                              friend_status = "Request Pending";
+                              $("#id_find-friend_ul").append(`
+                                <li class="list-group-item d-flex justify-content-between align-items-center" value="${person2}">${person2}<button class="btn btn-warning" value=${pair[1]}> ${friend_status} </button></li>
+                              `);
+                          }
+                          else if(friend_status === 2){ // show Accept Request button
+                              friend_status = "Accept Request";
+                              $("#id_find-friend_ul").append(`
+                                <li class="list-group-item d-flex justify-content-between align-items-center" value="${person2}">${person2}<button value=${pair[1]} class="class_change-request-status_button btn btn-info"> ${friend_status} </button></li>
+                              `);
+                          }
+                          else{ // show disabled Already friends button
+                              friend_status = "Friends";
+                              $("#id_find-friend_ul").append(`
+                                <li class="list-group-item d-flex justify-content-between align-items-center" value="${person2}">${person2}<button class="btn btn-success" value=${pair[1]}>${friend_status} </button></li>
+                              `);
+                          }
+
+                      });
+                  }
+                  else {
+                      {#alert("No results");#}
+                      $("#id_find-friend_ul").append(`
+                            <li>No Results</li>
+                      `);
+                  }
+             }
+        });
+      });
+
+
+
+      {# Function Responsible for Sending/Accepting Friend Requests #}
+      $(document).on('click', '.class_change-request-status_button', function(){
+          let other_person = $(this).closest('li').attr('value');
+          let status_button = $(this);
+          {#alert(status_button.text());#}
+          $.ajax({
+             type:'GET',
+             data:{
+                {#'current_status' : current_status,#} // Not required as info present in Friend Table already
+                 'other_person': other_person
+             },
+             dataType: 'json', // type of data received from Server-Side
+             success:function(data){ // data is what we have received as json response
+                  let new_status = data.result;
+                  console.log(new_status, typeof(new_status));
+                  let new_text = "";
+                  status_button.removeAttr('class');
+                  if(new_status === false){ // show disabled Pending button
+                      new_text = "Request Pending";
+                      status_button.addClass('btn btn-warning')
+                  }
+                  else if(new_status === true){ // show Friends disabled button
+                      new_text = "Friends";
+                      status_button.addClass('btn btn-success');
+                      $('.class_add_friend').after(`
+                        <li class="clearfix nav-item">
+                            <a class="nav-link class_friends_tab" value="${other_person}" data-toggle="pill" href="#chat-1" role="tab" aria-controls="chat-1" aria-selected="true">
+                                <img src="{% static "img/profile_pictures/male_default_picture.jpg"%}" alt="avatar" width="55px" class="rounded-circle" />
+                                <div class="about">
+                                    <div class="name">${other_person}</div>
+                                    <div class="status">
+                                        <i class="fa fa-circle online"></i> online
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                      `);
+                  }
+                  status_button.text(new_text);
+             }
+          });
+      });
+
+      {# Function Responsible for Showing Chat History with a friend #}
+      $(document).on('click', '.class_friends_tab', function(){
+          let other_user = $(this).attr('value');
+          let url = other_user;
+          $.ajax({
+             type:'GET',
+              url: url,
+             success:function(data){ // data is what we have received as json response
+                let messages = data.chats;
+                let other_user_first_name = data.other_user_first_name;
+                $(".chat-with").html(`<em>${other_user_first_name}</em>`);
+                let user_profile_url = "http://" +  window.location.host + "/user_profile/visit/" + other_user;
+                $(".chat-header a").remove();
+                $(".chat-header").append(`<a type="button" style="float:right;" class="btn btn-primary" href="${user_profile_url}">View Profile</a>`);
+                $("#id_friends_chat_history_ul").empty();
+                {#console.log(messages, typeof(messages));#}
+                if(messages.length === 0){
+                    $("#id_friends_chat_history_ul").append(`
+                        {# Shown In the Center With Some Animation #}
+                        {# UPD: This is no longer required as a default message is sent from the friend-request sender #}
+                        <li class="clearfix">
+                            <div class="message other-message float-right">
+                                No messages to Show!
+                            </div>
+                        </li>
+                    `)
+                }
+                else{
+                    messages.forEach((message_instance)=>{
+                        let sender = message_instance[0];
+                        let message = message_instance[1];
+                        let timestamp = message_instance[2];
+                        {#console.log(timestamp);#}
+                        let d = new Date(timestamp);
+                        let date_string = format_AM_PM(d) + " on " + months[d.getMonth()] + " " + d.getDate() + ', ' + d.getFullYear();
+                        if(sender === "{{ request.user.username }}"){
+                            $("#id_friends_chat_history_ul").append(`
+                                {# Shown Right Side #}
+                                <li class="clearfix">
+                                    <div class="message-data align-right">
+                                        <span class="message-data-time" >${date_string}</span> &nbsp; &nbsp;
+                                    </div>
+                                    <div class="message other-message float-right">
+                                        ${message}
+                                    </div>
+                                </li>
+                            `)
+                        }
+                        else{
+                             $("#id_friends_chat_history_ul").append(`
+                                {# Shown Left Side #}
+                                <li>
+                                    <div class="message-data">
+                                        <span class="message-data-time">${date_string}</span>
+                                    </div>
+                                    <div class="message my-message">
+                                        ${message}
+                                    </div>
+                                </li>
+                            `);
+                        }
+                    });
+                }
+             }
+          });
+
+          {# Closing the Earlier Socket Connection #}
+          {#ALL_SOCKETS.forEach((s)=>{#}
+          {#    if(s != undefined){#}
+          {#        if(s.readyState == 2 || s.readyState == 3){#}
+          {#        }else{#}
+          {#            s.close();#}
+          {#        }#}
+          {#    }#}
+          // });
+
+          Object.keys(ALL_SOCKETS).forEach((key)=>{
+              if(ALL_SOCKETS[key] !== undefined && ALL_SOCKETS[key].readyState !== 2 && ALL_SOCKETS[key].readyState !== 3){
+                  ALL_SOCKETS[key].close();
+                  console.log("Closed:", key);
+              }
+          });
+
+      {# Scripts below hanldes Message Sending and Receiving #}
+
+          const loc = window.location;
+          const host = loc.host;
+          const pathname = loc.pathname;
+          let wsStart = 'ws://';
+          if(loc.protocol == 'https:'){
+              wsStart = 'wss://';
+          }
+          {# Opening the Socket Connection on basis of other_person #}
+          const endpoint = wsStart + host + pathname + other_user;
+          {#console.log(endpoint);#}
+          console.log("Request For Websocket Connection Sent to Server at endpoint: " + endpoint);
+          socket = new WebSocket(endpoint);
+          ALL_SOCKETS[other_user] = socket;
+          {#let socket = new ReconnectingWebSocket(endpoint);#}
+
+          let formData = $("#id_message_form"); {# id of form #}
+          let msg = $("#id_message"); {# id of text-input #}
+          let chat_list = $('#id_friends_chat_history_ul'); {# id of ul #}
+          console.log("Gonna Use socket for user:", other_user);
+          socket.onopen = function (e) {
+              console.log("The Connection has been Opened from Both Sides Now.", e);
+              formData.submit(function(e) {
+                  {#alert("Send Clicked!");#}
+                  console.log($(this));
+                  e.preventDefault();
+                  e.stopImmediatePropagation(); // This Solved the Problem for the form Submitting over and over again...
+                  // This stops Event Bubbling.
+                  let message = {"message": msg.val()};
+                  {#alert("Submission Prevented" + message.message);#}
+                  console.log("Sending Data using socket:", socket, other_user);
+                  socket.send(JSON.stringify(message));
+                  msg.val('');
+                  tinymce.get('id_message').setContent('');
+              });
+          };
+
+          socket.onmessage = function (e) {
+              console.log("The Message sent by the Server is: ", e.data);
+              let chat_message = JSON.parse(e.data);
+              let timestamp = chat_message.timestamp;
+              let d = new Date(timestamp);
+              let date_string = format_AM_PM(d) + " on " + months[d.getMonth()] + " " + d.getDate() + ', ' + d.getFullYear();
+              if(chat_message.sender === "{{ request.user.username }}"){
+                    $("#id_friends_chat_history_ul").append(`
+                        {# Shown Right Side #}
+                        <li class="clearfix">
+                            <div class="message-data align-right">
+                                <span class="message-data-time" >${date_string}</span> &nbsp; &nbsp;
+                            </div>
+                            <div class="message other-message float-right">
+                                ${chat_message.message}
+                            </div>
+                        </li>
+                    `);
+                }
+                else{
+                     $("#id_friends_chat_history_ul").append(`
+                        {# Shown Left Side #}
+                        <li>
+                            <div class="message-data">
+                                <span class="message-data-time">${date_string}</span>
+                            </div>
+                            <div class="message my-message">
+                                ${chat_message.message}
+                            </div>
+                        </li>
+                    `);
+                }
+          };
+
+          socket.onerror = function (e) {
+              console.log("Error:", e);
+          };
+          socket.onclose = function (e) {
+              console.log("Connection Closed from Server End.", e);
+          };
+
+      });
+  }); // end of document ready
+</script>

@@ -91,12 +91,14 @@ def login_view(request):
         password = request.POST['password']
         remember_me = request.POST.get('remember_me', None)
         user = authenticate(username=username, password=password)
-        user_profile = UserProfile.objects.get(user=user)
-        if user_profile.is_email_verified:
-            response = redirect(request.GET.get('next', 'home'))
-        else:
-            response = HttpResponseRedirect(reverse('user_profile', kwargs={'username': user.username}))
         if user is not None:
+            user_profile = UserProfile.objects.get(user=user)
+            if user_profile.is_email_verified:
+                response = redirect(request.GET.get('next', 'home'))
+            else:
+                response = HttpResponseRedirect(reverse('user_profile', kwargs={'username': user.username}))
+            user_profile.is_online = True;
+            user_profile.save();
             login(request, user)
             if remember_me is None:
                 if 'cook_user' and 'cook_pass' in request.COOKIES:
@@ -109,11 +111,11 @@ def login_view(request):
                     response.set_cookie('cook_pass', password, max_age=86400, path='/')
                 return response
         else:
-            print(type(request))
-            print(request.path)
-            print(request._get_full_path)
-            print(request.get_full_path())
-            print(request.get_full_path_info())
+            # print(type(request))
+            # print(request.path)
+            # print(request._get_full_path)
+            # print(request.get_full_path())
+            # print(request.get_full_path_info())
             messages.error(request, "Invalid Credentials")
             return redirect(request.path)
     else:
@@ -121,5 +123,9 @@ def login_view(request):
 
 
 def logout_view(request):
+    user = request.user
+    user_profile_instance = UserProfile.objects.get(user=user)
+    user_profile_instance.is_online = False;
+    user_profile_instance.save();
     logout(request)
     return redirect('home')

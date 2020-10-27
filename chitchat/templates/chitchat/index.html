@@ -1,4 +1,5 @@
 {% load static %}
+{% load chitchat_filters %}
 <!DOCTYPE html>
 <html lang="en" >
 <head>
@@ -17,6 +18,7 @@
 
 <body class="dark-theme">
     <canvas></canvas>
+
     <div class="toggle">
         <input class="toggle-input" type="checkbox">
         <div class="toggle-bg"></div>
@@ -26,14 +28,15 @@
         </div>  
     </div>
     <div class="container clearfix">
-        <div class="people-list" id="people-list">
+        <div class="people-list" id="people-list" style="overflow-y: auto">
             <div class="search">
                 <input type="text" placeholder="Search Friends" />
             </div>
 
             <ul class="list nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                 <li class="clearfix nav-item class_add_friend">
-                    <a class="nav-link" data-toggle="pill" href="#add-friend" role="tab" aria-controls="add-friend" aria-selected="true">
+
+                    <a id="id_add_friend" data-toggle="pill" href="#add-friend">
                         <div class="about">
                             <div class="name">Add Friend</div>
                         </div>
@@ -42,12 +45,12 @@
 
                 {% for friend in friends %}
                     <li class="clearfix nav-item">
-                        <a class="nav-link class_friends_tab" value="{{ friend }}" data-toggle="pill" href="#chat-1" role="tab" aria-controls="chat-1" aria-selected="true">
+                        <a class="nav-link class_friends_tab" value="{{ friend.0 }}" data-toggle="pill" href="#chat-1" role="tab" aria-controls="chat-1" aria-selected="true">
                             <img src="{% static "img/profile_pictures/male_default_picture.jpg"%}" alt="avatar" width="55px" class="rounded-circle" />
                             <div class="about">
-                                <div class="name">{{ friend }}</div>
-                                <div class="status">
-                                    <i class="fa fa-circle online"></i> online
+                                <div class="name">{{ friend.0 | ellipses }}</div>
+                                <div class="class_last_message" id="id_last_message_{{friend.0}}" style="overflow-x: ">
+                                     {{ friend.1 | striptags | ellipses  }}
                                 </div>
                             </div>
                         </a>
@@ -56,22 +59,23 @@
             </ul>
         </div>
 
-        <div class="chat tab-content" id="v-pills-tabContent">
+        <div class="chat tab-content" id="v-pills-tabContent" style="overflow-y: auto">
             <!-- partial:index.partial.html -->
-            <svg viewBox="0 0 600 300" style="font: 5em/1 Open Sans, Impact;">
-                <!-- Symbol-->
-                <symbol id="s-text">
-                <text text-anchor="middle" x="50%" y="25%" dy=".35em">WELCOME</text>
-                <text text-anchor="middle" x="50%" y="50%" dy=".35em">TO</text>
-                <text text-anchor="middle" x="50%" y="75%" dy=".35em">CHITCHAT</text>
-                </symbol>
-                <!-- Duplicate symbols-->
-                <use class="text" xlink:href="#s-text"></use>
-                <use class="text" xlink:href="#s-text"></use>
-                <use class="text" xlink:href="#s-text"></use>
-                <use class="text" xlink:href="#s-text"></use>
-                <use class="text" xlink:href="#s-text"></use>
-            </svg>
+            <div id="id_landing_tab">
+              <svg viewBox="0 0 600 300" style="font: 5em/1 Open Sans, Impact;">
+                  <!-- Symbol-->
+                  <symbol id="s-text">
+                  <text text-anchor="middle" x="50%" y="25%" dy=".35em">WELCOME</text>
+                  <text text-anchor="middle" x="50%" y="50%" dy=".35em">TO</text>
+                  <text text-anchor="middle" x="50%" y="75%" dy=".35em">CHITCHAT</text>
+                  </symbol>
+                  <use class="text" xlink:href="#s-text"></use>
+                  <use class="text" xlink:href="#s-text"></use>
+                  <use class="text" xlink:href="#s-text"></use>
+                  <use class="text" xlink:href="#s-text"></use>
+                  <use class="text" xlink:href="#s-text"></use>
+              </svg>
+            </div>
             <!-- partial -->
             <div class="tab-pane fade" id="chat-1" role="tabpanel" aria-labelledby="v-pills-home-tab">
                 {# Chat Header Start #}
@@ -81,9 +85,7 @@
                          alt="avatar" width="55px" class="rounded-circle" />
                     <div class="chat-about">
                         <div class="chat-with"> </div>
-                        {# <div class="chat-num-messages">already 1902 messages</div> #}
                     </div>
-                    {# <button type="button" style="float:right;" class="btn btn-primary" onclick='document.location="{% url 'user_profile' "hemant" %}'>View Profile</button>#}
                 </div>
 
                 {# Chat Chat Header End #}
@@ -107,52 +109,6 @@
                 </div>
                 {# Chat Message Sending Part End #}
             </div>
-
-
-
-
-{#          <div class="tab-pane fade show active" id="chat-2" role="tabpanel" aria-labelledby="v-pills-profile-tab">#}
-{#              <div class="chat-header clearfix">#}
-{#                  <img src="https://scontent.fpat3-1.fna.fbcdn.net/v/t1.00288418_237388223169334717_o.jpg?_nc_cat=106&_nc_sid=09cbfe&_nc_ohc=P5jF3XWoYsEAX-Fg4M2&_nc_ht=scontent.fpat3-1.fna&oh=856009cb43f5ef5d46aef2ec1c8278de&oe=5FB2A24F"#}
-{#                       alt="avatar" width="55px" class="rounded-circle" />#}
-{##}
-{#                  <div class="chat-about">#}
-{#                      <div class="chat-with">Chat with Ankit</div>#}
-{#                      <div class="chat-num-messages">already 1 902 messages</div>#}
-{#                  </div>#}
-{#                  <a class="star btn" style="right: 0;"><i class="fa fa-star"></i></a>#}
-{#              </div> <!-- end chat-header -->#}
-{##}
-{#              <div class="chat-history">#}
-{#                  <ul>#}
-{#                      <li class="clearfix">#}
-{#                          <div class="message-data align-right">#}
-{#                              <span class="message-data-time" >10:10 AM, Today</span> &nbsp; &nbsp;#}
-{#                              <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>#}
-{#                          </div>#}
-{#                          <div class="message other-message float-right">#}
-{#                              Hi Ankit, how are you?#}
-{#                          </div>#}
-{#                      </li>#}
-{#                      <li>#}
-{#                          <div class="message-data">#}
-{#                              <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>#}
-{#                              <span class="message-data-time">10:12 AM, Today</span>#}
-{#                          </div>#}
-{#                          <div class="message my-message">#}
-{#                              Kaun hai ji tu?#}
-{#                          </div>#}
-{#                      </li>#}
-{#                  </ul>#}
-{#              </div> <!-- end chat-history -->#}
-{##}
-{#              <div class="chat-message clearfix">#}
-{#                <textarea name="message-to-send" id="message-to-send" placeholder ="Type your message" rows="3"></textarea>#}
-{#                <i class="fa fa-file-o"></i> &nbsp;&nbsp;&nbsp;#}
-{#                <i class="fa fa-file-image-o"></i>#}
-{#                <button>Send</button>#}
-{#              </div> <!-- end chat-message -->#}
-{#          </div>#}
 
 
             {# This div is visible when user click on Add Friend Link #}
@@ -183,28 +139,6 @@
             </div>
             {# Seach Friend Ends #}
         </div>
-
-{#    <script id="message-template" type="text/x-handlebars-template">#}
-{#        <li class="clearfix">#}
-{#            <div class="message-data align-right">#}
-{#                <span class="message-data-time" >{{time}}, Today</span> &nbsp; &nbsp;#}
-{#                <span class="message-data-name" >Secretly Unknown</span> <i class="fa fa-circle me"></i>#}
-{#            </div>#}
-{#            <div class="message other-message float-right">#}
-{#                {{messageOutput}}#}
-{#            </div>#}
-{#        </li>#}
-{#    </script>#}
-{#    <script id="message-response-template" type="text/x-handlebars-template">#}
-{#          <li>#}
-{#              <div class="message-data">#}
-{#                  <span class="message-data-name"><i class="fa fa-circle online"></i> Vishwajeet</span>#}
-{#                  <span class="message-data-time">{{time}}, Today</span>#}
-{#              </div>#}
-{#              <div class="message my-message">#}
-{#                  {{response}}#}
-{#              </div>#}
-{#          </li>#}
     </div>
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
@@ -212,8 +146,6 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/list.js/1.1.1/list.min.js'></script>
     <script src="{% static "js/chat.js"%}"></script>
     <script src="{% static "bootstrap/js/bootstrap.min.js"%}"></script>
-{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js">#}
-{#    </script>#}
      <!-- jQuery Ajax Script -->
     <script type="text/javascript">
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -302,7 +234,6 @@
                  dataType: 'json', // type of data received from Server-Side
                  success:function(data){ // data is what we have received as json response
                       let new_status = data.result;
-                      console.log(new_status, typeof(new_status));
                       let new_text = "";
                       status_button.removeAttr('class');
                       if(new_status === false){ // show disabled Pending button
@@ -331,8 +262,13 @@
               });
           });
 
+          $('#id_add_friend').click(() => {
+              $('#id_landing_tab').css('display', 'none');
+          });
+
           {# Function Responsible for Showing Chat History with a friend #}
           $(document).on('click', '.class_friends_tab', function(){
+              $('#id_landing_tab').css('display', 'none');
               let other_user = $(this).attr('value');
               let url = other_user;
               $.ajax({
@@ -341,7 +277,9 @@
                  success:function(data){ // data is what we have received as json response
                     let messages = data.chats;
                     let other_user_first_name = data.other_user_first_name;
-                    $(".chat-with").html(`<em>${other_user_first_name}</em>`);
+                    let updated_time_string = data.updated_time_string
+                    $(".chat-with").html(`<em>${other_user_first_name}</em>  
+                      <div class="chat-num-messages">${updated_time_string}</div>`);
                     let user_profile_url = "http://" +  window.location.host + "/user_profile/visit/" + other_user;
                     $(".chat-header a").remove();
                     $(".chat-header").append(`<a type="button" style="float:right;" class="btn btn-primary" href="${user_profile_url}">View Profile</a>`);
@@ -363,7 +301,6 @@
                             let sender = message_instance[0];
                             let message = message_instance[1];
                             let timestamp = message_instance[2];
-                            {#console.log(timestamp);#}
                             let d = new Date(timestamp);
                             let date_string = format_AM_PM(d) + " on " + months[d.getMonth()] + " " + d.getDate() + ', ' + d.getFullYear();
                             if(sender === "{{ request.user.username }}"){
@@ -445,7 +382,6 @@
                       // This stops Event Bubbling.
                       let message = {"message": msg.val()};
                       {#alert("Submission Prevented" + message.message);#}
-                      console.log("Sending Data using socket:", socket, other_user);
                       socket.send(JSON.stringify(message));
                       msg.val('');
                       tinymce.get('id_message').setContent('');
@@ -458,32 +394,57 @@
                   let timestamp = chat_message.timestamp;
                   let d = new Date(timestamp);
                   let date_string = format_AM_PM(d) + " on " + months[d.getMonth()] + " " + d.getDate() + ', ' + d.getFullYear();
+                  
+                  // Adding the message as the last_message in the thread
+                  let id_last_message_for_other_user = "#id_last_message_" + other_user;
+                  // Escaping the dots present in the username
+                  let final_id_last_message_for_other_user = ""
+                  for(let i=0;i<id_last_message_for_other_user.length;i++){
+                    if(id_last_message_for_other_user[i] === '.'){
+                      final_id_last_message_for_other_user += "\\";
+                    }
+                    final_id_last_message_for_other_user += id_last_message_for_other_user[i];
+                  }
+
+                  console.log(final_id_last_message_for_other_user);
+                  let raw_message = chat_message.message;
+                  raw_message = raw_message.replace( /(<([^>]+)>)/ig, ''); 
+                  // To remove HTML Tags from the message inside TextArea
+                  raw_message = raw_message.trim();
+                  if(raw_message.length > 20){
+                    raw_message = raw_message.substring(0, 20) + "...";
+                  }
+                  $(final_id_last_message_for_other_user).html(`
+                      ${raw_message}
+                  `);
+                  alert(raw_message)
+                  // Adding message in the chat list
                   if(chat_message.sender === "{{ request.user.username }}"){
-                        $("#id_friends_chat_history_ul").append(`
-                            {# Shown Right Side #}
-                            <li class="clearfix">
-                                <div class="message-data align-right">
-                                    <span class="message-data-time" >${date_string}</span> &nbsp; &nbsp;
-                                </div>
-                                <div class="message other-message float-right">
-                                    ${chat_message.message}
-                                </div>
-                            </li>
-                        `);
-                    }
-                    else{
-                         $("#id_friends_chat_history_ul").append(`
-                            {# Shown Left Side #}
-                            <li>
-                                <div class="message-data">
-                                    <span class="message-data-time">${date_string}</span>
-                                </div>
-                                <div class="message my-message">
-                                    ${chat_message.message}
-                                </div>
-                            </li>
-                        `);
-                    }
+                      $("#id_friends_chat_history_ul").append(`
+                          {# Shown Right Side #}
+                          <li class="clearfix">
+                              <div class="message-data align-right">
+                                  <span class="message-data-time" >${date_string}</span> &nbsp; &nbsp;
+                              </div>
+                              <div class="message other-message float-right">
+                                  ${chat_message.message}
+                              </div>
+                          </li>
+                      `);
+                  }
+                  else{
+                       $("#id_friends_chat_history_ul").append(`
+                          {# Shown Left Side #}
+                          <li>
+                              <div class="message-data">
+                                  <span class="message-data-time">${date_string}</span>
+                              </div>
+                              <div class="message my-message">
+                                  ${chat_message.message}
+                              </div>
+                          </li>
+                      `);
+                  }
               };
 
               socket.onerror = function (e) {
@@ -505,6 +466,7 @@
             height: 100,
             menubar: false,
             statusbar: false,
+            entity_encoding : 'raw'
         });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.js"></script>
