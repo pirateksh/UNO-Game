@@ -20,6 +20,7 @@ class BotModelManager(models.Manager):
         bot_instance.save()
         return bot_instance
 
+
 class Bot(models.Model):
     player_username = models.ForeignKey(User, on_delete=models.CASCADE)
     objects = BotModelManager()

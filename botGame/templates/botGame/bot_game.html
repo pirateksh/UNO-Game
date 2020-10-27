@@ -1,224 +1,5 @@
-{% extends 'base.html' %}
-{% block content %}
-<div>
-    <h1> Let's Play with Bot. You are Playing with bot: {{ bot }} </h1>
-        <div>
-            <div id="div_bs">
-                <b>Bot State:</b>
-                <ol id="bot_state"></ol>
-            </div>
-            <div id="div_bpc">
-                <b> Bot Played Cards: </b>
-                <ol id="bot_played_cards"></ol>
-            </div>
-            <div id="div_ps">
-                <b> Player State: </b>
-                <ol id="player_state"></ol>
-            </div>
-            <div id="div_tc">
-                <b> Top Card: </b>
-                <ol id="bot_game_state"></ol>
-            </div>
-            <div id="div_pc">
-                <b> Playable Cards: </b>
-                <ol id="playable_cards"></ol>
-            </div>
-            <div id="end_game">
-                 <button id="END_GAME">End Game</button>
-            </div>
-
-
-        </div>
-
-</div>
-{%endblock content%}
-
-{% block javascript %}
-{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js"></script>#}
-    <script>
-        var loc = window.location;
-        var host = loc.host;
-        var pathname = loc.pathname;
-
-        var wsStart = 'ws://';
-        if(loc.protocol === 'https:'){
-            wsStart = 'wss://';
-        }
-
-        const endpoint = wsStart + host + pathname;
-        console.log("Request For Websocket Connection Sent to Server at endpoint: " + endpoint);
-        var socket = new WebSocket(endpoint);
-        {#var socket = new ReconnectingWebSocket(endpoint);#}
-
-        var id_bot_state = $("#bot_state");
-        var id_player_state = $("#player_state");
-        var id_bot_game_state = $('#bot_game_state');
-        var id_playable_cards = $('#playable_cards');
-        var id_bot_played_cards = $('#bot_played_cards');
-
-
-        socket.onopen = function (e) {
-            console.log("The Connection has been Opened from Both Sides Now.", e);
-        };
-
-        socket.onmessage = function (e) {
-
-            // Clearing the Four List on the Page
-            id_bot_state.empty();
-            id_player_state.empty();
-            id_bot_game_state.empty();
-            id_playable_cards.empty();
-
-            // Creating the Draw Card Button
-            id_playable_cards.append("<button id='DRAW_CARD'>" + "Draw Card" + "</button>");
-            var draw_card_button = document.getElementById('DRAW_CARD');
-            draw_card_button.addEventListener('click', send_card_play_request, false);
-            draw_card_button.myParam = "DRAW_CARD";
-            // Creating the End Game Button
-            var end_game_button = document.getElementById('END_GAME');
-            end_game_button.addEventListener('click', send_end_game_request, false);
-            end_game_button.myParam = "END_GAME";
-
-
-            var server_response = JSON.parse(e.data);
-            {#console.log("The Message sent by the Server is: ", server_response);#}
-
-            var var_bot_state = JSON.parse("[" + server_response.bot_state + "]")[0];
-            // var_bot_state array contains the card values that bot possess
-            var var_player_state = JSON.parse("[" + server_response.player_state + "]")[0];
-            // var_player_state array contains the card values that the player possess
-            var var_bot_game_state = JSON.parse("[" + server_response.bot_game_state + "]"); 
-            // var_bot_game_state array contains only one element i.e. the Top Card Value
-            var var_playable_cards = server_response.playable_cards;
-            // var_playable_cards array contains the card values which are allowed to play for the player
-            var var_bot_played_cards = server_response.bot_played_cards;
-            // var_bot_played_cards array contains the card values that bot previously played
-            var top_color = server_response.top_color;
-            // top_color variable represents the top card color if the bot played a W or WF card
-            var bot_says_uno = server_response.bot_says_uno;
-            // bot_says_uno variable is defined if the bot have yelled UNO
-            var bot_won = server_response.bot_won;
-            // bot_won variable is defined if the bot have won the Match
-            var player_won = server_response.player_won;
-            // player_won variable is defined if the player have won the Match
-            var choose_to_play_or_keep = server_response.choose_to_play_or_keep;
-            // choose_to_play_or_keep variable is defined if the player have choice to Play or keep the Drawn Card
-            var drawn_card_val = server_response.drawn_card_val;
-            // drawn_card_val varaible is defined if the Player played the Drawn Card and it will contain the drawn card value
-            
-
-            if(choose_to_play_or_keep !== undefined){
-                let user_input = prompt("The drawn Card[ " + drawn_card_val + " ] is Playable. Enter \n 'P' to Play it.\n 'K' to Continue Keeping it.");
-                if(user_input === 'P'){ // Play
-                    send_card_play_request(undefined, drawn_card_val)
-                }
-                else{ // Keep
-                    let response = {
-                        'play_keep_decision': 0, // Player will keep
-                        'drawn_card_val': drawn_card_val
-                    };
-                    socket.send(JSON.stringify(response));
-                }
-            }
-
-            // To print the list of cards that bot posses using array var_bot_state
-            for(let i=0;i < var_bot_state.length;i++){
-                id_bot_state.append("<li>" + var_bot_state[i] + "</li>");
-            }
-            // To print the list of cards that bot played previously using array var_bot_played_cards
-            for(let i=0;i < var_bot_played_cards.length;i++){
-                id_bot_played_cards.prepend("<li><button disabled>" + var_bot_played_cards[i] + "</button></li>");
-            }
-            // To print the list of cards that player posses by using array var_player_state
-            for(let i=0;i < var_player_state.length;i++){
-                id_player_state.append("<li>" + var_player_state[i] + "</li>");
-            }
-            // To print current Top Card by using var_bot_game_state array
-            for(let i=0;i < var_bot_game_state.length;i++){
-                {#console.log(var_bot_game_state[i]);#}
-                id_bot_game_state.append("<li>" + var_bot_game_state[i] + "</li>");
-            }
-            
-            // Creating Buttons for Allowed Cards using var_player_state array and var_playable_cards array 
-            for(let i=0;i < var_player_state.length;i++){
-                {#console.log("Checking Card " + var_player_state[i]);#}
-                if(var_playable_cards.includes(var_player_state[i])){
-                    {#console.log("An allowed Card " + var_player_state[i]);#}
-                    id_playable_cards.append(function(){
-                        return $("<button style='margin: 10px' id="+i+" >" + var_player_state[i] + "</button>");
-                    });
-
-                    var current_button = document.getElementById(i);
-                    var text = current_button.innerHTML;
-                    {#console.log("text is :" + text);#}
-                    current_button.addEventListener('click', send_card_play_request, false);
-                    current_button.myParam = text;
-                }
-            }
-
-            // top_color is defined => Bot Played W or WF => new Top Card COLOR is set to top_color
-            if(top_color !== undefined && top_color !== null){
-                alert("The top Color is: " + top_color);
-            }
-            if(bot_says_uno === 1){
-                alert("BOT: UUUNNNOOOOO!!")
-            }
-            if(bot_won === 1){
-                alert("BOT Won the Game! Ending this Game...");
-                $('#END_GAME').click();
-            }
-            if(player_won === 1){
-                alert("Congrats!!! You Won the Game! Ending this Game...");
-                $('#END_GAME').click();
-            }
-
-            function send_card_play_request(e, drawn_card_val=undefined){
-                if(drawn_card_val !== undefined){
-                    let color_changed_to = "";
-                    if(drawn_card_val === "13 of W" || drawn_card_val === "13 of WF"){
-                        color_changed_to = window.prompt("Set top Card Color to:\n R for 'Red', \n G for 'Green',\n B for 'Blue', \n Y for 'Yellow'");
-                    }
-                    let response = {
-                        'play_keep_decision': 1,
-                        'drawn_card_val': drawn_card_val,
-                        'color_changed_to':color_changed_to,
-                    };
-                    socket.send(JSON.stringify(response));
-                }
-                else{
-                    console.log("Click event Called on button: " + e.currentTarget.myParam);
-                    let color_changed_to = "";
-                    if(e.currentTarget.myParam === "13 of W" || e.currentTarget.myParam === "13 of WF"){
-                        color_changed_to = window.prompt("Set top Card Color to:\n R for 'Red', \n G for 'Green',\n B for 'Blue', \n Y for 'Yellow'");
-                    }
-                    let response = {
-                        'card_played_value': e.currentTarget.myParam,
-                        'color_changed_to':color_changed_to,
-                    };
-                    socket.send(JSON.stringify(response));
-                }
-            }
-
-            function send_end_game_request(e){
-                let response = {
-                    'card_played_value':e.currentTarget.myParam,
-                    'color_changed_to':"",
-                };
-                location.replace("{% url "user_profile" user%}");
-                socket.send(JSON.stringify(response));
-            }
-        };
-
-        socket.onerror = function (e) {
-            console.log("error", e);
-        };
-        socket.onclose = function (e) {
-            console.log("The Connection has been Closed from the Server End", e);
-        };
-    </script>
-
-{% endblock %}
-
+{% extends 'game_base.html' %}
+{% load static %}
 
 {% block styles %}
     <style>
@@ -260,4 +41,228 @@
             width: 200px;
         }
     </style>
+{% endblock %}
+
+{% block title %}
+    Bot Game
+{% endblock %}
+
+{% block content %}
+<div>
+    <h1> Let's Play with Bot. You are Playing with bot: {{ bot }} </h1>
+        <div>
+            <div id="div_bs">
+                <b>Bot State:</b>
+                <ol id="bot_state"></ol>
+            </div>
+            <div id="div_bpc">
+                <b> Bot Played Cards: </b>
+                <ol id="bot_played_cards"></ol>
+            </div>
+            <div id="div_ps">
+                <b> Player State: </b>
+                <ol id="player_state"></ol>
+            </div>
+            <div id="div_tc">
+                <b> Top Card: </b>
+                <ol id="bot_game_state"></ol>
+            </div>
+            <div id="div_pc">
+                <b> Playable Cards: </b>
+                <ol id="playable_cards"></ol>
+            </div>
+            <div id="end_game">
+                 <button id="END_GAME">End Game</button>
+            </div>
+
+
+        </div>
+
+</div>
+{%endblock content%}
+
+{% block javascript %}
+{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js"></script>#}
+    <script src=" {% static 'js/jquery.min.js' %} "></script>
+    <script type="text/javascript" src="{% static 'js/phaserjs/bot/bot_game.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/phaserjs/bot/BotScene1.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/phaserjs/bot/BotScene2.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/phaserjs/bot/BotScene3.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/recording.js' %}"></script>
+    <script>
+        {#let loc = window.location;#}
+        {#let host = loc.host;#}
+        {#let pathname = loc.pathname;#}
+        {##}
+        {#let wsStart = 'ws://';#}
+        {#if(loc.protocol === 'https:'){#}
+        {#    wsStart = 'wss://';#}
+        {# }#}
+        {##}
+        {#const endpoint = wsStart + host + pathname;#}
+        {#console.log("Request For Websocket Connection Sent to Server at endpoint: " + endpoint);#}
+        {#let socket = new WebSocket(endpoint);#}
+        {#let socket = new ReconnectingWebSocket(endpoint);#}
+
+        let id_bot_state = $("#bot_state");
+        let id_player_state = $("#player_state");
+        let id_bot_game_state = $('#bot_game_state');
+        let id_playable_cards = $('#playable_cards');
+        let id_bot_played_cards = $('#bot_played_cards');
+        let me = "{{ user.username }}";
+
+
+        {#socket.onopen = function (e) {#}
+        {#    console.log("The Connection has been Opened from Both Sides Now.", e);#}
+        {# };#}
+
+        {#socket.onmessage = function (e) {#}
+        {##}
+        {#    // Clearing the Four List on the Page#}
+        {#    id_bot_state.empty();#}
+        {#    id_player_state.empty();#}
+        {#    id_bot_game_state.empty();#}
+        {#    id_playable_cards.empty();#}
+        {##}
+        {#    // Creating the Draw Card Button#}
+        {#    id_playable_cards.append("<button id='DRAW_CARD'>" + "Draw Card" + "</button>");#}
+        {#    let draw_card_button = document.getElementById('DRAW_CARD');#}
+        {#    draw_card_button.addEventListener('click', send_card_play_request, false);#}
+        {#    draw_card_button.myParam = "DRAW_CARD";#}
+        {#    // Creating the End Game Button#}
+        {#    let end_game_button = document.getElementById('END_GAME');#}
+        {#    end_game_button.addEventListener('click', send_end_game_request, false);#}
+        {#    end_game_button.myParam = "END_GAME";#}
+        {##}
+        {##}
+        {#    let server_response = JSON.parse(e.data);#}
+            {#console.log("The Message sent by the Server is: ", server_response);#}
+        {##}
+        {#    let let_bot_state = JSON.parse("[" + server_response.bot_state + "]")[0];#}
+        {#    // let_bot_state array contains the card values that bot possess#}
+        {#    let let_player_state = JSON.parse("[" + server_response.player_state + "]")[0];#}
+        {#    // let_player_state array contains the card values that the player possess#}
+        {#    let let_bot_game_state = JSON.parse("[" + server_response.bot_game_state + "]"); #}
+        {#    // let_bot_game_state array contains only one element i.e. the Top Card Value#}
+        {#    let let_playable_cards = server_response.playable_cards;#}
+        {#    // let_playable_cards array contains the card values which are allowed to play for the player#}
+        {#    let let_bot_played_cards = server_response.bot_played_cards;#}
+        {#    // let_bot_played_cards array contains the card values that bot previously played#}
+        {#    let top_color = server_response.top_color;#}
+        {#    // top_color letiable represents the top card color if the bot played a W or WF card#}
+        {#    let bot_says_uno = server_response.bot_says_uno;#}
+        {#    // bot_says_uno letiable is defined if the bot have yelled UNO#}
+        {#    let bot_won = server_response.bot_won;#}
+        {#    // bot_won letiable is defined if the bot have won the Match#}
+        {#    let player_won = server_response.player_won;#}
+        {#    // player_won letiable is defined if the player have won the Match#}
+        {#    let choose_to_play_or_keep = server_response.choose_to_play_or_keep;#}
+        {#    // choose_to_play_or_keep letiable is defined if the player have choice to Play or keep the Drawn Card#}
+        {#    let drawn_card_val = server_response.drawn_card_val;#}
+        {#    // drawn_card_val letaible is defined if the Player played the Drawn Card and it will contain the drawn card value#}
+        {#    #}
+        {##}
+        {#    if(choose_to_play_or_keep !== undefined){#}
+        {#        let user_input = prompt("The drawn Card[ " + drawn_card_val + " ] is Playable. Enter \n 'P' to Play it.\n 'K' to Continue Keeping it.");#}
+        {#        if(user_input === 'P'){ // Play#}
+        {#            send_card_play_request(undefined, drawn_card_val)#}
+        {#        }#}
+        {#        else{ // Keep#}
+        {#            let response = {#}
+        {#                'play_keep_decision': 0, // Player will keep#}
+        {#                'drawn_card_val': drawn_card_val#}
+        {#            };#}
+        {#            socket.send(JSON.stringify(response));#}
+        {#        }#}
+        {#    }#}
+        {##}
+        {#    // To print the list of cards that bot posses using array let_bot_state#}
+        {#    for(let i=0;i < let_bot_state.length;i++){#}
+        {#        id_bot_state.append("<li>" + let_bot_state[i] + "</li>");#}
+        {#    }#}
+        {#    // To print the list of cards that bot played previously using array let_bot_played_cards#}
+        {#    for(let i=0;i < let_bot_played_cards.length;i++){#}
+        {#        id_bot_played_cards.prepend("<li><button disabled>" + let_bot_played_cards[i] + "</button></li>");#}
+        {#    }#}
+        {#    // To print the list of cards that player posses by using array let_player_state#}
+        {#    for(let i=0;i < let_player_state.length;i++){#}
+        {#        id_player_state.append("<li>" + let_player_state[i] + "</li>");#}
+        {#    }#}
+        {#    // To print current Top Card by using let_bot_game_state array#}
+        {#    for(let i=0;i < let_bot_game_state.length;i++){#}
+                {#console.log(let_bot_game_state[i]);#}
+        {#        id_bot_game_state.append("<li>" + let_bot_game_state[i] + "</li>");#}
+        {#    }#}
+        {#    #}
+        {#    // Creating Buttons for Allowed Cards using let_player_state array and let_playable_cards array #}
+        {#    for(let i=0;i < let_player_state.length;i++){#}
+                {#console.log("Checking Card " + let_player_state[i]);#}
+        {#        if(let_playable_cards.includes(let_player_state[i])){#}
+                    {#console.log("An allowed Card " + let_player_state[i]);#}
+        {#            id_playable_cards.append(function(){#}
+        {#                return $("<button style='margin: 10px' id="+i+" >" + let_player_state[i] + "</button>");#}
+        {#            });#}
+        {##}
+        {#            let current_button = document.getElementById(i);#}
+        {#            let text = current_button.innerHTML;#}
+                    {#console.log("text is :" + text);#}
+        {#            current_button.addEventListener('click', send_card_play_request, false);#}
+        {#            current_button.myParam = text;#}
+        {#        }#}
+        {#    }#}
+        {##}
+        {#    // top_color is defined => Bot Played W or WF => new Top Card COLOR is set to top_color#}
+        {#    if(top_color !== undefined && top_color !== null){#}
+        {#        alert("The top Color is: " + top_color);#}
+        {#    }#}
+        {#    if(bot_says_uno === 1){#}
+        {#        alert("BOT: UUUNNNOOOOO!!")#}
+        {#    }#}
+        {#    if(bot_won === 1){#}
+        {#        alert("BOT Won the Game! Ending this Game...");#}
+        {#        $('#END_GAME').click();#}
+        {#    }#}
+        {#    if(player_won === 1){#}
+        {#        alert("Congrats!!! You Won the Game! Ending this Game...");#}
+        {#        $('#END_GAME').click();#}
+        {#    }#}
+        {##}
+        {#    function send_card_play_request(e, drawn_card_val=undefined){#}
+        {#        if(drawn_card_val !== undefined){#}
+        {#            let color_changed_to = "";#}
+        {#            if(drawn_card_val === "13 of W" || drawn_card_val === "13 of WF"){#}
+        {#                color_changed_to = window.prompt("Set top Card Color to:\n R for 'Red', \n G for 'Green',\n B for 'Blue', \n Y for 'Yellow'");#}
+        {#            }#}
+        {#            let response = {#}
+        {#                'play_keep_decision': 1,#}
+        {#                'drawn_card_val': drawn_card_val,#}
+        {#                'color_changed_to':color_changed_to,#}
+        {#            };#}
+        {#            socket.send(JSON.stringify(response));#}
+        {#        }#}
+        {#        else{#}
+        {#            console.log("Click event Called on button: " + e.currentTarget.myParam);#}
+        {#            let color_changed_to = "";#}
+        {#            if(e.currentTarget.myParam === "13 of W" || e.currentTarget.myParam === "13 of WF"){#}
+        {#                color_changed_to = window.prompt("Set top Card Color to:\n R for 'Red', \n G for 'Green',\n B for 'Blue', \n Y for 'Yellow'");#}
+        {#            }#}
+        {#            let response = {#}
+        {#                'card_played_value': e.currentTarget.myParam,#}
+        {#                'color_changed_to':color_changed_to,#}
+        {#            };#}
+        {#            socket.send(JSON.stringify(response));#}
+        {#        }#}
+        {#    }#}
+        {##}
+        {#    function send_end_game_request(e){#}
+        {#        let response = {#}
+        {#            'card_played_value':e.currentTarget.myParam,#}
+        {#            'color_changed_to':"",#}
+        {#        };#}
+        {#        location.replace("{% url "user_profile" user%}");#}
+        {#        socket.send(JSON.stringify(response));#}
+        {#    }#}
+        {# };#}
+    </script>
+
 {% endblock %}

@@ -449,21 +449,23 @@ class Scene1 extends Phaser.Scene {
                     vidElem.destroy();
                 }
                 if(sceneNumber === 2) {
-                    let wormhole = _this.add.video(game.config.width/2, game.config.height/2, "wormhole");
-                    wormhole.setScale(1.6, 1);
-                    wormhole.depth = 10;
-                    wormhole.play();
-                    _this.time.delayedCall(3000, function () {
-                        wormhole.destroy();
+                    if(currentGame.gameType === Game.PUBLIC) { // TODO: Look into this. Error is coming due to automatic start of Game.
                         _this.scene.start("playGame");
-                        if(me === currentGame.adminUsername && (currentGame.gameType === Game.FRIEND)) {
-                            currentGame.startGameRequest(socket);
-                        }
-                    }, [], _this);
+                    }
+                    else {
+                        let wormhole = _this.add.video(game.config.width/2, game.config.height/2, "wormhole");
+                        wormhole.setScale(1.6, 1);
+                        wormhole.depth = 10;
+                        wormhole.play();
+                        _this.time.delayedCall(3000, function () {
+                            wormhole.destroy();
+                            _this.scene.start("playGame");
+                            if(me === currentGame.adminUsername) {
+                                currentGame.startGameRequest(socket);
+                            }
+                        }, [], _this);
+                    }
                 }
-            }
-            else if(status === "room_full") {
-                alert("This room is already full.");
             }
         });
 

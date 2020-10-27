@@ -22,8 +22,8 @@ class GameRoomDeckCardAdmin(admin.ModelAdmin):
     list_display = ['game_room', 'card']
 
 
-admin.site.register(GameRoom, GameRoomAdmin)
-admin.site.register(Player, PlayerAdmin)
-admin.site.register(Card, CardAdmin)
+# admin.site.register(GameRoom, GameRoomAdmin)
+# admin.site.register(Player, PlayerAdmin)
+# admin.site.register(Card, CardAdmin)
 # admin.site.register(PlayerHandCard, PlayerHandCardAdmin)
 # admin.site.register(GameRoomDeckCard, GameRoomDeckCardAdmin)
