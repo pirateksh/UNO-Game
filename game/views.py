@@ -40,7 +40,7 @@ def broadcast_notification(group_name, message):
         }
     )
 
-
+# @login_required
 def play_now(request):
     player = request.user
     player_profile = UserProfile.objects.get(user=player)
