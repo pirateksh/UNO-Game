@@ -186,7 +186,7 @@ class BotScene1 extends Phaser.Scene {
         };
 
         socket.addEventListener("message", function (e) {
-            console.log("BotScene1 message");
+            // console.log("BotScene1 message");
             // Clearing the Four List on the Page
             id_bot_state.empty();
             id_player_state.empty();
@@ -261,7 +261,7 @@ class BotScene1 extends Phaser.Scene {
         });
 
         _this.playButton.on("pointerdown", function (pointer) {
-            console.log("PLAY NOW CLICKED!");
+            // console.log("PLAY NOW CLICKED!");
             let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": 2}};
             let response = {"type": "change.scene", "text": data};
             socket.send(JSON.stringify(response));

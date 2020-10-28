@@ -119,6 +119,11 @@ class Scene1 extends Phaser.Scene {
         this.load.audio('unoCallVoice', [`${generatePath("sounds", "uno_call.mp3")}`]);
 
         this.load.audio('unoCallSound', [`${generatePath("sounds", "uno_button.mp3")}`]);
+
+        this.load.audio('topColorRed', [`${generatePath("sounds", "top_color_red.mp3")}`]);
+        this.load.audio('topColorBlue', [`${generatePath("sounds", "top_color_blue.mp3")}`]);
+        this.load.audio('topColorGreen', [`${generatePath("sounds", "top_color_green.mp3")}`]);
+        this.load.audio('topColorYellow', [`${generatePath("sounds", "top_color_yellow.mp3")}`]);
     }
 
     create() {
@@ -405,6 +410,22 @@ class Scene1 extends Phaser.Scene {
                     }
                     _this.joinedY += 20;
                 }
+
+                if(currentGame.players.length === 2 && currentGame.gameType === Game.PUBLIC) {
+                    // If this is a public game send change scene request after Max. Player Join.
+                    console.log("DELAYING Change Scene.");
+                    _this.time.delayedCall(
+                        2000,
+                        function () {
+                            if(me === currentGame.adminUsername) {
+                                console.log("DELAYED Change Scene.");
+                                currentGame.changeSceneRequest(socket, 2);
+                            }
+                        },
+                        [], _this
+                    );
+                    
+                }
             }
             else if(status === "user_left_room"){
                 let left_user_username = data.left_user_username;
@@ -452,22 +473,30 @@ class Scene1 extends Phaser.Scene {
                     vidElem.destroy();
                 }
                 if(sceneNumber === 2) {
-                    if(currentGame.gameType === Game.PUBLIC) { // TODO: Look into this. Error is coming due to automatic start of Game.
-                        _this.scene.start("playGame");
-                    }
-                    else {
+                    // if(currentGame.gameType === Game.PUBLIC) { // TODO: Look into this. Error is coming due to automatic start of Game.
+                    //     _this.scene.start("playGame");
+                    // }
+                    // else {
                         let wormhole = _this.add.video(game.config.width/2, game.config.height/2, "wormhole");
                         wormhole.setScale(1.6, 1);
                         wormhole.depth = 10;
                         wormhole.play();
                         _this.time.delayedCall(3000, function () {
                             wormhole.destroy();
+                            // if(me === currentGame.adminUsername) {
+
+                            //     console.log("DELAYING START GAME!");
+                            //     _this.time.delayedCall(2000, function() {
+                            //         console.log("DELAYING SUCCESSFULL!");
+                            //         currentGame.startGameRequest(socket);
+                            //     }, [], _this);
+
+                            // }
+                            console.log("SWITCHING SCENE.");
                             _this.scene.start("playGame");
-                            if(me === currentGame.adminUsername) {
-                                currentGame.startGameRequest(socket);
-                            }
+
                         }, [], _this);
-                    }
+                    // }
                 }
             }
         });

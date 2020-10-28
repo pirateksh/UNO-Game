@@ -67,6 +67,8 @@ class GameRoomConsumer(AsyncConsumer):
                 # This can be called by Friend Game only.
                 if self.game.game_type == GameServer.FRIEND:
                     GameServer.AVAILABLE_FRIEND_GAMES.remove(self.game)
+                if self.game.game_type == GameServer.PUBLIC:
+                    GameServer.AVAILABLE_PUBLIC_GAMES.remove(self.game)
             elif type_of_event == "end.game":
                 self.game.end_game()
                 # await self.set_is_game_running_false()
@@ -226,44 +228,45 @@ class GameRoomConsumer(AsyncConsumer):
                     count = self.game.get_count_of_players()
                     print("Count so far:", count)
                     if count == GameServer.PUBLIC_ROOM_LIMIT:
+                        pass
                         # await asyncio.sleep(2)
-                        print("CHANGING SCENE!.")
-                        change_scene_response = {
-                            "status": "change_scene",
-                            "message": "Scene Changed",
-                            "data": {
-                                "sceneNumber": 2,
-                            }
-                        }
-                        await self.channel_layer.group_send(
-                            self.game_room_id,
-                            {
-                                "type": "change.scene",
-                                "text": json.dumps(change_scene_response)
-                            }
-                        )
+                        # print("CHANGING SCENE!.")
+                        # change_scene_response = {
+                        #     "status": "change_scene",
+                        #     "message": "Scene Changed",
+                        #     "data": {
+                        #         "sceneNumber": 2,
+                        #     }
+                        # }
+                        # await self.channel_layer.group_send(
+                        #     self.game_room_id,
+                        #     {
+                        #         "type": "change.scene",
+                        #         "text": json.dumps(change_scene_response)
+                        #     }
+                        # )
 
-                        print("Wait for 2 seconds")
-                        await asyncio.sleep(2)
-                        print("2 seconds over")
-                        print("Starting Public Game.")
-                        self.game.start_game()
-                        if self.game.game_type == GameServer.PUBLIC:
-                            GameServer.AVAILABLE_PUBLIC_GAMES.remove(self.game)
-                        public_response = {
-                            "status": "start_game",
-                            "message": "Public Game has been started.",
-                            "data": text_of_event['data'],
-                            "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder),
-                        }
-                        await self.channel_layer.group_send(
-                            self.game_room_id,
-                            {
-                                "type": "start.game",
-                                "text": json.dumps(public_response)
-                            }
-                        )
-                        print("Started Public Game.")
+                        # print("Wait for 2 seconds")
+                        # await asyncio.sleep(2)
+                        # print("2 seconds over")
+                        # print("Starting Public Game.")
+                        # self.game.start_game()
+                        # if self.game.game_type == GameServer.PUBLIC:
+                        #     GameServer.AVAILABLE_PUBLIC_GAMES.remove(self.game)
+                        # public_response = {
+                        #     "status": "start_game",
+                        #     "message": "Public Game has been started.",
+                        #     "data": text_of_event['data'],
+                        #     "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder),
+                        # }
+                        # await self.channel_layer.group_send(
+                        #     self.game_room_id,
+                        #     {
+                        #         "type": "start.game",
+                        #         "text": json.dumps(public_response)
+                        #     }
+                        # )
+                        # print("Started Public Game.")
 
     async def time_out(self, event):
         text = json.loads(event['text'])

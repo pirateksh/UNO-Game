@@ -76,6 +76,24 @@ class Scene2 extends Phaser.Scene {
             }
         }
 
+
+
+
+        console.log("DELAYING START GAME!");
+        _this.time.delayedCall(
+            2000, 
+            function() {
+                if(me === currentGame.adminUsername) {
+                    console.log("DELAYING SUCCESSFULL!");
+                    currentGame.startGameRequest(socket);
+                }
+            }, 
+            [], 
+            _this
+        );
+            
+        
+
         _this.timeRemainingToSkip = gameDetails.timeOutLimitInSeconds;
         _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, _this.config.height - 50, "pixelFont", _this.timeRemainingToSkip, 50);
 
@@ -701,6 +719,17 @@ class Scene2 extends Phaser.Scene {
         } else {
             // Opponent plays a card.
             _this.playCardOpp(backendResponse, playedCardObject, username_, won);
+            if(playedCardObject.category === WILD_FOUR || playedCardObject.category === WILD) {
+                if(currentGame.topColor === "B") {
+                    _this.sound.play("topColorBlue");
+                } else if(currentGame.topColor === "G") {
+                    _this.sound.play("topColorGreen");
+                } else if(currentGame.topColor === "Y") {
+                    _this.sound.play("topColorYellow");
+                } else if(currentGame.topColor === "R") {
+                    _this.sound.play("topColorRed");
+                }
+            }
         }
     }
 
