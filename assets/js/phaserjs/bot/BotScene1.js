@@ -103,6 +103,15 @@ class BotScene1 extends Phaser.Scene {
 
         this.load.video('wormhole', `${generatePath("video", "wormhole.mp4")}`, 'loadeddata', false, true);
 
+        this.load.audio('unoCallAudio', [`${generatePath("sounds", "uno_call.mp3")}`]);
+        this.load.audio('topColorRed', [`${generatePath("sounds", "top_color_red.mp3")}`]);
+        this.load.audio('topColorBlue', [`${generatePath("sounds", "top_color_blue.mp3")}`]);
+        this.load.audio('topColorGreen', [`${generatePath("sounds", "top_color_green.mp3")}`]);
+        this.load.audio('topColorYellow', [`${generatePath("sounds", "top_color_yellow.mp3")}`]);
+        this.load.audio('botWonGame', [`${generatePath("sounds", "bot_won_game.mp3")}`]);
+        this.load.audio('youWonGame', [`${generatePath("sounds", "you_won_game.mp3")}`]);
+
+
     }
 
     create() {
@@ -136,7 +145,6 @@ class BotScene1 extends Phaser.Scene {
                 _this.scale.startFullscreen();
             }
         }, _this);
-
 
         _this.unoLogo = _this.physics.add.sprite(game.config.width/2, 180, "unoLogo");
         _this.unoLogo.setScale(0.8);

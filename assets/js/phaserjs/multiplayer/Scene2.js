@@ -330,10 +330,13 @@ class Scene2 extends Phaser.Scene {
             else if(status === "call_uno") {
                 let username = data.username;
                 if(username !== me) {
-                    alert(`${username} called UNO!`);
+                    _this.sound.play("unoCallVoice");
+                }
+                else {
+                    _this.sound.play("unoCallSound");
                 }
             }
-            else if(status === "failed_call_uno") {
+            else if(status === "failed_call_uno") { // TODO: Add banned sound mp3.
                 let username = data.username;
                 if(username === me) {
                     alert("You UNO Call failed!");

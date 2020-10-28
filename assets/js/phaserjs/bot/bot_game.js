@@ -192,7 +192,7 @@ function drawCardRequest() {
 
 function send_end_game_request(e){
     let response = {
-        'card_played_value':e.currentTarget.myParam,
+        'card_played_value': "END_GAME",
         'color_changed_to':"",
     };
     // location.replace("{% url "user_profile" user%}");

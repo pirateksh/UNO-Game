@@ -116,6 +116,9 @@ class Scene1 extends Phaser.Scene {
 
         this.load.video('wormhole', `${generatePath("video", "wormhole.mp4")}`, 'loadeddata', false, true);
 
+        this.load.audio('unoCallVoice', [`${generatePath("sounds", "uno_call.mp3")}`]);
+
+        this.load.audio('unoCallSound', [`${generatePath("sounds", "uno_button.mp3")}`]);
     }
 
     create() {
