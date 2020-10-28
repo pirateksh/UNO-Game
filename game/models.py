@@ -1,7 +1,36 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
+from django.contrib.auth import get_user_model
 import random
 import string
+
+
+User = get_user_model()
+
+
+# class GameHistory(models.Model):
+#
+#     unique_game_id = models.CharField(max_length=10, verbose_name="Unique ID", unique=True, default=None)
+#
+#     concluded_at = models.DateTimeField(verbose_name="Concluded At", default=timezone.now())
+#
+#     winner = models.ForeignKey(User, verbose_name="Winner")
+#
+#     def __str__(self):
+#         return f"{self.unique_game_id}"
+#
+#
+# class Participant(models.Model):
+#
+#     game_room = models.ForeignKey(GameHistory, verbose_name="Game Room")
+#
+#     user = models.ForeignKey(User, verbose_name="User")
+#
+#     score = models.IntegerField(verbose_name="Score")
+#
+#     def __str__(self):
+#         return f"{self.user.username}"
 
 
 def id_generator(size):

@@ -6,7 +6,7 @@ from channels.db import database_sync_to_async
 from channels.exceptions import StopConsumer
 
 from user_profile.models import UserProfile
-from .models import GameRoom, Player
+from .models import GameHistory, Participant
 from .helper import Card, PlayerServer, GameServer, Deck, CustomEncoder
 
 User = get_user_model()
@@ -224,49 +224,7 @@ class GameRoomConsumer(AsyncConsumer):
                 if self.game.game_type == GameServer.FRIEND:
                     if self.game.get_count_of_players() == 10:
                         GameServer.AVAILABLE_FRIEND_GAMES.remove(self.game)
-                if self.game.game_type == GameServer.PUBLIC:
-                    count = self.game.get_count_of_players()
-                    print("Count so far:", count)
-                    if count == GameServer.PUBLIC_ROOM_LIMIT:
-                        pass
-                        # await asyncio.sleep(2)
-                        # print("CHANGING SCENE!.")
-                        # change_scene_response = {
-                        #     "status": "change_scene",
-                        #     "message": "Scene Changed",
-                        #     "data": {
-                        #         "sceneNumber": 2,
-                        #     }
-                        # }
-                        # await self.channel_layer.group_send(
-                        #     self.game_room_id,
-                        #     {
-                        #         "type": "change.scene",
-                        #         "text": json.dumps(change_scene_response)
-                        #     }
-                        # )
 
-                        # print("Wait for 2 seconds")
-                        # await asyncio.sleep(2)
-                        # print("2 seconds over")
-                        # print("Starting Public Game.")
-                        # self.game.start_game()
-                        # if self.game.game_type == GameServer.PUBLIC:
-                        #     GameServer.AVAILABLE_PUBLIC_GAMES.remove(self.game)
-                        # public_response = {
-                        #     "status": "start_game",
-                        #     "message": "Public Game has been started.",
-                        #     "data": text_of_event['data'],
-                        #     "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder),
-                        # }
-                        # await self.channel_layer.group_send(
-                        #     self.game_room_id,
-                        #     {
-                        #         "type": "start.game",
-                        #         "text": json.dumps(public_response)
-                        #     }
-                        # )
-                        # print("Started Public Game.")
 
     async def time_out(self, event):
         text = json.loads(event['text'])
@@ -495,40 +453,6 @@ class GameRoomConsumer(AsyncConsumer):
             "text": event['text'],
         })
 
-    # @database_sync_to_async
-    # def set_is_online_false(self):
-    #     player_obj = self.player_obj
-    #     player_obj.is_online = False
-    #     player_obj.save()
-    #
-    # @database_sync_to_async
-    # def set_is_online_true(self):
-    #     player_obj = self.player_obj
-    #     player_obj.is_online = True
-    #     player_obj.save()
-
-    # @database_sync_to_async
-    # def get_game_room(self, unique_id):
-    #     return GameRoom.objects.get(unique_game_id=unique_id)
-
-    # @database_sync_to_async
-    # def set_is_game_running_true(self):
-    #     game_room_obj = self.game_room_obj
-    #     game_room_obj.is_game_running = True
-    #     game_room_obj.save()
-    #
-    # @database_sync_to_async
-    # def set_is_game_running_false(self):
-    #     game_room_obj = self.game_room_obj
-    #     game_room_obj.is_game_running = False
-    #     game_room_obj.save()
-
-    # @database_sync_to_async
-    # def get_player_obj(self):
-    #     me = self.me
-    #     game_room_obj = self.game_room_obj
-    #     return Player.objects.get(player=me, game_room=game_room_obj)
-
     @database_sync_to_async
     def get_user_profile_obj(self):
         me = self.me
@@ -602,3 +526,14 @@ class GameRoomConsumer(AsyncConsumer):
         winner_profile.won_rounds_count += 1
 
         winner_profile.save()
+
+
+    # #  TODO: Implementing History
+    # @database_sync_to_async
+    # def create_game_history(self):
+    #     if self.game is not None:
+    #         unique_id = self.game.unique_id
+    #         winner_username = self.game.winner
+    #         winner = User.objects.get(username=winner_username)
+    #         return GameHistory.objects.create(unique_game_id=unique_id, winner=winner)
+    #     return None
