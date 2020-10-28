@@ -25,7 +25,7 @@
                                     <div class="text-center">
                                         <h4 class=" mb-4">Welcome Back!</h4>
                                     </div>
-                                    <form class="user" method="post" action="{% url 'login' %}">
+                                    <form class="user" method="post" action="{{request.get_full_path}}">
                                         {% csrf_token %}
                                         {# {{ form.as_p }}#}
                                         {% if 'cook_user' and 'cook_pass' in request.COOKIES %}
