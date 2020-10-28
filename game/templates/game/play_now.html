@@ -40,9 +40,9 @@
                         </p>
                         <form method="post" action="{% url 'enter_friend_play' %}">
                             {% csrf_token %}
-                            <div class="form-row">
+                            <div class="form-group">
                                 <input type="text" name="friend_unique_id" placeholder="Room-id" class="col form-control form-control-user">
-                                &nbsp;&nbsp;
+                                &nbsp;
                                 <button class="btn btn-md btn-primary col" type="submit">Hamko join karlo</button>
                             </div>
                         </form>
