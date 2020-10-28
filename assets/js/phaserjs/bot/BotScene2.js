@@ -107,9 +107,12 @@ class BotScene2 extends Phaser.Scene {
             _this.topDeckCard.y = gameDetails.deckY;
         });
 
+        _this.drewCard = false;
+
         _this.topDeckCard.on("pointerdown", function (pointer) {
             console.log("Deck card has been clicked.");
-            currentGame.drawCardRequest(socket); ////
+            drawCardRequest();
+            _this.drewCard = true;
         });
 
         _this.isGameRunning = false;
@@ -132,36 +135,10 @@ class BotScene2 extends Phaser.Scene {
             let let_playable_cards = server_response.playable_cards;
             // let_playable_cards array contains the card values which are allowed to play for the player
 
-            if(!_this.isGameRunning) {
-                _this.startGame(let_bot_game_state, let_player_state, let_playable_cards);
-                _this.isGameRunning = true;
-            }
-            else {
-                _this.playerHandSprites.clear(true, true);
-                _this.playerHand = [];
-
-                _this.dealHand(let_player_state, config.width/2, config.height/2 + 200);
-                _this.makeHandInteractive(let_playable_cards);
-
-                let newTopCard = parseCard(let_bot_game_state[0]);
-                let newTopCardSprite = _this.getCardSprite(newTopCard, _this.botHand.x, _this.botHand.y, _this.maxTopCardDepth + 1, gameDetails.myHandScale);
-                _this.tweens.add({
-                    targets: newTopCardSprite,
-                    x: gameDetails.topCardX,
-                    y: gameDetails.topCardY,
-                    duration: 700,
-                    onComplete: function () {
-                        _this.topCardSprite.destroy();
-                        _this.topCardSprite = newTopCardSprite;
-                    },
-                    callbackScope: _this,
-                });
-            }
-
-
             let let_bot_played_cards = server_response.bot_played_cards;
             // let_bot_played_cards array contains the card values that bot previously played
-            
+            console.log("BOT PLAYED THIS", let_bot_played_cards);
+
             let top_color = server_response.top_color;
             // top_color variable represents the top card color if the bot played a W or WF card
             
@@ -176,24 +153,53 @@ class BotScene2 extends Phaser.Scene {
             
             let choose_to_play_or_keep = server_response.choose_to_play_or_keep;
             // choose_to_play_or_keep variable is defined if the player have choice to Play or keep the Drawn 
-            
+            console.log("CHOOSE TO PLAY OR KEEP", choose_to_play_or_keep);
             let drawn_card_val = server_response.drawn_card_val;
+            console.log("DRAWN CARD VALUE", drawn_card_val);
             // drawn_card_val variable is defined if the Player played the Drawn Card and it will contain the drawn card value
 
+            if(!_this.isGameRunning) {
+                _this.startGame(let_bot_game_state, let_player_state, let_playable_cards);
+                _this.isGameRunning = true;
+            }
+            else {
 
-            if(choose_to_play_or_keep !== undefined){
-                let user_input = prompt("The drawn Card[ " + drawn_card_val + " ] is Playable. Enter \n 'P' to Play it.\n 'K' to Continue Keeping it.");
-                if(user_input === 'P'){ // Play
-                    send_card_play_request(undefined, drawn_card_val)
+                _this.playerHand = [];
+
+                if(_this.drewCard) {
+                    let drawnCard = parseCard(let_player_state[let_player_state.length - 1]);
+                    let x = gameDetails.deckX, y = gameDetails.deckY;
+                    let depth = let_player_state.length, scale = gameDetails.myHandScale;
+                    let drawnCardSprite = _this.getCardSprite(drawnCard, x, y, depth, scale);
+                    console.log("HERE 2");
+                    if(choose_to_play_or_keep === undefined) {
+                        // This means that player drew a card but could not play it and bot also played a card.
+                        _this.tweens.add({
+                            targets: drawnCardSprite,
+                            x: config.width/2,
+                            y: gameDetails.myHandY,
+                            duration: 700,
+                            onComplete: function () {
+                                drawnCardSprite.destroy();
+                                _this.playerHandSprites.clear(true, true);
+                                _this.dealHand(let_player_state, game.config.width/2, game.config.height/2 + 200);
+                                _this.makeHandInteractive(let_playable_cards);
+                                _this.botCardPlayHandler(let_player_state, let_bot_played_cards, let_playable_cards, let_bot_game_state);
+                            },
+                            callbackScope: _this
+                        });
+                    }
+                    else {
+                        // Player drew a card and this card can be played, so give option to play or keep.
+                        _this.giveOptionToPlayOrKeep(drawnCard, drawnCardSprite, depth, depth - 1);
+                    }
+                    _this.drewCard = false;
                 }
-                else{ // Keep
-                    let response = {
-                        'play_keep_decision': 0, // Player will keep
-                        'drawn_card_val': drawn_card_val
-                    };
-                    console.log("Sending!");
-                    socket.send(JSON.stringify(response));
+                else {
+                    _this.botCardPlayHandler(let_player_state, let_bot_played_cards, let_playable_cards, let_bot_game_state);
                 }
+
+                console.log("HERE 3");
             }
 
             // To print the list of cards that bot posses using array let_bot_state
@@ -245,6 +251,126 @@ class BotScene2 extends Phaser.Scene {
             if(player_won === 1){
                 alert("Congrats!!! You Won the Game! Ending this Game...");
                 $('#END_GAME').click();
+            }
+        });
+    }
+
+    botCardPlayHandler(let_player_state, let_bot_played_cards, let_playable_cards, let_bot_game_state) {
+        let _this = this;
+        let handIndex = let_player_state.length - 1;
+
+        for(let i = 0; i < let_bot_played_cards.length; ++i) {
+            let playedCardString = let_bot_played_cards[i];
+            if(playedCardString !== "DRAW_CARD") {
+                let playedCard = parseCard(let_bot_played_cards[i]);
+                if(playedCard.category === WILD_FOUR) {
+                    // console.log("Bot Played WILD FOUR");
+                    handIndex -= 4;
+                }
+                else if(playedCard.number === DRAW_TWO) {
+                    // console.log("Bot Played DRAW TWO");
+                    handIndex -= 2;
+                }
+            }
+        }
+
+        _this.playCardBot(let_bot_played_cards, 0, handIndex, let_player_state, let_playable_cards);
+
+        if(let_bot_played_cards.length === 0) {
+            let newTopCard = parseCard(let_bot_game_state[0]);
+            let x = gameDetails.topCardX, y = gameDetails.topCardY;
+            let depth = 0, scale = gameDetails.myHandScale;
+            _this.topCardSprite = _this.getCardSprite(newTopCard, x, y, depth, scale);
+        }
+    }
+
+    playCardBot(let_bot_played_cards, index, playerHandIndex, let_player_state, let_playable_cards) {
+        let _this = this;
+        if(index === let_bot_played_cards.length) {
+            _this.playerHandSprites.clear(true, true);
+            _this.dealHand(let_player_state, game.config.width/2, game.config.height/2 + 200);
+            _this.makeHandInteractive(let_playable_cards);
+            return;
+        }
+        let playedCardString = let_bot_played_cards[index];
+        if(playedCardString !== "DRAW_CARD") {
+            let playedCard = parseCard(let_bot_played_cards[index]);
+            let playedCardSprite = _this.getCardSprite(playedCard, gameDetails.botX, gameDetails.botY, 0, gameDetails.myHandScale);
+            _this.tweens.add({
+                targets: playedCardSprite,
+                x: gameDetails.topCardX,
+                y: gameDetails.topCardY,
+                duration: 1000,
+                depth: _this.topCardSprite.depth + 1,
+                scale: gameDetails.myHandScale,
+                onComplete: function () {
+                    _this.topCardSprite.destroy();
+                    _this.topCardSprite = playedCardSprite;
+
+                    if(playedCard.category === WILD_FOUR) {
+                        console.log("Bot Played WILD FOUR");
+                        _this.drawCardOnebyOne(playerHandIndex, index, let_bot_played_cards, 4, let_player_state, let_playable_cards);
+
+                    }
+                    else if(playedCard.number === DRAW_TWO) {
+                        console.log("Bot Played DRAW TWO", playerHandIndex, let_player_state);
+                        _this.drawCardOnebyOne(playerHandIndex, index, let_bot_played_cards, 2, let_player_state, let_playable_cards);
+                    }
+                    else {
+                        _this.playCardBot(let_bot_played_cards, index + 1, playerHandIndex, let_player_state, let_playable_cards);
+                    }
+                },
+                callbackScope: _this,
+            });
+        }
+        else {
+            // To be called when Opponent draws a card.
+            let x = gameDetails.deckX, y = gameDetails.deckY;
+            let botX = gameDetails.centerX , botY = gameDetails.centerY - gameDetails.radius;
+            let drawnCard = _this.physics.add.sprite(x, y, "cardBack");
+            drawnCard.setScale(gameDetails.oppHandScale);
+            drawnCard.depth = 0;
+
+            // Adjusting card count of bot.
+             let cardCount = parseInt(_this.botCardCount.text);
+             cardCount += 1;
+             _this.botCardCount.text = cardCount;
+
+            this.tweens.add({
+                targets: drawnCard,
+                x: botX,
+                y: botY,
+                ease: "Power1",
+                duration: 1000,
+                repeat: 0,
+                onComplete: function () {
+                    drawnCard.destroy();
+                    _this.playCardBot(let_bot_played_cards, index + 1, playerHandIndex, let_player_state, let_playable_cards);
+                },
+                callbackScope: _this
+            });
+        }
+    }
+
+    drawCardOnebyOne(handIndex, index, let_bot_played_cards, count, let_player_state, let_playable_cards) {
+        let _this = this;
+        if(count === 0) {
+            _this.playCardBot(let_bot_played_cards, index + 1, handIndex, let_player_state, let_playable_cards);
+            console.log("HERE 4");
+            return;
+        }
+        let card = parseCard(let_player_state[handIndex]);
+        let x = gameDetails.deckX, y = gameDetails.deckY;
+        let scale = gameDetails.myHandScale;
+        let cardSprite = _this.getCardSprite(card, x, y, handIndex + 1, scale);
+        _this.playerHandSprites.add(cardSprite);
+        _this.tweens.add({
+            targets: cardSprite,
+            x: game.config.width/2,
+            y: gameDetails.myHandY,
+            duration: 700,
+            onComplete: function () {
+                _this.drawCardOnebyOne(handIndex+1, index, let_bot_played_cards, count-1, let_player_state, let_playable_cards);
             }
         });
     }
@@ -369,8 +495,8 @@ class BotScene2 extends Phaser.Scene {
 
         _this.tweens.add({
             targets: _this.botHand,
-            x: botX,
-            y: botY,
+            x: gameDetails.botX,
+            y: gameDetails.botY,
             duration: 700,
             repeat: 0,
             onComplete: function () {
@@ -451,10 +577,10 @@ class BotScene2 extends Phaser.Scene {
                 let yesX = _this.config.width/2 + 85, yesY = _this.config.height/2 + 100;
                 let noButton = _this.physics.add.sprite(noX, noY, "noButton");
                 noButton.setScale(0.85);
-                noButton.depth = myHand.getCount() + 1;
+                noButton.depth = _this.playerHand.length + 1;
                 let yesButton = _this.physics.add.sprite(yesX, yesY, "yesButton");
                 yesButton.setScale(0.85);
-                yesButton.depth = myHand.getCount() + 1;
+                yesButton.depth = _this.playerHand.length + 1;
 
                 noButton.setInteractive();
                 yesButton.setInteractive();
@@ -468,13 +594,19 @@ class BotScene2 extends Phaser.Scene {
                 });
 
                 noButton.on("pointerdown", function (pointer) {
-                    currentGame.keepCardAfterDrawingRequest(socket, drawnCardObject);
+                    _this.tweens.add({
+                        targets: drawnCardSprite,
+                        x: game.config.width/2,
+                        y: gameDetails.myHandY,
+                        scale: gameDetails.myHandScale,
+                        onComplete: function () {
+                            drawnCardSprite.destroy();
+                            keepCardRequest(drawnCardObject);
+                        },
+                        callbackScope: _this,
+                    });
                     yesButton.destroy();
                     noButton.destroy();
-
-                    drawnCardSprite.setScale(gameDetails.myHandScale);
-                    _this.drawCardSelf(drawnCardObject, drawnCardSprite, depth, index);
-                    _this.adjustSelfHandOnTable();
 
                     // Brightening Background
                     _this.dimOrBrightBackground(false);
@@ -491,25 +623,38 @@ class BotScene2 extends Phaser.Scene {
                 yesButton.on("pointerdown", function (pointer) {
                     yesButton.destroy();
                     noButton.destroy();
+                    _this.topCardSprite.destroy();
+                    _this.topCardSprite = drawnCardSprite;
+                    _this.topCardSprite.depth = 0;
+
                     if(drawnCardObject.category === "W" || drawnCardObject.category === "WF") {
-                        _this.chooseColorOfWildCards(drawnCardObject, index);
+                        _this.chooseColorOfWildCards(drawnCardSprite, drawnCardObject, index);
                     }
                     else {
-                        currentGame.playCardRequest(socket, drawnCardObject, index, drawnCardObject.category);
+                        _this.tweens.add({
+                            targets: drawnCardSprite,
+                            x: gameDetails.topCardX,
+                            y: gameDetails.topCardY,
+                            duration: 700,
+                            scale: gameDetails.myHandScale,
+                            onComplete: function () {
+                                cardPlayRequest(drawnCardObject, "");
+                                drawnCardSprite.destroy();
+                            },
+                            callbackScope: _this,
+                        });
 
                         // Brightening Background
                         _this.dimOrBrightBackground(false);
                     }
                 });
-
-
             },
             callbackScope: _this
         });
         // TODO: Error in positioning and playing of keep card.
     }
 
-    chooseColorOfWildCards(drawnCardObject, index) {
+    chooseColorOfWildCards(drawnCardSprite, drawnCardObject, index) {
         let _this = this;
         _this.chooseColorText = _this.add.image(_this.config.width/2, _this.config.height/2 - 150, "chooseAColor");
         _this.blueButton = _this.add.sprite(_this.config.width/2 - 150, _this.config.height/2 + 20, "chooseBlueButton");
@@ -544,7 +689,18 @@ class BotScene2 extends Phaser.Scene {
             _this.greenButton.destroy();
             _this.redButton.destroy();
             _this.yellowButton.destroy();
-            cardPlayRequest(drawnCardObject, "B");
+
+            _this.tweens.add({
+                targets: drawnCardSprite,
+                x: gameDetails.topCardX,
+                y: gameDetails.topCardY,
+                duration: 700,
+                scale: gameDetails.myHandScale,
+                onComplete: function () {
+                    cardPlayRequest(drawnCardObject, "B");
+                },
+                callbackScope: _this,
+            });
 
             // Brightening Background
             _this.dimOrBrightBackground(false);
@@ -562,7 +718,17 @@ class BotScene2 extends Phaser.Scene {
             _this.greenButton.destroy();
             _this.redButton.destroy();
             _this.yellowButton.destroy();
-            cardPlayRequest(drawnCardObject, "G");
+            _this.tweens.add({
+                targets: drawnCardSprite,
+                x: gameDetails.topCardX,
+                y: gameDetails.topCardY,
+                duration: 700,
+                scale: gameDetails.myHandScale,
+                onComplete: function () {
+                    cardPlayRequest(drawnCardObject, "G");
+                },
+                callbackScope: _this,
+            });
 
             // Brightening Background
             _this.dimOrBrightBackground(false);
@@ -580,7 +746,18 @@ class BotScene2 extends Phaser.Scene {
             _this.greenButton.destroy();
             _this.redButton.destroy();
             _this.yellowButton.destroy();
-            cardPlayRequest(drawnCardObject, "R");
+
+            _this.tweens.add({
+                targets: drawnCardSprite,
+                x: gameDetails.topCardX,
+                y: gameDetails.topCardY,
+                duration: 700,
+                scale: gameDetails.myHandScale,
+                onComplete: function () {
+                    cardPlayRequest(drawnCardObject, "R");
+                },
+                callbackScope: _this,
+            });
 
             // Brightening Background
             _this.dimOrBrightBackground(false);
@@ -598,7 +775,18 @@ class BotScene2 extends Phaser.Scene {
             _this.greenButton.destroy();
             _this.redButton.destroy();
             _this.yellowButton.destroy();
-            cardPlayRequest(drawnCardObject, "Y");
+
+            _this.tweens.add({
+                targets: drawnCardSprite,
+                x: gameDetails.topCardX,
+                y: gameDetails.topCardY,
+                duration: 700,
+                scale: gameDetails.myHandScale,
+                onComplete: function () {
+                    cardPlayRequest(drawnCardObject, "Y");
+                },
+                callbackScope: _this,
+            });
 
             // Brightening Background
             _this.dimOrBrightBackground(false);
@@ -634,12 +822,6 @@ class BotScene2 extends Phaser.Scene {
                             onComplete: function () {},
                             callbackScope: _this
                         });
-
-                        // if(me !== currentGame.getCurrentPlayer()) {
-                        //     // Making cards Un-Interactive if it is not this player's turn.
-                        //     cardSprite.disableInteractive();
-                        // }
-                        // startAngle += angleIncrementValue;
                         toX += incrementValue;
                     }
                 }
@@ -708,7 +890,7 @@ class BotScene2 extends Phaser.Scene {
         let toX = gameDetails.topCardX, toY = gameDetails.topCardY;
         _this.topCardSprite = _this.getCardSprite(_this.topCard, x, y, depth, scale);
         _this.maxTopCardDepth += 1;
-        _this.topCardSprite.depth = _this.maxTopCardDepth;
+        _this.topCardSprite.depth = 0;//_this.maxTopCardDepth;
         _this.addTween(_this.topCardSprite, toX, toY, 1500);
     }
 
@@ -779,7 +961,6 @@ class BotScene2 extends Phaser.Scene {
                         _this.adjustSelfHandOnTable(index);
                     }
                     else if(won) {
-                        // Add here csk
                         //  _this.topCardSprite.destroy();
                         _this.wonRoundEventHandler(backendResponse);
                     }
@@ -807,10 +988,13 @@ class BotScene2 extends Phaser.Scene {
             });
 
             cardSprite.on("pointerdown", function (pointer) {
+                _this.topCardSprite.destroy();
+                _this.topCardSprite = cardSprite;
+                _this.topCardSprite.depth = 0;
                 if(card.category === "W" || card.category === "WF") {
                     // Dimming Background
                     _this.dimOrBrightBackground(true);
-                    _this.chooseColorOfWildCards(card, index);
+                    _this.chooseColorOfWildCards(cardSprite, card, index);
                 }
                 else {
 
@@ -819,14 +1003,9 @@ class BotScene2 extends Phaser.Scene {
                         x: gameDetails.topCardX,
                         y: gameDetails.topCardY,
                         duration: 700,
+                        scale: gameDetails.myHandScale,
                         onComplete: function () {
                             cardPlayRequest(card, "");
-                            cardSprite.destroy();
-                            // console.log("DELAYING...");
-                            // _this.time.delayedCall(700, function () {
-                            //     console.log("DELAYED...");
-                            //
-                            // }, [], _this);
                         },
                         callbackScope: _this,
                     });
@@ -845,7 +1024,6 @@ class BotScene2 extends Phaser.Scene {
         }
 
         _this.discardedTopCards.clear(true, true);
-        _this.botHandGroup.clear(true, true);
         _this.playerNameBitMap.clear(true, true);
         _this.playerRemainingCardsCountBitMap.clear(true, true);
         _this.challengeButtons.clear(true, true);
@@ -933,32 +1111,24 @@ class BotScene2 extends Phaser.Scene {
         });
     }
 
-    drawCardOpp(oppUsername) {
+    drawCardBot() {
         let _this = this;
         // To be called when Opponent draws a card.
-        let oppCoordinates = currentGame.coordinatesOfPlayers[oppUsername];
-        let toX = oppCoordinates[0], toY = oppCoordinates[1];
-        let x = gameDetails.deckX;
-        let y = gameDetails.deckY;
+        let x = gameDetails.deckX, y = gameDetails.deckY;
+        let botX = gameDetails.centerX , botY = gameDetails.centerY - gameDetails.radius;
         let drawnCard = _this.physics.add.sprite(x, y, "cardBack");
         drawnCard.setScale(gameDetails.oppHandScale);
         drawnCard.depth = 0;
 
-        // Adjusting card count of opponents.
-         for(let i = 0; i < _this.playerRemainingCardsCountBitMap.getChildren().length; ++i) {
-             let countBitmap = _this.playerRemainingCardsCountBitMap.getChildren()[i];
-             if(oppUsername === countBitmap.getData("username")) {
-                 let cardCount = parseInt(countBitmap.text);
-                 cardCount += 1;
-                 countBitmap.text = cardCount;
-                 break;
-             }
-         }
+        // Adjusting card count of bot.
+         let cardCount = parseInt(_this.botCardCount.text);
+         cardCount += 1;
+         _this.botCardCount.text = cardCount;
 
         this.tweens.add({
             targets: drawnCard,
-            x: toX,
-            y: toY,
+            x: botX,
+            y: botY,
             ease: "Power1",
             duration: 700,
             repeat: 0,
