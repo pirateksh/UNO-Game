@@ -49,7 +49,8 @@ window.onload = function () {
         chooseColorButtonScale: 0.5,
         dimAlpha: 0.2,
 		timeOutLimitInSeconds: 10,
-        liveFeedScale: 0.2,
+        botX: width/2,
+        botY: height/2 - 50 - 225,
 	};
 
 	let config = {
@@ -170,7 +171,22 @@ function cardPlayRequest(card, topColor) {
         'card_played_value': stringifyCard(card),
         'color_changed_to':topColor,
     };
-    console.log("Sending 3!");
+    socket.send(JSON.stringify(response));
+}
+
+function keepCardRequest(drawnCard) {
+    let response = {
+        'play_keep_decision': 0, // Player will keep
+        'drawn_card_val': stringifyCard(drawnCard),
+    };
+    socket.send(JSON.stringify(response));
+}
+
+function drawCardRequest() {
+    let response = {
+        'card_played_value': "DRAW_CARD",
+        'color_changed_to':"",
+    };
     socket.send(JSON.stringify(response));
 }
 
