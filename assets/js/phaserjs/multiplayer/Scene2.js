@@ -223,6 +223,8 @@ class Scene2 extends Phaser.Scene {
 
                 _this.startTimer();
 
+                _this.sound.play("playCard");
+
                 _this.playCardEventConsumer(backendResponse, false);
 
                 if(me !== currentGame.getCurrentPlayer()) {
@@ -248,6 +250,9 @@ class Scene2 extends Phaser.Scene {
                 let drawnCardCount = forcedDrawData.drawnCardCount;
                 if(username === me) {
                     for(let drawnCard of drawnCards) {
+                        
+                        _this.sound.play("plus2");
+
                         let category = drawnCard.category, number = drawnCard.number;
                         let drawnCardObject = new Card(category, number);
                         let x = gameDetails.deckX, y = gameDetails.deckY;
@@ -284,6 +289,9 @@ class Scene2 extends Phaser.Scene {
                 let username = voluntaryDrawData.username;
                 let drawnCard = JSON.parse(voluntaryDrawData.drawnCard);
                 if(username === me) { // The player who drew the card.
+
+                    _this.sound.play("drawSingle");
+
                     currentGame.canDrawCard = false;
                     _this.topDeckCard.disableInteractive();
                     let category = drawnCard.category, number = drawnCard.number;
@@ -980,6 +988,11 @@ class Scene2 extends Phaser.Scene {
     moveOrSetTurnIndicator(isAlreadySet) {
         let _this = this;
         let currentPlayer = currentGame.getCurrentPlayer();
+
+        if(currentPlayer === me) {
+            _this.sound.play("playerTurn");
+        }
+
         // console.log("Coordinates: ", currentGame.coordinatesOfPlayers);
         for(let i = 0; i < currentGame.getPlayersCount(); ++i) {
             let player = currentGame.players[i];
@@ -1235,7 +1248,9 @@ class Scene2 extends Phaser.Scene {
              }
          }
 
-        this.tweens.add({
+         _this.sound.play("drawSingle");
+
+        _this.tweens.add({
             targets: drawnCard,
             x: toX,
             y: toY,

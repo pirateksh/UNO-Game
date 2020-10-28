@@ -124,6 +124,19 @@ class Scene1 extends Phaser.Scene {
         this.load.audio('topColorBlue', [`${generatePath("sounds", "top_color_blue.mp3")}`]);
         this.load.audio('topColorGreen', [`${generatePath("sounds", "top_color_green.mp3")}`]);
         this.load.audio('topColorYellow', [`${generatePath("sounds", "top_color_yellow.mp3")}`]);
+        
+        this.load.audio('drawSingle', [`${generatePath("sounds", "drawSingle.mp3")}`]);
+        this.load.audio('playCard', [`${generatePath("sounds", "playCard.mp3")}`]);
+        this.load.audio('playerTurn', [`${generatePath("sounds", "playerTurn.mp3")}`]);
+        this.load.audio('plus2', [`${generatePath("sounds", "plus2.mp3")}`]);
+        this.load.audio('specialCards', [`${generatePath("sounds", "specialCards.mp3")}`]);
+        this.load.audio('swish', [`${generatePath("sounds", "swish.mp3")}`]);
+        this.load.audio('tap', [`${generatePath("sounds", "tap.mp3")}`]);
+        this.load.audio('win', [`${generatePath("sounds", "win.mp3")}`]);
+    
+    
+
+
     }
 
     create() {
@@ -430,24 +443,27 @@ class Scene1 extends Phaser.Scene {
             else if(status === "user_left_room"){
                 let left_user_username = data.left_user_username;
 
-                if(currentGame.players.includes(left_user_username)) {
-                    currentGame.players.splice(currentGame.players.indexOf(left_user_username), 1); // TESTING
-                }
+                if(currentGame.isGameStarted === false) {
+                    if(currentGame.players.includes(left_user_username)) {
+                        currentGame.players.splice(currentGame.players.indexOf(left_user_username), 1); // TESTING
+                    }
 
-                for(let i = 0; i < _this.joinedPlayersTag.getChildren().length; ++i) {
-                    let leftPlayerTag = _this.joinedPlayersTag.getChildren()[i];
-                    let labelText = _this.labelGroup.getChildren()[i];
-                    let vidElem = _this.videoGroup[i];
-                    let leftPlayerUsername = leftPlayerTag.getData("username");
-                    if(left_user_username === leftPlayerUsername) {
-                        leftPlayerTag.destroy();
-                        labelText.destroy();
-                        _this.videoGroup.splice(i, 1);
-                        vidElem.destroy();
-                        _this.videoY -= 105;
-                        break;
+                    for(let i = 0; i < _this.joinedPlayersTag.getChildren().length; ++i) {
+                        let leftPlayerTag = _this.joinedPlayersTag.getChildren()[i];
+                        let labelText = _this.labelGroup.getChildren()[i];
+                        let vidElem = _this.videoGroup[i];
+                        let leftPlayerUsername = leftPlayerTag.getData("username");
+                        if(left_user_username === leftPlayerUsername) {
+                            leftPlayerTag.destroy();
+                            labelText.destroy();
+                            _this.videoGroup.splice(i, 1);
+                            vidElem.destroy();
+                            _this.videoY -= 105;
+                            break;
+                        }
                     }
                 }
+                
 
                 if (peers[left_user_username]){
                     peers[left_user_username].close();
