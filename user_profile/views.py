@@ -186,8 +186,20 @@ def history(request, username):
             custom_games.append(game_room)
 
     print("Public Games: ")
+    public_game_data = []
     for game in public_games:
-        print(game)
+        winner = game.winner_username
+        concluded_at = game.concluded_at
+        unique_id = game.unique_game_id
+        print(f"Unique ID: {unique_id}")
+        print(f"Concluded at: {concluded_at}")
+        player_qs = Participant.objects.filter(game_room=game)
+        print(f"Winner: {winner}")
+        data = {
+            "game": game,
+            "participants": player_qs,
+        }
+        public_game_data.append(data)
 
     print("Custom Game: ")
     custom_game_data = []
@@ -209,5 +221,6 @@ def history(request, username):
 
     context = {
         "custom_game_data": custom_game_data,
+        "public_game_data": public_game_data,
     }
     return render(request, 'user_profile/history.html', context=context)

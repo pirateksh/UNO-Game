@@ -130,6 +130,7 @@ class Scene1 extends Phaser.Scene {
         this.load.audio('backgroundMusic', [`${generatePath("sounds", "background.mp3")}`]);
 
         this.load.audio('clockTicking', [`${generatePath("sounds", "clock_ticking.mp3")}`]);
+        this.load.audio('10Seconds', [`${generatePath("sounds", "game_will_start_in_10_seconds.mp3")}`]);
     }
 
     create() {
@@ -352,7 +353,12 @@ class Scene1 extends Phaser.Scene {
                         _this.addPlayButton();
                     }
                     else { // TODO: Change this
-                        _this.add.text(game.config.width/2 - 140, game.config.height/2 + 70, "Wait for admin to start the game....");
+                        if(currentGame.gameType === Game.FRIEND) {
+                            _this.add.text(game.config.width/2 - 140, game.config.height/2 + 70, "Wait for admin to start the game....");
+                        }
+                        else if(currentGame.gameType === Game.PUBLIC) {
+                            _this.add.text(game.config.width/2 - 160, game.config.height/2 + 70, "Game will start once sufficient players join.");
+                        }
                     }
 
                     // Adding Unique ID of Game.
@@ -422,9 +428,9 @@ class Scene1 extends Phaser.Scene {
 
                 if(currentGame.players.length === 2 && currentGame.gameType === Game.PUBLIC) {
                     // If this is a public game send change scene request after Max. Player Join.
-                    console.log("DELAYING Change Scene.");
+                    _this.sound.play("10Seconds");
                     _this.time.delayedCall(
-                        2000,
+                        10000,
                         function () {
                             if(me === currentGame.adminUsername) {
                                 console.log("DELAYED Change Scene.");

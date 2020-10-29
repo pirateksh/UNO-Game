@@ -116,6 +116,7 @@ class PlayerServer:
     def __init__(self, username):
         self.username = username
         self.score = 0
+        self.rating_change = 0
         self.hand = []
         self.yelled_uno = False
 
@@ -299,7 +300,25 @@ class GameServer:
     def decide_winner(self):
         max_score = -1
         winner = None
+        sorted_players = sorted(self.players, key=lambda x: int(x.score), reverse=False)
+        total_players = int(self.get_count_of_players())
+        if total_players % 2:  # Total Players are Odd
+            median_index = total_players // 2
+            median_score = int(sorted_players[median_index])
+        else:  # Total Players are Even
+            index1 = total_players // 2
+            index2 = index1 - 1
+            val1, val2 = int(sorted_players[index1].score), int(sorted_players[index2].score)
+            median_score = (val1 + val2) / 2
+
         for player in self.players:
+
+            # Clearing Player's Hand as Winner is being decided.
+            player.hand.clear()
+
+            # Calculating Player's Rating Change
+            player.rating_change = player.score - median_score
+            # Finding max score
             if player.score > max_score:
                 max_score = player.score
                 winner = player.username

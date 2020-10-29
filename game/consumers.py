@@ -182,6 +182,10 @@ class GameRoomConsumer(AsyncConsumer):
             }
 
             if type_of_event == "won_game":
+                extra_data = {
+                    "wonGameData": json.dumps(self.game.players, cls=CustomEncoder)
+                }
+                response.update(extra_data)
                 self.game.end_game()
 
             if time_out_data:
@@ -224,7 +228,6 @@ class GameRoomConsumer(AsyncConsumer):
                 }
             )
 
-            # TODO: Trying match making.
             if type_of_event == "user.new":
                 if self.game.game_type == GameServer.FRIEND:
                     if self.game.get_count_of_players() == 10:
@@ -491,6 +494,12 @@ class GameRoomConsumer(AsyncConsumer):
         # Updating winning streak
         winner_profile.winning_streak += 1
 
+        # Updating current rating
+        winner_profile.current_rating += self.player_server_obj.rating_change
+
+        # Updating maximum rating
+        winner_profile.maximum_rating = max(winner_profile.maximum_rating, winner_profile.current_rating)
+
         winner_profile.save()
 
     @database_sync_to_async
@@ -507,6 +516,12 @@ class GameRoomConsumer(AsyncConsumer):
 
         # Resetting Winning streak
         loser_profile.winning_streak = 0
+
+        # Updating current rating
+        loser_profile.current_rating += self.player_server_obj.rating_change
+
+        # Updating maximum rating
+        loser_profile.maximum_rating = max(loser_profile.maximum_rating, loser_profile.current_rating)
 
         loser_profile.save()
 
@@ -546,7 +561,7 @@ class GameRoomConsumer(AsyncConsumer):
             for player_obj in player_objs:
                 player_username = player_obj.username
                 player_score = player_obj.score
-                player_rating_change = 0  # TODO: CHANGE THIS
+                player_rating_change = player_obj.rating_change
                 player = User.objects.get(username=player_username)
                 Participant.objects.create(user=player, game_room=game_room_history, score=player_score,
                                            rating_change=player_rating_change)

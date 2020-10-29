@@ -239,10 +239,6 @@ class BotScene1 extends Phaser.Scene {
                             wormhole.destroy();
                             spaceSound.destroy();
                             _this.scene.start("playBotGame");
-
-                            let data = {"status": "start_game", "message": "Game is being started.", "data": ""};
-                            let response = {"type": "start.game", "text": data};
-                            socket.send(JSON.stringify(response));
                         }, [], _this);
                     }
                 }
