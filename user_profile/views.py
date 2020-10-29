@@ -16,7 +16,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
 
-from game.models import GameRoom, Player
+from game.models import GameHistory, Participant
 from .models import UserProfile
 
 from .forms import AvatarUploadForm
@@ -159,3 +159,55 @@ def avatar_upload(request, username):
     else:
         message = None
         return render(request, '404.html', {"message": message})
+
+
+@login_required
+def history(request, username):
+    user = request.user
+    visited_user_qs = User.objects.filter(username=username)
+    if not visited_user_qs:
+        message = f"User with username {username} does'nt exist."
+        return render(request, '404.html', {"message": message})
+
+    visited_user = visited_user_qs[0]
+    if visited_user.username != user.username:
+        message = f"Why are you interested in someone else's history?"
+        return render(request, '404.html', {"message": message})
+
+    participant_qs = Participant.objects.filter(user=user)
+
+    public_games = []
+    custom_games = []
+    for participant in participant_qs:
+        game_room = participant.game_room
+        if game_room.game_type == GameHistory.PUBLIC:
+            public_games.append(game_room)
+        elif game_room.game_type == GameHistory.CUSTOM:
+            custom_games.append(game_room)
+
+    print("Public Games: ")
+    for game in public_games:
+        print(game)
+
+    print("Custom Game: ")
+    custom_game_data = []
+    for game in custom_games:
+        winner = game.winner_username
+        concluded_at = game.concluded_at
+        unique_id = game.unique_game_id
+        print(f"Unique ID: {unique_id}")
+        print(f"Concluded at: {concluded_at}")
+        player_qs = Participant.objects.filter(game_room=game)
+        print(f"Winner: {winner}")
+        data = {
+            "game": game,
+            "participants": player_qs,
+        }
+        custom_game_data.append(data)
+        for player in player_qs:
+            print(f"{player.user.username} (Score: {player.score}")
+
+    context = {
+        "custom_game_data": custom_game_data,
+    }
+    return render(request, 'user_profile/history.html', context=context)

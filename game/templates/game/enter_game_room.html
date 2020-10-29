@@ -422,7 +422,7 @@
             // }
         };
         {#const STREAM = navigator.mediaDevices.getUserMedia(constraintObj);#}
-        const STREAM = navigator.mediaDevices.getUserMedia({video: false, audio: true});
+        const STREAM = navigator.mediaDevices.getUserMedia({video: true, audio: true});
         const peers = {};
 
         let currentGame = null;

@@ -4,7 +4,7 @@ let chunks;
 let VIDEO_COUNT = 1;
 let BLOB_DATA_RECEIVED_COUNTER = 0;
 
-function start_recording() {
+async function start_recording() {
     $('#id_start_btn').prop('disabled', true);
     $('#id_stop_btn').prop('disabled', false);
     $('#id_pause_btn').prop('disabled', false);
@@ -12,25 +12,26 @@ function start_recording() {
 
     let stream = canvas.captureStream();
 
-    STREAM.then((mediaStream)=>{
+    await STREAM.then((mediaStream)=>{
         stream.addTrack(mediaStream.getAudioTracks()[0]);
         MEDIA_RECORDER = new MediaRecorder(stream);
         chunks = [];
         MEDIA_RECORDER.start(10000); // 10 seconds in ms, means ondataavailable event is called in every 10 secondsalert("Recoding Started for Video: " + VIDEO_COUNT);
-        console.log(MEDIA_RECORDER.state);
+        console.log("Recorind Started:", MEDIA_RECORDER.state);
     });
 
-    MEDIA_RECORDER = new MediaRecorder(stream);
-    chunks = [];
-    MEDIA_RECORDER.start(10000); // 10 seconds in ms, means ondataavailable event is called in every 10 secondsalert("Recoding Started for Video: " + VIDEO_COUNT);
-    console.log(MEDIA_RECORDER.state);
+    // MEDIA_RECORDER = new MediaRecorder(stream);
+    // chunks = [];
+    // MEDIA_RECORDER.start(10000); // 10 seconds in ms, means ondataavailable event is called in every 10 secondsalert("Recoding Started for Video: " + VIDEO_COUNT);
+    // console.log(MEDIA_RECORDER.state);
 
 
     MEDIA_RECORDER.ondataavailable = (ev) => {
         console.log("Called");
         chunks.push(ev.data);
         BLOB_DATA_RECEIVED_COUNTER += 1;
-        if(BLOB_DATA_RECEIVED_COUNTER === 180){ // for 30 minutes
+        // if(BLOB_DATA_RECEIVED_COUNTER === 180){ // for 30 minutes
+        if(BLOB_DATA_RECEIVED_COUNTER === 3){
             BLOB_DATA_RECEIVED_COUNTER = 0;
             MEDIA_RECORDER.stop();
             MEDIA_RECORDER.start(10000);
@@ -44,7 +45,7 @@ function start_recording() {
         let videoURL = window.URL.createObjectURL(blob);
         // let innerHTML = "download_link_" + VIDEO_COUNT;
         let d = new Date;
-        let file_name = VIDEO_COUNT + "_UnoGame_Recording_" + d.getDate() + "_" + d.getMonth() + "_" + d.getFullYear();
+        let file_name = VIDEO_COUNT + "UnoGame_Recording" + d.getDate() + "" + d.getMonth() + "" + d.getFullYear();
         $('#id_download_links').append(`<li><a id="${videoURL}" href="${videoURL}" download="${file_name}">${file_name}</a></li>`);
         VIDEO_COUNT += 1;
 
@@ -109,4 +110,3 @@ function stop_recording() {
     $('id_start_btn').prop('disabled', false);
     $('id_stop_btn').prop('disabled', true);
 }
-

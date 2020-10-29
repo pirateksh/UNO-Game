@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+{% comment %}
+    context = {
+        "custom_game_data": custom_game_data,
+    }
+{% endcomment %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>History of {{ user.username }}</h1>
+    <h2>Custom Game History</h2>
+    {% for custom_game_datum in custom_game_data %}
+        <p><u>Custom Game {{ forloop.counter }}</u></p>
+        <p>Unique ID: {{ custom_game_datum.game.unique_game_id }}</p>
+        <p>Ended At: {{ custom_game_datum.game.concluded_at }}</p>
+        <p>Winner: {{ custom_game_datum.game.winner_username }}</p>
+        <p>Participants: </p>
+        <ul>
+            {% for participant in custom_game_datum.participants %}
+                <li>{{ participant.user.username }} - (Score: {{ participant.score }}) - (Rating Change: {{ participant.rating_change }})</li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+</body>
+</html>

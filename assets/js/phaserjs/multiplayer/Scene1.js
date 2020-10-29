@@ -128,6 +128,8 @@ class Scene1 extends Phaser.Scene {
         this.load.audio('space', [`${generatePath("sounds", "space.wav")}`]);
         this.load.audio('welcome', [`${generatePath("sounds", "welcome_galactic_uno.mp3")}`]);
         this.load.audio('backgroundMusic', [`${generatePath("sounds", "background.mp3")}`]);
+
+        this.load.audio('clockTicking', [`${generatePath("sounds", "clock_ticking.mp3")}`]);
     }
 
     create() {
@@ -196,10 +198,10 @@ class Scene1 extends Phaser.Scene {
         socket = new WebSocket(endpoint);
 
         const my_peer = new Peer(undefined, { // making available a Peer Object from peerjs library to work on the root path
-            host: '/',
-            port: '8001'
-            // host: 'pirateksh-e2ac36bc.localhost.run',
-            // port: ''
+            // host: '/',
+            // port: '8001'
+            host: 'pirateksh-e684ae26.localhost.run',
+            port: ''
         });
 
         const get_my_peer_id = new Promise(resolve => {
@@ -274,7 +276,7 @@ class Scene1 extends Phaser.Scene {
             addLabelOnLiveFeed(_this, vidElem, label);
 
             if(label === me){
-                // vidElem.video.muted = true;
+                vidElem.video.muted = true;
                 console.log("Self Stream Was Muted.")
             }
         }
@@ -486,10 +488,10 @@ class Scene1 extends Phaser.Scene {
                     wormhole.play();
                     let spaceSound = _this.sound.add("space");
                     spaceSound.play();
+                    console.log(spaceSound);
                     _this.time.delayedCall(3000, function () {
                         wormhole.destroy();
                         spaceSound.destroy();
-                        console.log("SWITCHING SCENE.");
                         _this.scene.start("playGame");
 
                     }, [], _this);
@@ -522,25 +524,32 @@ class Scene1 extends Phaser.Scene {
         _this.playButton.setInteractive();
 
         _this.playButton.on("pointerover", function (pointer) {
+            document.querySelector("canvas").style.cursor = "pointer";
             _this.playButton.play("playButtonOver");
         });
 
         _this.playButton.on("pointerout", function (pointer) {
+            document.querySelector("canvas").style.cursor = "default";
             _this.playButton.play("playButtonOut");
         });
 
         _this.playButton.on("pointerdown", function (pointer) {
             console.log("PLAY NOW CLICKED!");
-            if(currentGame.players.length === 1) {
-                let p = prompt("This is for Testing. Only 1 Player. DO you want to continue?");
-                if(p === "Y") {
+            if(_this.videoGroup.length === currentGame.players.length) {
+                if(currentGame.players.length === 1) {
+                    let p = prompt("This is for Testing. Only 1 Player. DO you want to continue?");
+                    if(p === "Y") {
+                        currentGame.changeSceneRequest(socket, 2);
+                    }
+                    else {
+                        alert("Wait for more players to join.");
+                    }
+                } else {
                     currentGame.changeSceneRequest(socket, 2);
                 }
-                else {
-                    alert("Wait for more players to join.");
-                }
-            } else {
-                currentGame.changeSceneRequest(socket, 2);
+            }
+            else {
+                alert("Wait for Video/Audio stream to load.");
             }
         });
     }
