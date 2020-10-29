@@ -9,14 +9,14 @@
   background: #444753;
   border-radius: 5px;
   height: 100vh;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .people-list {
   width: 30%;
   float: left;
   color: #D8DADF;
-  overflow-y: scroll;
+  overflow-y: auto;
   height: 100vh;
 }
 .people-list .search {
@@ -59,7 +59,7 @@
   background: #F2F5F8;
   color: #434651;
   height: 100vh;
-  overflow: scroll;
+  overflow: auto;
 }
 .chat .chat-header {
   padding: 20px;
@@ -101,7 +101,7 @@
 }
 .chat .chat-history .message {
   color: white;
-  padding: 18px 20px;
+  padding: 10px 20px;
   line-height: 26px;
   font-size: 16px;
   border-radius: 7px;
@@ -132,11 +132,11 @@
   border-bottom-color: #03A6A6;
   left: 93%;
 }
-
+/*
 .chat .chat-message {
   padding: 30px;
   height: 1rem;
-}
+}*/
 .chat .chat-message textarea {
   width: 100%;
   border: none;
