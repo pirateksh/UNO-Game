@@ -44,7 +44,7 @@
                 </li>
 
                 {% for friend in friends %}
-                    <li class="clearfix nav-item">
+                    <!-- <li class="clearfix nav-item"> -->
                         <a class="nav-link class_friends_tab" value="{{ friend.0 }}" data-toggle="pill" href="#chat-1" role="tab" aria-controls="chat-1" aria-selected="true">
                             <img src="{{ friend.2.avatar.url }}" alt="avatar" width="55px" class="rounded-circle" />
                             <div class="about">
@@ -54,7 +54,7 @@
                                 </div>
                             </div>
                         </a>
-                    </li>
+                    <!-- </li> -->
                 {% endfor %}
             </ul>
         </div>
@@ -95,10 +95,12 @@
                 {# Chat Message Sending Part Start #}
                 <div class="chat-message clearfix">
                     <form id="id_message_form">
-                        <textarea name="message-to-send" id="id_message" placeholder ="Type your message" rows="1"></textarea>
+                        <textarea name="message-to-send" id="id_message" placeholder ="Type your message" rows="1">
+                        </textarea>
+                        <button style="float: right;"><i class="fa fa-send-o" style="font-size:36px"></i></button>
                         {# <i class="fa fa-file-o"></i> &nbsp;&nbsp;&nbsp;#}
                         {# <i class="fa fa-file-image-o"></i>#}
-                        <button>Send</button>
+                        
                     </form>
                 </div>
                 {# Chat Message Sending Part End #}
@@ -241,11 +243,15 @@
 
                           // Adding the message as the last_message in the thread
                           let id_last_message_for_other_user = "id_last_message_" + other_person;
+                                        // Removing all other links as active ones and making the current active link
+                          
+                          // Removing the previous active links
+                          let ele = $(".nav-link.class_friends_tab.active");
+                          ele.removeClass('active');
 
                           status_button.addClass('btn btn-success');
                           $('.class_add_friend').after(`
-                            <li class="clearfix nav-item">
-                                <a class="nav-link class_friends_tab" value="${other_person}" data-toggle="pill" href="#chat-1" role="tab" aria-controls="chat-1" aria-selected="true">
+                                <a class="nav-link class_friends_tab active" value="${other_person}" data-toggle="pill" href="#chat-1" role="tab" aria-controls="chat-1" aria-selected="true">
                                     <img src="${avatar_src_path}" alt="avatar" width="55px" class="rounded-circle" />
                                     <div class="about">
                                         <div class="name">${other_person}</div>
@@ -254,7 +260,6 @@
                                         </div>
                                     </div>
                                 </a>
-                            </li>
                           `);
                       }
                       status_button.text(new_text);
@@ -269,6 +274,13 @@
           {# Function Responsible for Showing Chat History with a friend #}
           $(document).on('click', '.class_friends_tab', function(){
               $('#id_landing_tab').css('display', 'none');
+
+
+              // Removing all other links as active ones and making the current active link
+              let ele = $(".nav-link.class_friends_tab.active");
+              ele.removeClass('active');
+              $(this).addClass('active');
+
               let other_user = $(this).attr('value');
               let url = other_user;
               $.ajax({
@@ -466,6 +478,10 @@
                   }
                   let sh = document.getElementsByClassName("chat-history")[0].scrollHeight;
                   $(".chat-history").animate({scrollTop: sh}); // Auto Scrolling
+
+                  let ele = $(".nav-link.class_friends_tab.active");
+                  $('.class_add_friend').after(ele.clone());
+                  ele.remove();
               };
 
               socket.onerror = function (e) {
