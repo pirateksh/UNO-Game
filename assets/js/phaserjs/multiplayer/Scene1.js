@@ -48,17 +48,6 @@ class Scene1 extends Phaser.Scene {
             frameHeight: 16
         });
 
-        // this.load.spritesheet("turnIndicator", `${generatePath("spritesheets", "bird.jpg")}`, {
-        //     frameWidth: 750,
-        //     frameHeight: 800
-        // });
-
-
-        // this.load.spritesheet("turnIndicator", `${generatePath("spritesheets", "turn_indicator_2.png")}`, {
-        //     frameWidth: 73,
-        //     frameHeight: 73
-        // });
-
         this.load.spritesheet("unoButton", `${generatePath("spritesheets", "uno_button.png")}`, {
             frameWidth: 300,
             frameHeight: 119
@@ -133,10 +122,12 @@ class Scene1 extends Phaser.Scene {
         this.load.audio('swish', [`${generatePath("sounds", "swish.mp3")}`]);
         this.load.audio('tap', [`${generatePath("sounds", "tap.mp3")}`]);
         this.load.audio('win', [`${generatePath("sounds", "win.mp3")}`]);
-    
-    
 
-
+        this.load.audio('shuffle', [`${generatePath("sounds", "card_shuffle.mp3")}`]);
+    
+        this.load.audio('space', [`${generatePath("sounds", "space.wav")}`]);
+        this.load.audio('welcome', [`${generatePath("sounds", "welcome_galactic_uno.mp3")}`]);
+        this.load.audio('backgroundMusic', [`${generatePath("sounds", "background.mp3")}`]);
     }
 
     create() {
@@ -489,30 +480,19 @@ class Scene1 extends Phaser.Scene {
                     vidElem.destroy();
                 }
                 if(sceneNumber === 2) {
-                    // if(currentGame.gameType === Game.PUBLIC) { // TODO: Look into this. Error is coming due to automatic start of Game.
-                    //     _this.scene.start("playGame");
-                    // }
-                    // else {
-                        let wormhole = _this.add.video(game.config.width/2, game.config.height/2, "wormhole");
-                        wormhole.setScale(1.6, 1);
-                        wormhole.depth = 10;
-                        wormhole.play();
-                        _this.time.delayedCall(3000, function () {
-                            wormhole.destroy();
-                            // if(me === currentGame.adminUsername) {
+                    let wormhole = _this.add.video(game.config.width/2, game.config.height/2, "wormhole");
+                    wormhole.setScale(1.6, 1);
+                    wormhole.depth = 10;
+                    wormhole.play();
+                    let spaceSound = _this.sound.add("space");
+                    spaceSound.play();
+                    _this.time.delayedCall(3000, function () {
+                        wormhole.destroy();
+                        spaceSound.destroy();
+                        console.log("SWITCHING SCENE.");
+                        _this.scene.start("playGame");
 
-                            //     console.log("DELAYING START GAME!");
-                            //     _this.time.delayedCall(2000, function() {
-                            //         console.log("DELAYING SUCCESSFULL!");
-                            //         currentGame.startGameRequest(socket);
-                            //     }, [], _this);
-
-                            // }
-                            console.log("SWITCHING SCENE.");
-                            _this.scene.start("playGame");
-
-                        }, [], _this);
-                    // }
+                    }, [], _this);
                 }
             }
         });
@@ -551,7 +531,17 @@ class Scene1 extends Phaser.Scene {
 
         _this.playButton.on("pointerdown", function (pointer) {
             console.log("PLAY NOW CLICKED!");
-            currentGame.changeSceneRequest(socket, 2);
+            if(currentGame.players.length === 1) {
+                let p = prompt("This is for Testing. Only 1 Player. DO you want to continue?");
+                if(p === "Y") {
+                    currentGame.changeSceneRequest(socket, 2);
+                }
+                else {
+                    alert("Wait for more players to join.");
+                }
+            } else {
+                currentGame.changeSceneRequest(socket, 2);
+            }
         });
     }
 

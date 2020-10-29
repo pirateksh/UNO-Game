@@ -1,16 +1,21 @@
+{% load static %}
+{% comment %}
+    context = {
+        'message': message
+    }
+{% endcomment %}
 <!DOCTYPE html>
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CodePen - Error 404 Page design BOOTSTRAP</title>
-  <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
-  <link rel="stylesheet" href="./style.css">
+  <title>Error 404</title>
+  <link type="text/css" rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
+  <link type="text/css" rel="stylesheet" href="{% static 'css/error404.css' %}">
+    <!-- partial:index.partial.html -->
+<link href='https://fonts.googleapis.com/css?family=Anton|Passion+One|PT+Sans+Caption' rel='stylesheet' type='text/css'>
 
 </head>
-<body>
-<!-- partial:index.partial.html -->
-<link href='https://fonts.googleapis.com/css?family=Anton|Passion+One|PT+Sans+Caption' rel='stylesheet' type='text/css'>
 <body>
 
         <!-- Error Page -->
@@ -24,13 +29,14 @@
                             <div class="msg">OH!<span class="triangle"></span></div>
                         </div>
                         <h2 class="h1">Sorry! Page not found</h2>
+                        {% if message %}
+                            <h2 class="h1">Hint: {{ message }}</h2>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         <!-- Error Page -->
-</body>
-<!-- partial -->
-  <script  src="./script.js"></script>
+  <script type="text/javascript" src="{% static 'js/error404.js' %}"></script>
 
 </body>
 </html>

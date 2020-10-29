@@ -103,13 +103,29 @@ class BotScene1 extends Phaser.Scene {
 
         this.load.video('wormhole', `${generatePath("video", "wormhole.mp4")}`, 'loadeddata', false, true);
 
-        this.load.audio('unoCallAudio', [`${generatePath("sounds", "uno_call.mp3")}`]);
+        this.load.audio('unoCallVoice', [`${generatePath("sounds", "uno_call.mp3")}`]);
+
+        this.load.audio('unoCallSound', [`${generatePath("sounds", "uno_button.mp3")}`]);
         this.load.audio('topColorRed', [`${generatePath("sounds", "top_color_red.mp3")}`]);
         this.load.audio('topColorBlue', [`${generatePath("sounds", "top_color_blue.mp3")}`]);
         this.load.audio('topColorGreen', [`${generatePath("sounds", "top_color_green.mp3")}`]);
         this.load.audio('topColorYellow', [`${generatePath("sounds", "top_color_yellow.mp3")}`]);
         this.load.audio('botWonGame', [`${generatePath("sounds", "bot_won_game.mp3")}`]);
         this.load.audio('youWonGame', [`${generatePath("sounds", "you_won_game.mp3")}`]);
+
+        this.load.audio('drawSingle', [`${generatePath("sounds", "drawSingle.mp3")}`]);
+        this.load.audio('playCard', [`${generatePath("sounds", "playCard.mp3")}`]);
+        this.load.audio('playerTurn', [`${generatePath("sounds", "playerTurn.mp3")}`]);
+        this.load.audio('plus2', [`${generatePath("sounds", "plus2.mp3")}`]);
+        this.load.audio('specialCards', [`${generatePath("sounds", "specialCards.mp3")}`]);
+        this.load.audio('swish', [`${generatePath("sounds", "swish.mp3")}`]);
+        this.load.audio('tap', [`${generatePath("sounds", "tap.mp3")}`]);
+        this.load.audio('win', [`${generatePath("sounds", "win.mp3")}`]);
+        this.load.audio('shuffle', [`${generatePath("sounds", "card_shuffle.mp3")}`]);
+
+        this.load.audio('space', [`${generatePath("sounds", "space.wav")}`]);
+        this.load.audio('welcome', [`${generatePath("sounds", "welcome_galactic_uno.mp3")}`]);
+        this.load.audio('backgroundMusic', [`${generatePath("sounds", "background.mp3")}`]);
 
 
     }
@@ -217,8 +233,11 @@ class BotScene1 extends Phaser.Scene {
                         wormhole.setScale(1.6, 1);
                         wormhole.depth = 10;
                         wormhole.play();
+                        let spaceSound = _this.sound.add("space");
+                        spaceSound.play();
                         _this.time.delayedCall(3000, function () {
                             wormhole.destroy();
+                            spaceSound.destroy();
                             _this.scene.start("playBotGame");
 
                             let data = {"status": "start_game", "message": "Game is being started.", "data": ""};
