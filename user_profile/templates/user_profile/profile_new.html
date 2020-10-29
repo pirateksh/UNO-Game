@@ -103,7 +103,15 @@
                                     </div>
                                     <div class="col">
                                         <div class="form-group">
-                                            <label for="email"><strong>Email Address</strong></label>
+                                            {% if user.username == visited_user.username %}
+                                                {% if visited_profile.is_email_verified %}
+                                                    <label for="email"><strong>Email Address (Verified)</strong></label>
+                                                {% else %}
+                                                    <label for="email"><strong>Email Address (Un-verified)</strong></label>
+                                                {% endif %}
+                                            {% else %}
+                                                <label for="email"><strong>Email Address</strong></label>
+                                            {% endif %}
                                             <input class="form-control" type="email" placeholder="{{ visited_user.email }}" name="email" disabled>
                                         </div>
                                     </div>

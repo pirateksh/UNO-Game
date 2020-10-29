@@ -38,11 +38,11 @@ class Scene2 extends Phaser.Scene {
 
         fullScreenButton.on('pointerup', function () {
             if (_this.scale.isFullscreen) {
-                button.setFrame(0);
+                fullScreenButton.setFrame(0);
                 _this.scale.stopFullscreen();
             }
             else {
-                button.setFrame(1);
+                fullScreenButton.setFrame(1);
                 _this.scale.startFullscreen();
             }
         }, _this);
@@ -538,7 +538,12 @@ class Scene2 extends Phaser.Scene {
     skipTurn() {
         let _this = this;
         _this.timeRemainingToSkip--;
+        if(_this.timeRemainingToSkip === 10) {
+            _this.clockSound = _this.sound.add("clockTicking", {volume: 2, loop: true});
+            _this.clockSound.play();
+        }
         if(_this.timeRemainingToSkip === 0) {
+            _this.clockSound.destroy();
             currentGame.timeOutRequest(socket);
             _this.timedSkipEvent.remove(false);
         }
@@ -753,13 +758,13 @@ class Scene2 extends Phaser.Scene {
         // Dimming Background
         _this.dimOrBrightBackground(true);
 
-        drawnCardSprite.setScale(1.5 * gameDetails.myHandScale);
         drawnCardSprite.depth = _this.maxTopCardDepth + 1;
         let toX = _this.config.width/2, toY = _this.config.height/2 - 100, duration = 700;
         _this.tweens.add({
             targets: drawnCardSprite,
             x: toX,
             y: toY,
+            scale: 1.5 * gameDetails.myHandScale,
             duration: duration,
             repeat: 0,
             onComplete: function () {
@@ -943,6 +948,7 @@ class Scene2 extends Phaser.Scene {
                                 x: toX,
                                 y: toY,
                                 // angle: startAngle,
+                                scale: gameDetails.myHandScale,
                                 depth: depth,
                                 ease: "Power1",
                                 duration: duration, // 1500
@@ -1083,6 +1089,7 @@ class Scene2 extends Phaser.Scene {
                 targets: playedCardSprite,
                 x: x,
                 y: y,
+                scale: gameDetails.myHandScale,
                 ease: "Power1",
                 duration: 700, // 1500
                 repeat: 0,
