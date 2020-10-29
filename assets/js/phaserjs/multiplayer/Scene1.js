@@ -207,8 +207,13 @@ class Scene1 extends Phaser.Scene {
         const my_peer = new Peer(undefined, { // making available a Peer Object from peerjs library to work on the root path
             host: '/',
             port: '8001'
+
             // host: 'pirateksh-e2ac36bc.localhost.run',
             // port: ''
+
+            // host: 'sangwan-e071a5cd.localhost.run',
+            // port: ''
+
         });
 
         const get_my_peer_id = new Promise(resolve => {
@@ -283,7 +288,7 @@ class Scene1 extends Phaser.Scene {
             addLabelOnLiveFeed(_this, vidElem, label);
 
             if(label === me){
-                // vidElem.video.muted = true;
+                vidElem.video.muted = true;
                 console.log("Self Stream Was Muted.")
             }
         }
