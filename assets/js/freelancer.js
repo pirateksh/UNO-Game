@@ -37,6 +37,7 @@
   });
 
   // Collapse Navbar
+  // Comment to Remove Error on /bot_game/ START
   var navbarCollapse = function() {
     if ($("#mainNav").offset().top > 100) {
       $("#mainNav").addClass("navbar-shrink");
@@ -44,11 +45,11 @@
       $("#mainNav").removeClass("navbar-shrink");
     }
   };
-  // Collapse now if page is not at top
+  Collapse now if page is not at top
   navbarCollapse();
-  // Collapse the navbar when page is scrolled
+  Collapse the navbar when page is scrolled
   $(window).scroll(navbarCollapse);
-
+  // Commented to Remove Error on /bot_game/ END
   // Floating label headings for the contact form
   $(function() {
     $("body").on("input propertychange", ".floating-label-form-group", function(e) {

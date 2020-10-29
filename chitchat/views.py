@@ -73,9 +73,14 @@ def main(request):
                 return Http404
             row_instance = Friend.objects.add_friend_request(sender=request.user, receiver=other_person)
             new_status = row_instance.friend_status
+            if new_status == True: # Became Friends
+                avatar_src_path = UserProfile.objects.get(user=row_instance.sender).avatar.url
+            else:
+                avatar_src_path = None
             # print("new_status", new_status)
             data = {
-                'result': new_status
+                'result': new_status,
+                'avatar_src_path': avatar_src_path
             }
             return JsonResponse(data)
         else:
@@ -103,9 +108,9 @@ def main(request):
             threads_query_set = Thread.objects.all().filter(Q(person1=request.user) | Q(person2=request.user)).order_by('-updated')
             for thread in threads_query_set:
                 if thread.person1 == request.user:
-                    friends.append((thread.person2.username, get_last_message(thread)))
+                    friends.append((thread.person2.username, get_last_message(thread), UserProfile.objects.get(user=thread.person2)))
                 else:
-                    friends.append((thread.person1.username, get_last_message(thread)))
+                    friends.append((thread.person1.username, get_last_message(thread), UserProfile.objects.get(user=thread.person1)))
             requester_list = []
             requests_query_set = Friend.objects.all().filter(Q(receiver=request.user) & Q(friend_status=False))
             for row_instance in requests_query_set:
@@ -148,7 +153,14 @@ class Chat(LoginRequiredMixin, View):
                 tz = timezone('Asia/Kolkata')
                 updated_time_string = get_last_updated_string_of_most_recent_message(updated.astimezone(tz))
                 chats = ChatMessage.objects.all().filter(thread=thread_id).order_by('timestamp')
-                first_name = User.objects.all().get(username=person2).first_name
+                first_name = User.objects.get(username=person2).first_name
+                
+                if thread_instance.person2.username == person2:
+                    person2_instance = thread_instance.person2
+                else:
+                    person2_instance = thread_instance.person1
+
+                avatar_src_path = UserProfile.objects.get(user=person2_instance).avatar.url
                 messages = []
                 for chat in chats:
                     messages.append([chat.sender.username, chat.message, chat.timestamp.astimezone(tz)])
@@ -156,7 +168,8 @@ class Chat(LoginRequiredMixin, View):
                     # 'chats': serializers.serialize('json', chats),
                     'chats': messages,
                     'other_user_first_name': first_name,
-                    'updated_time_string': updated_time_string 
+                    'updated_time_string': updated_time_string,
+                    'avatar_src_path': avatar_src_path
                 }
                 # return render(request, 'chitchat/chat.html', context)
                 return JsonResponse(context)

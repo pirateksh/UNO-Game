@@ -443,7 +443,7 @@ class GameServer:
         if previous_player is not None:
             if previous_player.username != current_player.username:  # Added for special case when 2 players are playing.
                 if previous_player.get_active_hand_size() == 1:
-                    if not previous_player.yelled_uno:
+                    if not previous_player.yelled_uno:  # TODO: Sometimes catching does not work.
                         previous_player.yelled_uno = True
 
     def get_current_player(self):

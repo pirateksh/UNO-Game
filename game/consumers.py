@@ -1,12 +1,13 @@
 import asyncio
 import json
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from channels.consumer import AsyncConsumer
 from channels.db import database_sync_to_async
 from channels.exceptions import StopConsumer
 
 from user_profile.models import UserProfile
-from .models import GameRoom, Player
+from .models import GameHistory, Participant
 from .helper import Card, PlayerServer, GameServer, Deck, CustomEncoder
 
 User = get_user_model()
@@ -34,7 +35,8 @@ class GameRoomConsumer(AsyncConsumer):
 
         self.player_server_obj = PlayerServer(username=self.me.username)
 
-        self.game = GameServer.create_new_game(unique_id=self.unique_id, player=self.player_server_obj, game_type=self.game_type, league=league)
+        self.game = GameServer.create_new_game(unique_id=self.unique_id, player=self.player_server_obj,
+                                               game_type=self.game_type, league=league)
 
         if self.game is None:
             # Connection is rejected because this room is already full.
@@ -67,9 +69,12 @@ class GameRoomConsumer(AsyncConsumer):
                 # This can be called by Friend Game only.
                 if self.game.game_type == GameServer.FRIEND:
                     GameServer.AVAILABLE_FRIEND_GAMES.remove(self.game)
+                if self.game.game_type == GameServer.PUBLIC:
+                    GameServer.AVAILABLE_PUBLIC_GAMES.remove(self.game)
             elif type_of_event == "end.game":
+
+                # await self.create_game_history()
                 self.game.end_game()
-                # await self.set_is_game_running_false()
             elif type_of_event == "play.card":
                 client_data = text_of_event['data']
                 server_data = {
@@ -90,10 +95,12 @@ class GameRoomConsumer(AsyncConsumer):
                                 await self.handle_winning_game(winner_username=winner_username)
 
                                 for loser_username in self.game.player_usernames:
+                                    await self.increase_total_played_games_count(player_username=loser_username)
                                     if loser_username != winner_username:
                                         await self.handle_losing_game(loser_username=loser_username)
 
-                                # await self.set_is_game_running_false()
+                                # Creating Game History in Database
+                                await self.create_game_history()
 
                                 print(f"End Game. {winner_username} has scored winning points.")
                             else:
@@ -222,48 +229,6 @@ class GameRoomConsumer(AsyncConsumer):
                 if self.game.game_type == GameServer.FRIEND:
                     if self.game.get_count_of_players() == 10:
                         GameServer.AVAILABLE_FRIEND_GAMES.remove(self.game)
-                if self.game.game_type == GameServer.PUBLIC:
-                    count = self.game.get_count_of_players()
-                    print("Count so far:", count)
-                    if count == GameServer.PUBLIC_ROOM_LIMIT:
-                        # await asyncio.sleep(2)
-                        print("CHANGING SCENE!.")
-                        change_scene_response = {
-                            "status": "change_scene",
-                            "message": "Scene Changed",
-                            "data": {
-                                "sceneNumber": 2,
-                            }
-                        }
-                        await self.channel_layer.group_send(
-                            self.game_room_id,
-                            {
-                                "type": "change.scene",
-                                "text": json.dumps(change_scene_response)
-                            }
-                        )
-
-                        print("Wait for 2 seconds")
-                        await asyncio.sleep(2)
-                        print("2 seconds over")
-                        print("Starting Public Game.")
-                        self.game.start_game()
-                        if self.game.game_type == GameServer.PUBLIC:
-                            GameServer.AVAILABLE_PUBLIC_GAMES.remove(self.game)
-                        public_response = {
-                            "status": "start_game",
-                            "message": "Public Game has been started.",
-                            "data": text_of_event['data'],
-                            "gameData": json.dumps(self.game.prepare_client_data(), cls=CustomEncoder),
-                        }
-                        await self.channel_layer.group_send(
-                            self.game_room_id,
-                            {
-                                "type": "start.game",
-                                "text": json.dumps(public_response)
-                            }
-                        )
-                        print("Started Public Game.")
 
     async def time_out(self, event):
         text = json.loads(event['text'])
@@ -436,9 +401,6 @@ class GameRoomConsumer(AsyncConsumer):
         })
 
     async def start_game(self, event):
-        await self.increase_total_played_games_count(player_username=self.me.username)
-        if self.game.game_type == GameServer.PUBLIC:
-            print("FFFF: Starting Public Game inside Handler.")
         text = event.get('text', None)
         if text:
             loaded_dict_data = json.loads(text)
@@ -491,40 +453,6 @@ class GameRoomConsumer(AsyncConsumer):
             "type": "websocket.send",
             "text": event['text'],
         })
-
-    # @database_sync_to_async
-    # def set_is_online_false(self):
-    #     player_obj = self.player_obj
-    #     player_obj.is_online = False
-    #     player_obj.save()
-    #
-    # @database_sync_to_async
-    # def set_is_online_true(self):
-    #     player_obj = self.player_obj
-    #     player_obj.is_online = True
-    #     player_obj.save()
-
-    # @database_sync_to_async
-    # def get_game_room(self, unique_id):
-    #     return GameRoom.objects.get(unique_game_id=unique_id)
-
-    # @database_sync_to_async
-    # def set_is_game_running_true(self):
-    #     game_room_obj = self.game_room_obj
-    #     game_room_obj.is_game_running = True
-    #     game_room_obj.save()
-    #
-    # @database_sync_to_async
-    # def set_is_game_running_false(self):
-    #     game_room_obj = self.game_room_obj
-    #     game_room_obj.is_game_running = False
-    #     game_room_obj.save()
-
-    # @database_sync_to_async
-    # def get_player_obj(self):
-    #     me = self.me
-    #     game_room_obj = self.game_room_obj
-    #     return Player.objects.get(player=me, game_room=game_room_obj)
 
     @database_sync_to_async
     def get_user_profile_obj(self):
@@ -599,3 +527,27 @@ class GameRoomConsumer(AsyncConsumer):
         winner_profile.won_rounds_count += 1
 
         winner_profile.save()
+
+    #  TODO: Implementing History
+    @database_sync_to_async
+    def create_game_history(self):
+        if self.game is not None:
+            unique_id = self.game.unique_id
+            winner_username = self.game.winner
+            game_type = None
+            if self.game_type == GameServer.PUBLIC:
+                game_type = GameHistory.PUBLIC
+            elif self.game_type == GameServer.FRIEND:
+                game_type = GameHistory.CUSTOM
+
+            game_room_history = GameHistory.objects.create(unique_game_id=unique_id, game_type=game_type,
+                                                           winner_username=winner_username)
+            player_objs = self.game.players
+            for player_obj in player_objs:
+                player_username = player_obj.username
+                player_score = player_obj.score
+                player_rating_change = 0  # TODO: CHANGE THIS
+                player = User.objects.get(username=player_username)
+                Participant.objects.create(user=player, game_room=game_room_history, score=player_score,
+                                           rating_change=player_rating_change)
+        return None

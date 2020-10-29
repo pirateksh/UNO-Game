@@ -6,8 +6,7 @@ class Scene2 extends Phaser.Scene {
     * TODO: -- Kshitiz.
     *  1. Implement Illegal Wild Four Draw / Challenging when a Wild Four is Drawn.
     *  2. Try to implement a game tour for new players.
-    *  3. Show current top color after wild and wild four.
-    *  4. Can make customizable cards available to players of certain league.
+    *  3. Can make customizable cards available to players of certain league.
     * */
     create() {
         let _this = this;
@@ -17,6 +16,9 @@ class Scene2 extends Phaser.Scene {
         _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
         _this.starfield2.setOrigin(0,0);
 
+
+        _this.backgroundMusic = _this.sound.add("backgroundMusic", {volume: 0.3, loop: true});
+        _this.backgroundMusic.play();
 
         let FKey = this.input.keyboard.addKey('F');
 
@@ -32,9 +34,9 @@ class Scene2 extends Phaser.Scene {
 
         }, this);
 
-        let button = _this.add.image(game.config.width-16, 16, 'fullscreen', 0).setOrigin(1, 0).setScale(0.5).setInteractive();
+        let fullScreenButton = _this.add.image(game.config.width-16, 16, 'fullscreen', 0).setOrigin(1, 0).setScale(0.5).setInteractive();
 
-        button.on('pointerup', function () {
+        fullScreenButton.on('pointerup', function () {
             if (_this.scale.isFullscreen) {
                 button.setFrame(0);
                 _this.scale.stopFullscreen();
@@ -75,6 +77,24 @@ class Scene2 extends Phaser.Scene {
                 }
             }
         }
+
+
+        // Playing Welcome Audio
+        _this.sound.play("welcome");
+
+        // Sending delayed startGameRequest.
+        _this.time.delayedCall(
+            2000,
+            function() {
+                if(me === currentGame.adminUsername) {
+                    currentGame.startGameRequest(socket);
+                }
+            }, 
+            [], 
+            _this
+        );
+            
+        
 
         _this.timeRemainingToSkip = gameDetails.timeOutLimitInSeconds;
         _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, _this.config.height - 50, "pixelFont", _this.timeRemainingToSkip, 50);
@@ -123,10 +143,12 @@ class Scene2 extends Phaser.Scene {
         _this.unoButton.setInteractive();
         _this.unoButton.setScale(gameDetails.unoButtonScale);
         _this.unoButton.on("pointerover", function (pointer) {
+            document.querySelector("canvas").style.cursor = "pointer";
             _this.unoButton.play("unoButtonOver");
         });
 
         _this.unoButton.on("pointerout", function (pointer) {
+            document.querySelector("canvas").style.cursor = "default";
             _this.unoButton.play("unoButtonOut");
         });
 
@@ -182,9 +204,7 @@ class Scene2 extends Phaser.Scene {
             }
             if(status === "start_game") {
 
-                if(status === "start_game") {
-                    console.log("Start Game From Scene 2");
-                }
+                _this.sound.play('shuffle');
                 currentGame.copyData(gameData);
 
                 _this.startTimer();
@@ -204,6 +224,8 @@ class Scene2 extends Phaser.Scene {
                 currentGame.copyData(gameData);
 
                 _this.startTimer();
+
+                _this.sound.play("playCard");
 
                 _this.playCardEventConsumer(backendResponse, false);
 
@@ -230,6 +252,9 @@ class Scene2 extends Phaser.Scene {
                 let drawnCardCount = forcedDrawData.drawnCardCount;
                 if(username === me) {
                     for(let drawnCard of drawnCards) {
+                        
+                        _this.sound.play("plus2");
+
                         let category = drawnCard.category, number = drawnCard.number;
                         let drawnCardObject = new Card(category, number);
                         let x = gameDetails.deckX, y = gameDetails.deckY;
@@ -266,6 +291,9 @@ class Scene2 extends Phaser.Scene {
                 let username = voluntaryDrawData.username;
                 let drawnCard = JSON.parse(voluntaryDrawData.drawnCard);
                 if(username === me) { // The player who drew the card.
+
+                    _this.sound.play("drawSingle");
+
                     currentGame.canDrawCard = false;
                     _this.topDeckCard.disableInteractive();
                     let category = drawnCard.category, number = drawnCard.number;
@@ -316,9 +344,13 @@ class Scene2 extends Phaser.Scene {
                 _this.moveOrSetTurnIndicator(true);
             }
             else if(status === "won_round") { // TODO: Add timer or not. -- Kshitiz
+                _this.sound.play('shuffle');
                 _this.playCardEventConsumer(backendResponse, true);
             }
             else if(status === "won_game") {
+
+                _this.sound.play('win');
+
                 _this.endGame();
                 let wonData = backendResponse.wonData;
                 let wonUsername = wonData.username;
@@ -330,10 +362,13 @@ class Scene2 extends Phaser.Scene {
             else if(status === "call_uno") {
                 let username = data.username;
                 if(username !== me) {
-                    alert(`${username} called UNO!`);
+                    _this.sound.play("unoCallVoice");
+                }
+                else {
+                    _this.sound.play("unoCallSound");
                 }
             }
-            else if(status === "failed_call_uno") {
+            else if(status === "failed_call_uno") { // TODO: Add banned sound mp3.
                 let username = data.username;
                 if(username === me) {
                     alert("You UNO Call failed!");
@@ -698,6 +733,17 @@ class Scene2 extends Phaser.Scene {
         } else {
             // Opponent plays a card.
             _this.playCardOpp(backendResponse, playedCardObject, username_, won);
+            if(playedCardObject.category === WILD_FOUR || playedCardObject.category === WILD) {
+                if(currentGame.topColor === "B") {
+                    _this.sound.play("topColorBlue");
+                } else if(currentGame.topColor === "G") {
+                    _this.sound.play("topColorGreen");
+                } else if(currentGame.topColor === "Y") {
+                    _this.sound.play("topColorYellow");
+                } else if(currentGame.topColor === "R") {
+                    _this.sound.play("topColorRed");
+                }
+            }
         }
     }
 
@@ -948,6 +994,11 @@ class Scene2 extends Phaser.Scene {
     moveOrSetTurnIndicator(isAlreadySet) {
         let _this = this;
         let currentPlayer = currentGame.getCurrentPlayer();
+
+        if(currentPlayer === me) {
+            _this.sound.play("playerTurn");
+        }
+
         // console.log("Coordinates: ", currentGame.coordinatesOfPlayers);
         for(let i = 0; i < currentGame.getPlayersCount(); ++i) {
             let player = currentGame.players[i];
@@ -1203,7 +1254,9 @@ class Scene2 extends Phaser.Scene {
              }
          }
 
-        this.tweens.add({
+         _this.sound.play("drawSingle");
+
+        _this.tweens.add({
             targets: drawnCard,
             x: toX,
             y: toY,

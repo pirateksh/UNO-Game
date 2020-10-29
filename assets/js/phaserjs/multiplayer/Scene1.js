@@ -48,17 +48,6 @@ class Scene1 extends Phaser.Scene {
             frameHeight: 16
         });
 
-        // this.load.spritesheet("turnIndicator", `${generatePath("spritesheets", "bird.jpg")}`, {
-        //     frameWidth: 750,
-        //     frameHeight: 800
-        // });
-
-
-        // this.load.spritesheet("turnIndicator", `${generatePath("spritesheets", "turn_indicator_2.png")}`, {
-        //     frameWidth: 73,
-        //     frameHeight: 73
-        // });
-
         this.load.spritesheet("unoButton", `${generatePath("spritesheets", "uno_button.png")}`, {
             frameWidth: 300,
             frameHeight: 119
@@ -116,6 +105,29 @@ class Scene1 extends Phaser.Scene {
 
         this.load.video('wormhole', `${generatePath("video", "wormhole.mp4")}`, 'loadeddata', false, true);
 
+        this.load.audio('unoCallVoice', [`${generatePath("sounds", "uno_call.mp3")}`]);
+
+        this.load.audio('unoCallSound', [`${generatePath("sounds", "uno_button.mp3")}`]);
+
+        this.load.audio('topColorRed', [`${generatePath("sounds", "top_color_red.mp3")}`]);
+        this.load.audio('topColorBlue', [`${generatePath("sounds", "top_color_blue.mp3")}`]);
+        this.load.audio('topColorGreen', [`${generatePath("sounds", "top_color_green.mp3")}`]);
+        this.load.audio('topColorYellow', [`${generatePath("sounds", "top_color_yellow.mp3")}`]);
+        
+        this.load.audio('drawSingle', [`${generatePath("sounds", "drawSingle.mp3")}`]);
+        this.load.audio('playCard', [`${generatePath("sounds", "playCard.mp3")}`]);
+        this.load.audio('playerTurn', [`${generatePath("sounds", "playerTurn.mp3")}`]);
+        this.load.audio('plus2', [`${generatePath("sounds", "plus2.mp3")}`]);
+        this.load.audio('specialCards', [`${generatePath("sounds", "specialCards.mp3")}`]);
+        this.load.audio('swish', [`${generatePath("sounds", "swish.mp3")}`]);
+        this.load.audio('tap', [`${generatePath("sounds", "tap.mp3")}`]);
+        this.load.audio('win', [`${generatePath("sounds", "win.mp3")}`]);
+
+        this.load.audio('shuffle', [`${generatePath("sounds", "card_shuffle.mp3")}`]);
+    
+        this.load.audio('space', [`${generatePath("sounds", "space.wav")}`]);
+        this.load.audio('welcome', [`${generatePath("sounds", "welcome_galactic_uno.mp3")}`]);
+        this.load.audio('backgroundMusic', [`${generatePath("sounds", "background.mp3")}`]);
     }
 
     create() {
@@ -402,28 +414,47 @@ class Scene1 extends Phaser.Scene {
                     }
                     _this.joinedY += 20;
                 }
+
+                if(currentGame.players.length === 2 && currentGame.gameType === Game.PUBLIC) {
+                    // If this is a public game send change scene request after Max. Player Join.
+                    console.log("DELAYING Change Scene.");
+                    _this.time.delayedCall(
+                        2000,
+                        function () {
+                            if(me === currentGame.adminUsername) {
+                                console.log("DELAYED Change Scene.");
+                                currentGame.changeSceneRequest(socket, 2);
+                            }
+                        },
+                        [], _this
+                    );
+                    
+                }
             }
             else if(status === "user_left_room"){
                 let left_user_username = data.left_user_username;
 
-                if(currentGame.players.includes(left_user_username)) {
-                    currentGame.players.splice(currentGame.players.indexOf(left_user_username), 1); // TESTING
-                }
+                if(currentGame.isGameStarted === false) {
+                    if(currentGame.players.includes(left_user_username)) {
+                        currentGame.players.splice(currentGame.players.indexOf(left_user_username), 1); // TESTING
+                    }
 
-                for(let i = 0; i < _this.joinedPlayersTag.getChildren().length; ++i) {
-                    let leftPlayerTag = _this.joinedPlayersTag.getChildren()[i];
-                    let labelText = _this.labelGroup.getChildren()[i];
-                    let vidElem = _this.videoGroup[i];
-                    let leftPlayerUsername = leftPlayerTag.getData("username");
-                    if(left_user_username === leftPlayerUsername) {
-                        leftPlayerTag.destroy();
-                        labelText.destroy();
-                        _this.videoGroup.splice(i, 1);
-                        vidElem.destroy();
-                        _this.videoY -= 105;
-                        break;
+                    for(let i = 0; i < _this.joinedPlayersTag.getChildren().length; ++i) {
+                        let leftPlayerTag = _this.joinedPlayersTag.getChildren()[i];
+                        let labelText = _this.labelGroup.getChildren()[i];
+                        let vidElem = _this.videoGroup[i];
+                        let leftPlayerUsername = leftPlayerTag.getData("username");
+                        if(left_user_username === leftPlayerUsername) {
+                            leftPlayerTag.destroy();
+                            labelText.destroy();
+                            _this.videoGroup.splice(i, 1);
+                            vidElem.destroy();
+                            _this.videoY -= 105;
+                            break;
+                        }
                     }
                 }
+                
 
                 if (peers[left_user_username]){
                     peers[left_user_username].close();
@@ -449,22 +480,19 @@ class Scene1 extends Phaser.Scene {
                     vidElem.destroy();
                 }
                 if(sceneNumber === 2) {
-                    if(currentGame.gameType === Game.PUBLIC) { // TODO: Look into this. Error is coming due to automatic start of Game.
+                    let wormhole = _this.add.video(game.config.width/2, game.config.height/2, "wormhole");
+                    wormhole.setScale(1.6, 1);
+                    wormhole.depth = 10;
+                    wormhole.play();
+                    let spaceSound = _this.sound.add("space");
+                    spaceSound.play();
+                    _this.time.delayedCall(3000, function () {
+                        wormhole.destroy();
+                        spaceSound.destroy();
+                        console.log("SWITCHING SCENE.");
                         _this.scene.start("playGame");
-                    }
-                    else {
-                        let wormhole = _this.add.video(game.config.width/2, game.config.height/2, "wormhole");
-                        wormhole.setScale(1.6, 1);
-                        wormhole.depth = 10;
-                        wormhole.play();
-                        _this.time.delayedCall(3000, function () {
-                            wormhole.destroy();
-                            _this.scene.start("playGame");
-                            if(me === currentGame.adminUsername) {
-                                currentGame.startGameRequest(socket);
-                            }
-                        }, [], _this);
-                    }
+
+                    }, [], _this);
                 }
             }
         });
@@ -503,7 +531,17 @@ class Scene1 extends Phaser.Scene {
 
         _this.playButton.on("pointerdown", function (pointer) {
             console.log("PLAY NOW CLICKED!");
-            currentGame.changeSceneRequest(socket, 2);
+            if(currentGame.players.length === 1) {
+                let p = prompt("This is for Testing. Only 1 Player. DO you want to continue?");
+                if(p === "Y") {
+                    currentGame.changeSceneRequest(socket, 2);
+                }
+                else {
+                    alert("Wait for more players to join.");
+                }
+            } else {
+                currentGame.changeSceneRequest(socket, 2);
+            }
         });
     }
 

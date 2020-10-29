@@ -108,6 +108,7 @@ class BotGameState:
         self.deck = UnoDeckServer()  # object of UnoDeckServer Class
         random.shuffle(self.deck.cards)
         self.top_card = None  # Object of UnoCard Class
+        # CHG #1
         self.top_card_type = 0 # This value is valid only if the self.top_card.number is 13. 0 => W and 1 => WF
         self.set_top_card()
 
@@ -131,6 +132,7 @@ class BotGameState:
             print("Something went Wrong when removing card from Deck to set as Top Card")
 
     def get_top_card(self):
+        # CHG #2
         """
             This function will send the correct card value of the top_card
             For e.g. the top_card value can be 13 of G => in that case it will return 13 of W or 13 of WF depending 
@@ -147,7 +149,6 @@ class BotGameState:
         else:
             print("Top Card Getter called at wrong time...")
 
-
     def show_game_state(self):
         return f"bot_{self.bot} is playing with {self.player} and current_top_card is [{self.top_card.show_card()}]"
 
@@ -161,7 +162,7 @@ def recover_deck(player_state, bot_game_state, bot_state):
     # Removing the Current Top Card
     random.shuffle(bot_game_state.deck.cards)
     print("length of new deck-rd:", len(bot_game_state.deck.cards))
-    bot_game_state.deck.deal(bot_game_state.get_top_card())
+    bot_game_state.deck.deal(bot_game_state.get_top_card()) # ChG #3
     # print("Removed top card")
     print("length of new deck-rd-at:", len(bot_game_state.deck.cards))
     for card in player_state.cards:
@@ -254,6 +255,7 @@ def update_state_request(player_card_value, player_state, bot_game_state, bot_st
             if card == player_card_value:
                 player_state.allowed_cards.remove(card)
                 bot_game_state.top_card = UnoCard(category, number)
+                # CHG
                 if number == '13':
                     if category == 'W':
                         bot_game_state.top_card_type = 0 # W 
@@ -320,7 +322,7 @@ def update_other_player_state_only(number, other_player_state, bot_game_state, p
         print("Card Drawn from the Deck is", drawn_card_object.show_card())
         other_player_state.cards.append(drawn_card_object)
 
-
+# CHG #4
 def update_bot_game_state_only(color_changed_to, type_changed_to, bot_game_state):
     '''
     This function is used to update the bot_game_state as per the card played by the player.
@@ -463,7 +465,6 @@ def bot_play_card(bot_state, bot_game_state, player_state, top_color=None):
         drawn_card_object = bot_game_state.deck.deal()
         print("Card Drawn from the Deck is", drawn_card_object.show_card())
         bot_state.cards.append(drawn_card_object)
-        return card_val_to_move
     else:
         try:
             bot_state.allowed_cards.remove(card_val_to_move)
@@ -527,19 +528,22 @@ class BotGameConsumer(AsyncConsumer):
 
     async def websocket_connect(self, event):
         print("Accepting an handshake request", event)
-
+        # accepting the Handshake or Upgrade from HTTP to WebSocket
+        await self.send({
+            "type": "websocket.accept",
+        })
         player = self.scope['user']
         self.player = player
         bot_instance = await self.get_bot_for_username(player)
         self.bot = bot_instance
-        self.bot_id = None
+        bot_id = None
         if bot_instance is None:
             print("Error: There was some Problem creating a bot")
             pass
         else:
-            self.bot_id = bot_instance.id
+            bot_id = bot_instance.id
 
-        bot_game_room = f"bot_{self.bot_id}_{player}"  # This is Just a name given to our Bot-Game-Room
+        bot_game_room = f"bot_{bot_id}_{player}"  # This is Just a name given to our Bot-Game-Room
         # Giving a unique name to the current room as per player username and bot_id
         self.bot_game_room = bot_game_room
         # print(bot_game_room)
@@ -551,11 +555,33 @@ class BotGameConsumer(AsyncConsumer):
             self.channel_name  # Name of the Channel
         )
 
-        # accepting the Handshake or Upgrade from HTTP to WebSocket
-        await self.send({
-            "type": "websocket.accept",
-        })
+        # if any state of this game room was present earlier, then retrieve that state
+        self.game = BotGameServer.create_bot_game(bot_id=bot_id, player=player, bot_game_room=bot_game_room)
 
+        response_player_state = self.game.player_state.get_all_cards()
+        response_bot_state = self.game.bot_state.get_all_cards()
+        response_bot_game_state = self.game.bot_game_state.get_top_card()
+        response_playable_cards = get_playable_cards(self.game.player_state, self.game.bot_game_state)
+        response_bot_played_cards = []
+        response_bot_says_uno = 0
+        if len(response_bot_state) == 1:
+            response_bot_says_uno = 1
+        server_response = {
+            "player_state": json.dumps(response_player_state),  # list of strings
+            "bot_state": json.dumps(response_bot_state),  # list of strings
+            "bot_game_state": json.dumps(response_bot_game_state),  # strings
+            "playable_cards": response_playable_cards,  # list of strings
+            "bot_played_cards": [],
+            "bot_says_uno" : response_bot_says_uno
+        }
+
+        await self.channel_layer.group_send(
+            self.bot_game_room,  # name of the Chat root
+            {
+                'type': "send_to_player",
+                'text': json.dumps(server_response)
+            }
+        )
 
     async def websocket_receive(self, event):
         """
@@ -580,67 +606,6 @@ class BotGameConsumer(AsyncConsumer):
         Note 2:
             "response_" prefix signifies that this value we will send as server response, if it is not some constant value.
         """
-
-        # Message received after Clicking Play Button
-        front_text = event.get('text', None)
-        if front_text:
-            print("Front Text Exists!")
-            loaded_dict_data = json.loads(front_text)
-            type_of_event = loaded_dict_data.get('type', None)
-            text_of_event = loaded_dict_data.get('text', None)
-            print(type_of_event, text_of_event)
-            if type_of_event and text_of_event:
-                if type_of_event == "change.scene":
-                    # This is surely a Change Scene Request which came after pressing Play Button.
-                    change_scene_response = {
-                        "status": "change_scene",
-                        "message": "Scene Changed",
-                        "data": {
-                            "sceneNumber": 2,
-                        }
-                    }
-                    await self.channel_layer.group_send(
-                        self.bot_game_room,
-                        {
-                            "type": "change.scene",
-                            "text": json.dumps(change_scene_response)
-                        }
-                    )
-                    return
-                elif type_of_event == "start.game":
-                    print("Start Game Received.")
-                    # This is a start game request.
-                    # if any state of this game room was present earlier, then retrieve that state
-                    self.game = BotGameServer.create_bot_game(bot_id=self.bot_id, player=self.player,
-                                                              bot_game_room=self.bot_game_room)
-
-                    response_player_state = self.game.player_state.get_all_cards()
-                    response_bot_state = self.game.bot_state.get_all_cards()
-                    response_bot_game_state = self.game.bot_game_state.get_top_card()
-                    response_playable_cards = get_playable_cards(self.game.player_state, self.game.bot_game_state)
-                    response_bot_played_cards = []
-                    response_bot_says_uno = 0
-                    if len(response_bot_state) == 1:
-                        response_bot_says_uno = 1
-                    server_response = {
-                        "player_state": json.dumps(response_player_state),  # list of strings
-                        "bot_state": json.dumps(response_bot_state),  # list of strings
-                        "bot_game_state": json.dumps(response_bot_game_state),  # strings
-                        "playable_cards": response_playable_cards,  # list of strings
-                        "bot_played_cards": [],
-                        "bot_says_uno": response_bot_says_uno
-                    }
-
-                    await self.channel_layer.group_send(
-                        self.bot_game_room,  # name of the Chat root
-                        {
-                            'type': "send_to_player",
-                            'text': json.dumps(server_response)
-                        }
-                    )
-
-                    print("Start Game Sent.")
-                    return
 
         # When a message is received from the Websocket
         data_received_dict = json.loads(event.get('text', None))
@@ -754,6 +719,7 @@ class BotGameConsumer(AsyncConsumer):
                     print("Player Played Wild Card")
                     print("Player asked to Change the Color to", color_changed_to)
                     # Updating the Game State i.e. setting the Top Card Color
+                    # CHG #5
                     update_bot_game_state_only(color_changed_to=color_changed_to, type_changed_to=0, bot_game_state=self.game.bot_game_state)
                     # Now Bot will Play its Turn
                 elif number == '12' or number == '13':
@@ -762,6 +728,7 @@ class BotGameConsumer(AsyncConsumer):
                     # Bot will need to Draw the Cards
                     update_other_player_state_only(number, self.game.bot_state, self.game.bot_game_state,
                                                    self.game.player_state)
+                    # CHG #6
                     if number == '13': # This is a DRAW_FOUR so, changing the color
                         # Updating the Game State i.e. setting the Top Card Color
                         update_bot_game_state_only(color_changed_to=color_changed_to, type_changed_to=1, bot_game_state=self.game.bot_game_state)
@@ -807,6 +774,7 @@ class BotGameConsumer(AsyncConsumer):
                 print("Wild Card Played By Bot")  # Wild played by bot
                 response_top_color = bot_choose_top_color(self.game.bot_state)
                 print("Bot Chose Color:", response_top_color)
+                # CHG #7
                 update_bot_game_state_only(color_changed_to=response_top_color, type_changed_to=0, bot_game_state=self.game.bot_game_state)
                 break
             elif played_card == "13 of WF":
@@ -816,6 +784,7 @@ class BotGameConsumer(AsyncConsumer):
                                                self.game.bot_state)
                 response_top_color = bot_choose_top_color(self.game.bot_state)
                 print("Bot Chose Color:", response_top_color)
+                # CHG #8
                 update_bot_game_state_only(color_changed_to=response_top_color, type_changed_to=1, bot_game_state=self.game.bot_game_state)
                 if len(self.game.bot_state.get_all_cards()) == 0:
                     response_bot_won = 1
@@ -874,12 +843,6 @@ class BotGameConsumer(AsyncConsumer):
         await self.send({
             'type': "websocket.send",
             'text': event.get('text')
-        })
-
-    async def change_scene(self, event):
-        await self.send({
-            "type": "websocket.send",
-            "text": event['text']
         })
 
     async def websocket_disconnect(self, event):

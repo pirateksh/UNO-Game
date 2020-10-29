@@ -113,11 +113,11 @@ def login_view(request):
         else:
             # print(type(request))
             # print(request.path)
-            # print(request._get_full_path)
+            # print(request.get_full_path)
             # print(request.get_full_path())
             # print(request.get_full_path_info())
             messages.error(request, "Invalid Credentials")
-            return redirect(request.path)
+            return redirect(request.get_full_path())
     else:
         return render(request, 'home/login.html', {})
 

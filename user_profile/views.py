@@ -25,19 +25,26 @@ User = get_user_model()
 
 
 def user_profile_view(request, username):
+
+    visited_user_qs = User.objects.filter(username=username)
+    if not visited_user_qs:
+        message = f"User with username {username} not found!"
+        return render(request, '404.html', {"message": message})
+
     visitor = request.user
-    visited_user = get_object_or_404(User, username=username)
-    if visitor.is_authenticated:
-        visited_profile = UserProfile.objects.get(user=visited_user)
-        avatar_upload_form = AvatarUploadForm()
-        context = {
-            "visited_user": visited_user,
-            "visited_profile": visited_profile,
-            "avatar_upload_form": avatar_upload_form,
-        }
-        return render(request, 'user_profile/profile_new.html', context=context)
-    else:
-        return HttpResponse(f"Oops! User with username {username} not found!")
+    visited_user = visited_user_qs[0]
+    # if visitor.is_authenticated:
+    visited_profile = UserProfile.objects.get(user=visited_user)
+    avatar_upload_form = AvatarUploadForm()
+    context = {
+        "visited_user": visited_user,
+        "visited_profile": visited_profile,
+        "avatar_upload_form": avatar_upload_form,
+    }
+    return render(request, 'user_profile/profile_new.html', context=context)
+    # else:
+    #     message = f"Oops! User with username {username} not found!"
+    #     return render(request, '404.html', {"message": message})
 
 
 @login_required
@@ -45,7 +52,13 @@ def verify_email(request, username):
     """
         This function sends a verification link to your email.
     """
-    requested_user = get_object_or_404(User, username=username)
+    requested_user_qs = User.objects.filter(username=username)
+    if not requested_user_qs:
+        message = f"User with username {username} not found!"
+        return render(request, '404.html', {"message": message})
+
+    requested_user = requested_user_qs[0]
+
     user = request.user
     if user == requested_user:
         email = requested_user.email
@@ -69,8 +82,8 @@ def verify_email(request, username):
             messages.info(request, f"Invalid Header found, mail not sent!")
 
         return HttpResponse('Please confirm your email address to complete the registration.')
-    messages.info(request, f"You are not authorised to visit this page.")
-    return HttpResponseRedirect(reverse('home'))
+    message = f"You are not authorised to visit this page."
+    return render(request, '404.html', {"message": message})
 
 
 def activate(request, uidb64, token):
@@ -144,5 +157,5 @@ def avatar_upload(request, username):
                         messages.success(request, error)
             return HttpResponseRedirect(reverse("user_profile", kwargs={'username': username}))
     else:
-        message = f"Something went wrong! Try Again!"
-        raise Http404(message)
+        message = None
+        return render(request, '404.html', {"message": message})
