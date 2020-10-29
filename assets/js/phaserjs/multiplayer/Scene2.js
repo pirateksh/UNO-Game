@@ -20,6 +20,8 @@ class Scene2 extends Phaser.Scene {
         _this.backgroundMusic = _this.sound.add("backgroundMusic", {volume: 0.3, loop: true});
         _this.backgroundMusic.play();
 
+        _this.clockSound = _this.sound.add("clockTicking", {volume: 4, loop: true});
+
         let FKey = this.input.keyboard.addKey('F');
 
         FKey.on('down', function () {
@@ -352,6 +354,9 @@ class Scene2 extends Phaser.Scene {
                 _this.sound.play('win');
 
                 _this.endGame();
+                // This contains all the player's username with there score and rating changes.
+                _this.wonGameData = JSON.parse(backendResponse.wonGameData);
+
                 let wonData = backendResponse.wonData;
                 let wonUsername = wonData.username;
                 let wonScore = wonData.score;
@@ -539,11 +544,12 @@ class Scene2 extends Phaser.Scene {
         let _this = this;
         _this.timeRemainingToSkip--;
         if(_this.timeRemainingToSkip === 10) {
-            _this.clockSound = _this.sound.add("clockTicking", {volume: 2, loop: true});
+
             _this.clockSound.play();
         }
         if(_this.timeRemainingToSkip === 0) {
-            _this.clockSound.destroy();
+            _this.clockSound.stop();
+
             currentGame.timeOutRequest(socket);
             _this.timedSkipEvent.remove(false);
         }
@@ -1097,6 +1103,8 @@ class Scene2 extends Phaser.Scene {
                     // Destroying playedCardSprite
                     playedCardSprite.destroy();
 
+                    _this.clockSound.stop();
+
                     if(!won) {
                         // Generating new cardSprite at TopCard position.
                         let depth = _this.maxTopCardDepth + 1;
@@ -1108,7 +1116,6 @@ class Scene2 extends Phaser.Scene {
                         _this.adjustSelfHandOnTable(index);
                     }
                     else if(won) {
-                        // Add here csk
                         //  _this.topCardSprite.destroy();
                         _this.wonRoundEventHandler(backendResponse);
                     }

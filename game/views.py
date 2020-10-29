@@ -104,15 +104,15 @@ def enter_friend_play(request):
             for friend_game in GameServer.AVAILABLE_FRIEND_GAMES:
                 if friend_game.unique_id == unique_id:
                     if friend_game.get_count_of_players() == MAX_JOINED_PLAYER_COUNT:
-                        message = f"Friendly Game Room with ID {unique_id} is full."
+                        message = f"Custom Game Room with ID {unique_id} is full."
                         return render(request, '404.html', {"message": message})
                     if friend_game.is_game_running:
-                        message = f"Game is already running in Friendly Game Room with ID {unique_id}."
+                        message = f"Game is already running in Custom Game Room with ID {unique_id}."
                         return render(request, '404.html', {"message": message})
                     return HttpResponseRedirect(
                         reverse('enter_game_room',
                                 kwargs={"game_type": GameServer.FRIEND, "unique_id": unique_id}))
-        message = f"Friendly Game Room with ID {unique_id} does'nt exist."
+        message = f"Custom Game Room with ID {unique_id} does'nt exist."
         return render(request, '404.html', {"message": message})
     elif request.method == "GET":  # Creating New Game and Entering
         unique_id = id_generator(10)

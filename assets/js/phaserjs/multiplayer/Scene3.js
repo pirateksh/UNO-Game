@@ -41,11 +41,21 @@ class Scene3 extends Phaser.Scene {
             }
         }, _this);
 
+        _this.wonGameData = _this.scene.get("playGame").wonGameData;
 
+        console.log("Won Game Data:", _this.wonGameData);
 
-        _this.add.text(config.width / 2 - 200, config.height / 2, "Game has ended! Following are the player's scores.");
+        _this.add.text(config.width / 2 - 200, 50, "Game has ended! Following are the player's scores:");
+        let y = 90;
+        _this.add.text(config.width / 2 - 180, y, `USERNAME     SCORE     RATING CHANGE`);
 
-        let closeIn = _this.add.text(config.width / 2 - 200, config.height / 2 + 50,
+        for(let i = 0; i < _this.wonGameData.length; ++i) {
+            y += 30;
+            let player = _this.wonGameData[i];
+            _this.add.text(config.width / 2 - 180, y, `${player.username}     ${player.score}     ${player.rating_change}`);
+        }
+
+        let closeIn = _this.add.text(config.width / 2 - 200, y + 40,
             "You will be redirected to Play Now page in ");
 
         _this.time_ = _this.add.text(closeIn.x, closeIn.y + 40, "10 ");

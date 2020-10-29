@@ -11,6 +11,19 @@
 </head>
 <body>
     <h1>History of {{ user.username }}</h1>
+    <h2>Public Game History</h2>
+    {% for public_game_datum in public_game_data %}
+        <p><u>Public Game {{ forloop.counter }}</u></p>
+        <p>Unique ID: {{ public_game_datum.game.unique_game_id }}</p>
+        <p>Ended At: {{ public_game_datum.game.concluded_at }}</p>
+        <p>Winner: {{ public_game_datum.game.winner_username }}</p>
+        <p>Participants: </p>
+        <ul>
+            {% for participant in public_game_datum.participants %}
+                <li>{{ participant.user.username }} - (Score: {{ participant.score }}) - (Rating Change: {{ participant.rating_change }})</li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
     <h2>Custom Game History</h2>
     {% for custom_game_datum in custom_game_data %}
         <p><u>Custom Game {{ forloop.counter }}</u></p>

@@ -375,7 +375,6 @@
 
                 let activeCardsCount = myHand.getActiveCount();
                 if(activeCardsCount <= 2 && activeCardsCount > 0) {
-                    alert("Sending Call UNO Request!");
                     let data = {"status": "call_uno", "message": "The player called UNO.", "data": {"username": me }};
                     let response = {"type": "call.uno", "text": data};
                     socket.send(JSON.stringify(response));
@@ -415,7 +414,7 @@
     <script>
         // Constants
         constraintObj = {
-            video: true,
+            video: false,
             audio: true
             
             // video: {

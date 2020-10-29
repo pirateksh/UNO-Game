@@ -18,6 +18,12 @@ class BotScene2 extends Phaser.Scene {
         // Playing Welcome Audio
         _this.sound.play("welcome");
 
+        _this.time.delayedCall(2000, function () {
+            let data = {"status": "start_game", "message": "Game is being started.", "data": ""};
+            let response = {"type": "start.game", "text": data};
+            socket.send(JSON.stringify(response));
+        }, [], _this);
+
         let FKey = this.input.keyboard.addKey('F');
 
         FKey.on('down', function () {
@@ -45,8 +51,8 @@ class BotScene2 extends Phaser.Scene {
             }
         }, _this);
 
-        _this.timeRemainingToSkip = gameDetails.timeOutLimitInSeconds;
-        _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, _this.config.height - 50, "pixelFont", _this.timeRemainingToSkip, 50);
+        // _this.timeRemainingToSkip = gameDetails.timeOutLimitInSeconds;
+        // _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, _this.config.height - 50, "pixelFont", _this.timeRemainingToSkip, 50);
 
         // Adding exit button
         _this.exitButton = _this.physics.add.sprite(gameDetails.exitButtonX, gameDetails.exitButtonY, "exitButton");
@@ -118,7 +124,7 @@ class BotScene2 extends Phaser.Scene {
 
         _this.topDeckCard.on("pointerdown", function (pointer) {
             console.log("Deck card has been clicked.");
-            _this.sound.play("drawCard");
+            _this.sound.play("drawSingle");
             drawCardRequest();
             _this.drewCard = true;
         });
@@ -324,7 +330,7 @@ class BotScene2 extends Phaser.Scene {
 
             let cardCount = parseInt(_this.botCardCount.text);
             _this.botCardCount.text = cardCount - 1;
-
+            _this.topCardSprite.destroy();
             _this.tweens.add({
                 targets: playedCardSprite,
                 x: gameDetails.topCardX,
@@ -333,8 +339,8 @@ class BotScene2 extends Phaser.Scene {
                 depth: 0,
                 scale: gameDetails.myHandScale,
                 onComplete: function () {
-                    _this.topCardSprite.destroy();
                     _this.topCardSprite = playedCardSprite;
+                    _this.topCardSprite.depth = 0;
                     _this.topCard = playedCard;
                     let count = 0;
                     if(playedCard.category === WILD_FOUR) {
@@ -357,7 +363,7 @@ class BotScene2 extends Phaser.Scene {
         }
         else {
             // To be called when Opponent draws a card.
-            _this.sound.play('drawCard');
+            _this.sound.play('drawSingle');
 
             let x = gameDetails.deckX, y = gameDetails.deckY;
             let botX = gameDetails.centerX , botY = gameDetails.centerY - gameDetails.radius;
@@ -1067,7 +1073,7 @@ class BotScene2 extends Phaser.Scene {
          cardCount += 1;
          _this.botCardCount.text = cardCount;
 
-         _this.sound.play("drawCard");
+         _this.sound.play("drawSingle");
 
         this.tweens.add({
             targets: drawnCard,
@@ -1112,7 +1118,7 @@ class BotScene2 extends Phaser.Scene {
     }
 
     update() {
-        let _this = this;
-        _this.timeRemainingCounter.setText(_this.timeRemainingToSkip);
+        // let _this = this;
+        // _this.timeRemainingCounter.setText(_this.timeRemainingToSkip);
     }
 }
