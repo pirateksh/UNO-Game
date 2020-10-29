@@ -43,6 +43,10 @@ def broadcast_notification(group_name, message):
 # @login_required
 def play_now(request):
     player = request.user
+    if not player.is_authenticated:
+        message = f"You need to login first!"
+        return render(request, '404.html', {"message": message})
+
     player_profile = UserProfile.objects.get(user=player)
     if not player_profile.is_email_verified:
         messages.info(request, f"Your email is not verified.")
@@ -79,7 +83,7 @@ def enter_public_play(request):
             reverse('enter_game_room', kwargs={'game_type': GameServer.PUBLIC, 'unique_id': active_unique_id}))
     else:
         message = f"You need to Login/Signup first."
-        raise Http404(message)
+        return render(request, '404.html', {"message": message})
 
 
 def enter_friend_play(request):
@@ -101,15 +105,15 @@ def enter_friend_play(request):
                 if friend_game.unique_id == unique_id:
                     if friend_game.get_count_of_players() == MAX_JOINED_PLAYER_COUNT:
                         message = f"Friendly Game Room with ID {unique_id} is full."
-                        raise Http404(message)
+                        return render(request, '404.html', {"message": message})
                     if friend_game.is_game_running:
                         message = f"Game is already running in Friendly Game Room with ID {unique_id}."
-                        raise Http404(message)
+                        return render(request, '404.html', {"message": message})
                     return HttpResponseRedirect(
                         reverse('enter_game_room',
                                 kwargs={"game_type": GameServer.FRIEND, "unique_id": unique_id}))
-        message = f"Friendly Game Room with ID {unique_id} doesn't exist."
-        raise Http404(message)
+        message = f"Friendly Game Room with ID {unique_id} does'nt exist."
+        return render(request, '404.html', {"message": message})
     elif request.method == "GET":  # Creating New Game and Entering
         unique_id = id_generator(10)
         return HttpResponseRedirect(
@@ -135,7 +139,7 @@ def enter_game_room(request, game_type, unique_id):
 
     if not player.is_authenticated:
         error_message = f"Login / Signup to enter a Game Room."
-        raise Http404(error_message)
+        return render(request, '404.html', {"message": error_message})
 
     context = {
         'unique_id': unique_id,

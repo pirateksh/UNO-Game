@@ -12,6 +12,12 @@ class BotScene2 extends Phaser.Scene {
         _this.starfield2.setOrigin(0,0);
 
 
+        _this.backgroundMusic = _this.sound.add("backgroundMusic", {volume: 0.3, loop: true});
+        _this.backgroundMusic.play();
+
+        // Playing Welcome Audio
+        _this.sound.play("welcome");
+
         let FKey = this.input.keyboard.addKey('F');
 
         FKey.on('down', function () {
@@ -67,15 +73,17 @@ class BotScene2 extends Phaser.Scene {
         _this.unoButton.setInteractive();
         _this.unoButton.setScale(gameDetails.unoButtonScale);
         _this.unoButton.on("pointerover", function (pointer) {
+            document.querySelector("canvas").style.cursor = "pointer";
             _this.unoButton.play("unoButtonOver");
         });
 
         _this.unoButton.on("pointerout", function (pointer) {
+            document.querySelector("canvas").style.cursor = "default";
             _this.unoButton.play("unoButtonOut");
         });
 
         _this.unoButton.on("pointerdown", function (pointer) {
-            currentGame.callUnoRequest(socket);
+            _this.sound.play("unoCallSound");
         });
 
         _this.deck = _this.physics.add.group();
@@ -110,6 +118,7 @@ class BotScene2 extends Phaser.Scene {
 
         _this.topDeckCard.on("pointerdown", function (pointer) {
             console.log("Deck card has been clicked.");
+            _this.sound.play("drawCard");
             drawCardRequest();
             _this.drewCard = true;
         });
@@ -159,6 +168,7 @@ class BotScene2 extends Phaser.Scene {
             // drawn_card_val variable is defined if the Player played the Drawn Card and it will contain the drawn card value
 
             if(!_this.isGameRunning) {
+                _this.sound.play('shuffle');
                 _this.startGame(let_bot_game_state, let_player_state, let_playable_cards);
                 _this.isGameRunning = true;
             }
@@ -248,7 +258,7 @@ class BotScene2 extends Phaser.Scene {
             }
         }
         if(bot_says_uno === 1){
-            _this.sound.play("unoCallAudio");
+            _this.sound.play("unoCallVoice");
         }
         if(bot_won === 1){
             _this.sound.play("botWonGame");
@@ -304,8 +314,11 @@ class BotScene2 extends Phaser.Scene {
 
             return;
         }
+
         let playedCardString = let_bot_played_cards[index];
         if(playedCardString !== "DRAW_CARD") {
+            _this.sound.play('playCard');
+
             let playedCard = parseCard(let_bot_played_cards[index]);
             let playedCardSprite = _this.getCardSprite(playedCard, gameDetails.botX, gameDetails.botY, 0, gameDetails.myHandScale);
 
@@ -344,6 +357,8 @@ class BotScene2 extends Phaser.Scene {
         }
         else {
             // To be called when Opponent draws a card.
+            _this.sound.play('drawCard');
+
             let x = gameDetails.deckX, y = gameDetails.deckY;
             let botX = gameDetails.centerX , botY = gameDetails.centerY - gameDetails.radius;
             let drawnCard = _this.physics.add.sprite(x, y, "cardBack");
@@ -643,6 +658,7 @@ class BotScene2 extends Phaser.Scene {
                             duration: 700,
                             scale: gameDetails.myHandScale,
                             onComplete: function () {
+                                _this.sound.play("playCard");
                                 cardPlayRequest(drawnCardObject, "");
                                 drawnCardSprite.destroy();
                             },
@@ -705,6 +721,7 @@ class BotScene2 extends Phaser.Scene {
                     if(drawnCardObject.category === "WF") {
                         _this.drawCardBot(); _this.drawCardBot(); _this.drawCardBot(); _this.drawCardBot();
                     }
+                    _this.sound.play("playCard");
                     cardPlayRequest(drawnCardObject, "B");
                 },
                 callbackScope: _this,
@@ -736,6 +753,7 @@ class BotScene2 extends Phaser.Scene {
                     if(drawnCardObject.category === "WF") {
                         _this.drawCardBot(); _this.drawCardBot(); _this.drawCardBot(); _this.drawCardBot();
                     }
+                    _this.sound.play("playCard");
                     cardPlayRequest(drawnCardObject, "G");
                 },
                 callbackScope: _this,
@@ -768,6 +786,7 @@ class BotScene2 extends Phaser.Scene {
                     if(drawnCardObject.category === "WF") {
                         _this.drawCardBot(); _this.drawCardBot(); _this.drawCardBot(); _this.drawCardBot();
                     }
+                    _this.sound.play("playCard");
                     cardPlayRequest(drawnCardObject, "R");
                 },
                 callbackScope: _this,
@@ -800,6 +819,7 @@ class BotScene2 extends Phaser.Scene {
                     if(drawnCardObject.category === "WF") {
                         _this.drawCardBot(); _this.drawCardBot(); _this.drawCardBot(); _this.drawCardBot();
                     }
+                    _this.sound.play("playCard");
                     cardPlayRequest(drawnCardObject, "Y");
                 },
                 callbackScope: _this,
@@ -974,6 +994,7 @@ class BotScene2 extends Phaser.Scene {
                                 _this.drawCardBot();
                                 _this.drawCardBot();
                             }
+                            _this.sound.play("playCard");
                             cardPlayRequest(card, "");
                         },
                         callbackScope: _this,
@@ -1045,6 +1066,8 @@ class BotScene2 extends Phaser.Scene {
          let cardCount = parseInt(_this.botCardCount.text);
          cardCount += 1;
          _this.botCardCount.text = cardCount;
+
+         _this.sound.play("drawCard");
 
         this.tweens.add({
             targets: drawnCard,

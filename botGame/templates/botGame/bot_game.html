@@ -110,7 +110,7 @@
         let id_playable_cards = $('#playable_cards');
         let id_bot_played_cards = $('#bot_played_cards');
         let me = "{{ user.username }}";
-
+        let redirectUrl = "{% url 'play_now' %}";
 
         {#socket.onopen = function (e) {#}
         {#    console.log("The Connection has been Opened from Both Sides Now.", e);#}

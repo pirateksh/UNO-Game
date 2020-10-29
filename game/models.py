@@ -9,28 +9,37 @@ import string
 User = get_user_model()
 
 
-# class GameHistory(models.Model):
-#
-#     unique_game_id = models.CharField(max_length=10, verbose_name="Unique ID", unique=True, default=None)
-#
-#     concluded_at = models.DateTimeField(verbose_name="Concluded At", default=timezone.now())
-#
-#     winner = models.ForeignKey(User, verbose_name="Winner")
-#
-#     def __str__(self):
-#         return f"{self.unique_game_id}"
-#
-#
-# class Participant(models.Model):
-#
-#     game_room = models.ForeignKey(GameHistory, verbose_name="Game Room")
-#
-#     user = models.ForeignKey(User, verbose_name="User")
-#
-#     score = models.IntegerField(verbose_name="Score")
-#
-#     def __str__(self):
-#         return f"{self.user.username}"
+class GameHistory(models.Model):
+    PUBLIC, CUSTOM = "public", "custom"
+    game_choices = (
+        (PUBLIC, "Public"),
+        (CUSTOM, "Custom"),
+    )
+
+    unique_game_id = models.CharField(max_length=10, verbose_name="Unique ID", unique=True, default=None)
+
+    concluded_at = models.DateTimeField(verbose_name="Concluded At", default=timezone.now)
+
+    game_type = models.CharField(max_length=30, default=PUBLIC, choices=game_choices, verbose_name="Game Type")
+
+    winner_username = models.CharField(max_length=255, verbose_name="Winner Username")
+
+    def __str__(self):
+        return f"{self.unique_game_id}"
+
+
+class Participant(models.Model):
+
+    game_room = models.ForeignKey(GameHistory, verbose_name="Game Room", on_delete=models.CASCADE)
+
+    user = models.ForeignKey(User, verbose_name="User", on_delete=models.CASCADE)
+
+    score = models.IntegerField(default=0, verbose_name="Score")
+
+    rating_change = models.IntegerField(default=0, verbose_name="Rating Change")
+
+    def __str__(self):
+        return f"{self.user.username}"
 
 
 def id_generator(size):

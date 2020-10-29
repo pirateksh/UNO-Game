@@ -6,8 +6,7 @@ class Scene2 extends Phaser.Scene {
     * TODO: -- Kshitiz.
     *  1. Implement Illegal Wild Four Draw / Challenging when a Wild Four is Drawn.
     *  2. Try to implement a game tour for new players.
-    *  3. Show current top color after wild and wild four.
-    *  4. Can make customizable cards available to players of certain league.
+    *  3. Can make customizable cards available to players of certain league.
     * */
     create() {
         let _this = this;
@@ -17,6 +16,9 @@ class Scene2 extends Phaser.Scene {
         _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
         _this.starfield2.setOrigin(0,0);
 
+
+        _this.backgroundMusic = _this.sound.add("backgroundMusic", {volume: 0.3, loop: true});
+        _this.backgroundMusic.play();
 
         let FKey = this.input.keyboard.addKey('F');
 
@@ -32,9 +34,9 @@ class Scene2 extends Phaser.Scene {
 
         }, this);
 
-        let button = _this.add.image(game.config.width-16, 16, 'fullscreen', 0).setOrigin(1, 0).setScale(0.5).setInteractive();
+        let fullScreenButton = _this.add.image(game.config.width-16, 16, 'fullscreen', 0).setOrigin(1, 0).setScale(0.5).setInteractive();
 
-        button.on('pointerup', function () {
+        fullScreenButton.on('pointerup', function () {
             if (_this.scale.isFullscreen) {
                 button.setFrame(0);
                 _this.scale.stopFullscreen();
@@ -77,14 +79,14 @@ class Scene2 extends Phaser.Scene {
         }
 
 
+        // Playing Welcome Audio
+        _this.sound.play("welcome");
 
-
-        console.log("DELAYING START GAME!");
+        // Sending delayed startGameRequest.
         _this.time.delayedCall(
-            2000, 
+            2000,
             function() {
                 if(me === currentGame.adminUsername) {
-                    console.log("DELAYING SUCCESSFULL!");
                     currentGame.startGameRequest(socket);
                 }
             }, 
@@ -141,10 +143,12 @@ class Scene2 extends Phaser.Scene {
         _this.unoButton.setInteractive();
         _this.unoButton.setScale(gameDetails.unoButtonScale);
         _this.unoButton.on("pointerover", function (pointer) {
+            document.querySelector("canvas").style.cursor = "pointer";
             _this.unoButton.play("unoButtonOver");
         });
 
         _this.unoButton.on("pointerout", function (pointer) {
+            document.querySelector("canvas").style.cursor = "default";
             _this.unoButton.play("unoButtonOut");
         });
 
@@ -200,9 +204,7 @@ class Scene2 extends Phaser.Scene {
             }
             if(status === "start_game") {
 
-                if(status === "start_game") {
-                    console.log("Start Game From Scene 2");
-                }
+                _this.sound.play('shuffle');
                 currentGame.copyData(gameData);
 
                 _this.startTimer();
@@ -342,9 +344,13 @@ class Scene2 extends Phaser.Scene {
                 _this.moveOrSetTurnIndicator(true);
             }
             else if(status === "won_round") { // TODO: Add timer or not. -- Kshitiz
+                _this.sound.play('shuffle');
                 _this.playCardEventConsumer(backendResponse, true);
             }
             else if(status === "won_game") {
+
+                _this.sound.play('win');
+
                 _this.endGame();
                 let wonData = backendResponse.wonData;
                 let wonUsername = wonData.username;
