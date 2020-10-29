@@ -4,6 +4,7 @@ let chunks;
 let VIDEO_COUNT = 1;
 let BLOB_DATA_RECEIVED_COUNTER = 0;
 
+
 async function start_recording() {
     $('#id_start_btn').prop('disabled', true);
     $('#id_stop_btn').prop('disabled', false);
@@ -12,26 +13,32 @@ async function start_recording() {
 
     let stream = canvas.captureStream();
 
+    Object.keys(peers).forEach(key => {
+        console.log("hello", key, peers[key]);
+    });
+    
     await STREAM.then((mediaStream)=>{
-        stream.addTrack(mediaStream.getAudioTracks()[0]);
+        Object.keys(peers).forEach(key => {
+            if(peers[key] !== undefined){
+                stream.addTrack(peers[key].remoteStream.getAudioTracks()[0]);
+                console.log("Adding Audio Track for", key);
+            }
+        });
+        // stream.addTrack(mediaStream.getAudioTracks()[0]);
         MEDIA_RECORDER = new MediaRecorder(stream);
         chunks = [];
         MEDIA_RECORDER.start(10000); // 10 seconds in ms, means ondataavailable event is called in every 10 secondsalert("Recoding Started for Video: " + VIDEO_COUNT);
-        console.log("Recorind Started:", MEDIA_RECORDER.state);
+        console.log("Recording Started:", MEDIA_RECORDER.state);
     });
-
-    // MEDIA_RECORDER = new MediaRecorder(stream);
-    // chunks = [];
-    // MEDIA_RECORDER.start(10000); // 10 seconds in ms, means ondataavailable event is called in every 10 secondsalert("Recoding Started for Video: " + VIDEO_COUNT);
-    // console.log(MEDIA_RECORDER.state);
-
 
     MEDIA_RECORDER.ondataavailable = (ev) => {
         console.log("Called");
         chunks.push(ev.data);
         BLOB_DATA_RECEIVED_COUNTER += 1;
-        // if(BLOB_DATA_RECEIVED_COUNTER === 180){ // for 30 minutes
-        if(BLOB_DATA_RECEIVED_COUNTER === 3){
+
+        if(BLOB_DATA_RECEIVED_COUNTER === 180){ // for 30 minutes
+        // if(BLOB_DATA_RECEIVED_COUNTER === 3){
+
             BLOB_DATA_RECEIVED_COUNTER = 0;
             MEDIA_RECORDER.stop();
             MEDIA_RECORDER.start(10000);

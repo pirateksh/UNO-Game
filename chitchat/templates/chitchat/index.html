@@ -141,6 +141,7 @@
     <script src="{% static "js/chat.js"%}"></script>
     <script src="{% static "bootstrap/js/bootstrap.min.js"%}"></script>
      <!-- jQuery Ajax Script -->
+
     <script type="text/javascript">
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       function format_AM_PM(date) {
@@ -343,6 +344,9 @@
                             }
                         });
                     }
+
+                    let sh = document.getElementsByClassName("chat-history")[0].scrollHeight;
+                    $(".chat-history").animate({scrollTop: sh}, 0); // Auto Scrolling
                  }
               });
 
@@ -460,6 +464,8 @@
                           </li>
                       `);
                   }
+                  let sh = document.getElementsByClassName("chat-history")[0].scrollHeight;
+                  $(".chat-history").animate({scrollTop: sh}); // Auto Scrolling
               };
 
               socket.onerror = function (e) {
