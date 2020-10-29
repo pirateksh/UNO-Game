@@ -7,6 +7,7 @@ from channels.security.websocket import AllowedHostsOriginValidator, OriginValid
 from game.consumers import GameRoomConsumer
 from chitchat.consumers import ChatConsumer
 from botGame.consumers import BotGameConsumer
+# from botGame.consumers_old import BotGameConsumer as BGC_OLD
 
 application = ProtocolTypeRouter({
     # Empty for now (http->django views is added by default)
@@ -18,6 +19,7 @@ application = ProtocolTypeRouter({
                     path("game/enter_room/<str:game_type>/<str:unique_id>/", GameRoomConsumer),
                     url(r"^chitchat/(?P<username>[\w.@+-]+)$", ChatConsumer),
                     url(r"^game/bot_game/", BotGameConsumer),
+                    # url(r"^game/bot_game/", BGC_OLD), # For Running the Old version, for debugging gameplay with bot
                 ]
             )
         )
