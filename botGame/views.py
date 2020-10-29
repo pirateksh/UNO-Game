@@ -14,12 +14,9 @@ def bot_game(request):
 
     if bot_instance is None:
         bot_instance = Bot.objects.create_bot_instance(player_username)
-        context = {
-            'bot': bot_instance.id,
-        }
-        return render(request, 'botGame/bot_game.html', context)
-    else:
-        context = {
-            'bot': bot_instance.id,
-        }
-        return render(request, 'botGame/bot_game.html', context)
+
+    context = {
+        'bot': bot_instance.id,
+    }
+    return render(request, 'botGame/bot_game.html', context)
+    # return render(request, 'botGame/bot_game_old.html', context)
