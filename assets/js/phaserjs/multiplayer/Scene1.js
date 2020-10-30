@@ -74,6 +74,27 @@ class Scene1 extends Phaser.Scene {
         });
 
 
+        //csk
+        this.load.spritesheet("startRecordingButton", `${generatePath("spritesheets", "start_recording_button.png")}`, {
+            frameWidth: 73,
+            frameHeight: 73
+        });
+
+        this.load.spritesheet("pauseRecordingButton", `${generatePath("spritesheets", "pause_button.png")}`, {
+            frameWidth: 73,
+            frameHeight: 73
+        });
+
+        this.load.spritesheet("resumeRecordingButton", `${generatePath("spritesheets", "resume_button.png")}`, {
+            frameWidth: 73,
+            frameHeight: 73
+        });
+
+        this.load.spritesheet("saveRecordingButton", `${generatePath("spritesheets", "save_button.png")}`, {
+            frameWidth: 72,
+            frameHeight: 72
+        });
+
         this.load.spritesheet("playButton", `${generatePath("spritesheets", "play_button.png")}`, {
             frameWidth: 562,
             frameHeight: 221
@@ -144,31 +165,7 @@ class Scene1 extends Phaser.Scene {
         _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
         _this.starfield2.setOrigin(0,0);
 
-        let FKey = _this.input.keyboard.addKey('F');
-
-        FKey.on('down', function () {
-            if (_this.scale.isFullscreen) {
-                button.setFrame(0);
-                _this.scale.stopFullscreen();
-            }
-            else {
-                button.setFrame(1);
-                _this.scale.startFullscreen();
-            }
-        }, _this);
-
-        let button = _this.add.image(game.config.width-16, 16, 'fullscreen', 0).setOrigin(1, 0).setScale(0.5).setInteractive();
-
-        button.on('pointerup', function () {
-            if (_this.scale.isFullscreen) {
-                button.setFrame(0);
-                _this.scale.stopFullscreen();
-            }
-            else {
-                button.setFrame(1);
-                _this.scale.startFullscreen();
-            }
-        }, _this);
+        addFullScreenButton(_this);
 
 
         _this.unoLogo = _this.physics.add.sprite(game.config.width/2, 180, "unoLogo");
@@ -519,7 +516,7 @@ class Scene1 extends Phaser.Scene {
         };
 
         socket.onclose = function (e) {
-            let text = "Alas! You got disconnected!";
+            let text = "You got disconnected!";
             textToSpeech(text);
         };
 
@@ -539,16 +536,15 @@ class Scene1 extends Phaser.Scene {
 
         _this.playButton.on("pointerover", function (pointer) {
             document.querySelector("canvas").style.cursor = "pointer";
-            _this.playButton.play("playButtonOver");
+            _this.playButton.setFrame(1);
         });
 
         _this.playButton.on("pointerout", function (pointer) {
             document.querySelector("canvas").style.cursor = "default";
-            _this.playButton.play("playButtonOut");
+            _this.playButton.setFrame(0);
         });
 
         _this.playButton.on("pointerdown", function (pointer) {
-            console.log("PLAY NOW CLICKED!");
             if(_this.videoGroup.length === currentGame.players.length) {
                 if(currentGame.players.length === 1) {
                     let p = prompt("This is for Testing. Only 1 Player. DO you want to continue?");
@@ -577,245 +573,5 @@ class Scene1 extends Phaser.Scene {
 			frameRate: 50, // play at 20 frames per second
 			repeat: -1 // For infinite loop (repeat) we user -1
 		});
-
-        this.anims.create({
-            key: "noButtonOut",
-            frames: this.anims.generateFrameNumbers("noButton", {
-                start: 0,
-                end: 0
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "noButtonOver",
-            frames: this.anims.generateFrameNumbers("noButton", {
-                start: 1,
-                end: 1
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "yesButtonOut",
-            frames: this.anims.generateFrameNumbers("yesButton", {
-                start: 0,
-                end: 0
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "yesButtonOver",
-            frames: this.anims.generateFrameNumbers("yesButton", {
-                start: 1,
-                end: 1
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "unoButtonOut",
-            frames: this.anims.generateFrameNumbers("unoButton", {
-                start: 0,
-                end: 0
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "unoButtonOver",
-            frames: this.anims.generateFrameNumbers("unoButton", {
-                start: 1,
-                end: 1
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "challengeButtonOut",
-            frames: this.anims.generateFrameNumbers("challengeButton", {
-                start: 0,
-                end: 0
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "challengeButtonOver",
-            frames: this.anims.generateFrameNumbers("challengeButton", {
-                start: 1,
-                end: 1
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "crossButtonOut",
-            frames: this.anims.generateFrameNumbers("crossButton", {
-                start: 0,
-                end: 0
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "crossButtonOver",
-            frames: this.anims.generateFrameNumbers("crossButton", {
-                start: 1,
-                end: 1
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "exitButtonOut",
-            frames: this.anims.generateFrameNumbers("exitButton", {
-                start: 0,
-                end: 0
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "exitButtonOver",
-            frames: this.anims.generateFrameNumbers("exitButton", {
-                start: 1,
-                end: 1
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "musicToggleButtonOut",
-            frames: this.anims.generateFrameNumbers("musicToggleButton", {
-                start: 0,
-                end: 0
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "musicToggleButtonOver",
-            frames: this.anims.generateFrameNumbers("musicToggleButton", {
-                start: 1,
-                end: 1
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "playButtonOut",
-            frames: this.anims.generateFrameNumbers("playButton", {
-                start: 0,
-                end: 0
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "playButtonOver",
-            frames: this.anims.generateFrameNumbers("playButton", {
-                start: 1,
-                end: 1
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "chooseBlueButtonOut",
-            frames: this.anims.generateFrameNumbers("chooseBlueButton", {
-                start: 0,
-                end: 0
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "chooseBlueButtonOver",
-            frames: this.anims.generateFrameNumbers("chooseBlueButton", {
-                start: 1,
-                end: 1
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "chooseYellowButtonOut",
-            frames: this.anims.generateFrameNumbers("chooseYellowButton", {
-                start: 0,
-                end: 0
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "chooseYellowButtonOver",
-            frames: this.anims.generateFrameNumbers("chooseYellowButton", {
-                start: 1,
-                end: 1
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "chooseGreenButtonOut",
-            frames: this.anims.generateFrameNumbers("chooseGreenButton", {
-                start: 0,
-                end: 0
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "chooseGreenButtonOver",
-            frames: this.anims.generateFrameNumbers("chooseGreenButton", {
-                start: 1,
-                end: 1
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "chooseRedButtonOut",
-            frames: this.anims.generateFrameNumbers("chooseRedButton", {
-                start: 0,
-                end: 0
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: "chooseRedButtonOver",
-            frames: this.anims.generateFrameNumbers("chooseRedButton", {
-                start: 1,
-                end: 1
-            }),
-            frameRate: 20,
-            repeat: 0
-        });
     }
 }

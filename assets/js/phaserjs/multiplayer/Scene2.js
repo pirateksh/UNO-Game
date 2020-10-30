@@ -530,10 +530,12 @@ class Scene2 extends Phaser.Scene {
                     challengeButton.setScale(gameDetails.roundButtonScale);
                     challengeButton.setData({"username": otherPlayer});
                     challengeButton.on("pointerover", function (pointer) {
-                        challengeButton.play("challengeButtonOver");
+                        document.querySelector("canvas").style.cursor = "pointer";
+                        challengeButton.setFrame(1);
                     });
                     challengeButton.on("pointerout", function (pointer) {
-                        challengeButton.play("challengeButtonOut");
+                        document.querySelector("canvas").style.cursor = "default";
+                        challengeButton.setFrame(0);
                     });
                     challengeButton.on("pointerdown", function (pointer) {
                         currentGame.catchPlayerRequest(socket, otherPlayer);
@@ -626,11 +628,13 @@ class Scene2 extends Phaser.Scene {
                 yesButton.setInteractive();
 
                 noButton.on("pointerover", function (pointer) {
-                    noButton.play("noButtonOver");
+                    document.querySelector("canvas").style.cursor = "pointer";
+                    noButton.setFrame(1);
                 });
 
                 noButton.on("pointerout", function (pointer) {
-                    noButton.play("noButtonOut");
+                    document.querySelector("canvas").style.cursor = "default";
+                    noButton.setFrame(0);
                 });
 
                 noButton.on("pointerdown", function (pointer) {
@@ -647,11 +651,13 @@ class Scene2 extends Phaser.Scene {
                 });
 
                 yesButton.on("pointerover", function (pointer) {
-                    yesButton.play("yesButtonOver");
+                    document.querySelector("canvas").style.cursor = "pointer";
+                    yesButton.setFrame(1);
                 });
 
                 yesButton.on("pointerout", function (pointer) {
-                    yesButton.play("yesButtonOut");
+                    document.querySelector("canvas").style.cursor = "default";
+                    yesButton.setFrame(0);
                 });
 
                 yesButton.on("pointerdown", function (pointer) {
@@ -697,10 +703,12 @@ class Scene2 extends Phaser.Scene {
         _this.yellowButton.setScale(gameDetails.chooseColorButtonScale);
 
         _this.blueButton.on("pointerover", function (pointer) {
-            _this.blueButton.play("chooseBlueButtonOver");
+            document.querySelector("canvas").style.cursor = "pointer";
+            _this.blueButton.setFrame(1);
         });
         _this.blueButton.on("pointerout", function (pointer) {
-            _this.blueButton.play("chooseBlueButtonOut");
+            document.querySelector("canvas").style.cursor = "default";
+            _this.blueButton.setFrame(0);
         });
         _this.blueButton.on("pointerdown", function (pointer) {
             _this.chooseColorText.destroy();
@@ -715,10 +723,12 @@ class Scene2 extends Phaser.Scene {
         });
 
         _this.greenButton.on("pointerover", function (pointer) {
-            _this.greenButton.play("chooseGreenButtonOver");
+            document.querySelector("canvas").style.cursor = "pointer";
+            _this.greenButton.setFrame(1);
         });
         _this.greenButton.on("pointerout", function (pointer) {
-            _this.greenButton.play("chooseGreenButtonOut");
+            document.querySelector("canvas").style.cursor = "default";
+            _this.greenButton.setFrame(0);
         });
         _this.greenButton.on("pointerdown", function (pointer) {
             _this.chooseColorText.destroy();
@@ -733,10 +743,12 @@ class Scene2 extends Phaser.Scene {
         });
 
         _this.redButton.on("pointerover", function (pointer) {
-            _this.redButton.play("chooseRedButtonOver");
+            document.querySelector("canvas").style.cursor = "pointer";
+            _this.redButton.setFrame(1);
         });
         _this.redButton.on("pointerout", function (pointer) {
-            _this.redButton.play("chooseRedButtonOut");
+            document.querySelector("canvas").style.cursor = "default";
+            _this.redButton.setFrame(0);
         });
         _this.redButton.on("pointerdown", function (pointer) {
             _this.chooseColorText.destroy();
@@ -751,10 +763,12 @@ class Scene2 extends Phaser.Scene {
         });
 
         _this.yellowButton.on("pointerover", function (pointer) {
-            _this.yellowButton.play("chooseYellowButtonOver");
+            document.querySelector("canvas").style.cursor = "pointer";
+            _this.yellowButton.setFrame(1);
         });
         _this.yellowButton.on("pointerout", function (pointer) {
-            _this.yellowButton.play("chooseYellowButtonOut");
+            document.querySelector("canvas").style.cursor = "default";
+            _this.yellowButton.setFrame(0);
         });
         _this.yellowButton.on("pointerdown", function (pointer) {
             _this.chooseColorText.destroy();
@@ -974,11 +988,13 @@ class Scene2 extends Phaser.Scene {
             cardSprite.on("pointerover", function (pointer) {
                 cardSprite.depth = depth + 2;
                 cardSprite.y = (gameDetails.myHandY - 15);
+                document.querySelector("canvas").style.cursor = "pointer";
             });
 
             cardSprite.on("pointerout", function (pointer) {
                 cardSprite.depth = depth;
                 cardSprite.y = gameDetails.myHandY;
+                document.querySelector("canvas").style.cursor = "default";
             });
 
             cardSprite.on("pointerdown", function (pointer) {
@@ -1204,6 +1220,7 @@ class Scene2 extends Phaser.Scene {
 
         _this.topDeckCard.on("pointerover", function (pointer) {
             _this.topDeckCard.y = gameDetails.deckY + 20;
+            document.querySelector("canvas").style.cursor = "pointer";
         });
 
         _this.topDeckCard.on("pointerout", function (pointer) {
@@ -1212,39 +1229,8 @@ class Scene2 extends Phaser.Scene {
         });
 
         _this.topDeckCard.on("pointerdown", function (pointer) {
-            document.querySelector("canvas").style.cursor = "pointer";
             currentGame.drawCardRequest(socket);
         });
-    }
-
-    addFullScreenButton() {
-        let _this = this;
-        let FKey = this.input.keyboard.addKey('F');
-
-        FKey.on('down', function () {
-            if (this.scale.isFullscreen) {
-                _this.fullScreenButton.setFrame(0);
-                this.scale.stopFullscreen();
-            }
-            else {
-                _this.fullScreenButton.setFrame(1);
-                this.scale.startFullscreen();
-            }
-
-        }, this);
-
-        _this.fullScreenButton = _this.add.image(game.config.width-16, 16, 'fullscreen', 0).setOrigin(1, 0).setScale(0.5).setInteractive();
-
-        _this.fullScreenButton.on('pointerup', function () {
-            if (_this.scale.isFullscreen) {
-                _this.fullScreenButton.setFrame(0);
-                _this.scale.stopFullscreen();
-            }
-            else {
-                _this.fullScreenButton.setFrame(1);
-                _this.scale.startFullscreen();
-            }
-        }, _this);
     }
 
     addCrossButton(x, y) {
@@ -1254,12 +1240,12 @@ class Scene2 extends Phaser.Scene {
         _this.crossButton.setInteractive();
         _this.crossButton.on("pointerout", function (pointer) {
             document.querySelector("canvas").style.cursor = "default";
-            _this.crossButton.play("crossButtonOut");
+            _this.crossButton.setFrame(0);
         });
 
         _this.crossButton.on("pointerover", function (pointer) {
             document.querySelector("canvas").style.cursor = "pointer";
-            _this.crossButton.play("crossButtonOver");
+            _this.crossButton.setFrame(1);
         });
 
         _this.crossButton.on("pointerdown", function (pointer) {
@@ -1275,12 +1261,12 @@ class Scene2 extends Phaser.Scene {
         _this.exitButton.setInteractive();
         _this.exitButton.on("pointerout", function (pointer) {
             document.querySelector("canvas").style.cursor = "default";
-            _this.exitButton.play("exitButtonOut");
+            _this.exitButton.setFrame(0);
         });
 
         _this.exitButton.on("pointerover", function (pointer) {
             document.querySelector("canvas").style.cursor = "pointer";
-            _this.exitButton.play("exitButtonOver");
+            _this.exitButton.setFrame(1);
         });
 
         _this.exitButton.on("pointerdown", function (pointer) {
@@ -1300,12 +1286,12 @@ class Scene2 extends Phaser.Scene {
         _this.unoButton.setScale(gameDetails.unoButtonScale);
         _this.unoButton.on("pointerover", function (pointer) {
             document.querySelector("canvas").style.cursor = "pointer";
-            _this.unoButton.play("unoButtonOver");
+            _this.unoButton.setFrame(1);
         });
 
         _this.unoButton.on("pointerout", function (pointer) {
             document.querySelector("canvas").style.cursor = "default";
-            _this.unoButton.play("unoButtonOut");
+            _this.unoButton.setFrame(0);
         });
 
         _this.unoButton.on("pointerdown", function (pointer) {
@@ -1320,13 +1306,13 @@ class Scene2 extends Phaser.Scene {
         _this.musicToggleButton.setInteractive();
         _this.musicToggleButton.on("pointerover", function () {
             document.querySelector("canvas").style.cursor = "pointer";
-            _this.musicToggleButton.play("musicToggleButtonOver");
+            _this.musicToggleButton.setFrame(1);
         });
 
         _this.musicToggleButton.on("pointerout", function () {
 
             document.querySelector("canvas").style.cursor = "default";
-            _this.musicToggleButton.play("musicToggleButtonOut");
+            _this.musicToggleButton.setFrame(0);
         });
 
         _this.musicToggleButton.on("pointerdown", function () {
@@ -1341,6 +1327,97 @@ class Scene2 extends Phaser.Scene {
         });
     }
 
+    addRecordingButtons() {
+        let _this = this;
+        let x = gameDetails.fullScreenButtonX - 60, y = 20, scale = gameDetails.roundButtonScale;
+        _this.startRecordingButton = _this.physics.add.sprite(x - 120, y, "startRecordingButton").setInteractive().setScale(scale);
+        _this.resumeRecordingButton = _this.physics.add.sprite(x - 40, y, "resumeRecordingButton").setScale(scale).setAlpha(0.5);
+        _this.pauseRecordingButton = _this.physics.add.sprite(x - 80, y, "pauseRecordingButton").setScale(scale).setAlpha(0.5);
+        _this.saveRecordingButton = _this.physics.add.sprite(x, y, "saveRecordingButton").setScale(scale).setAlpha(0.5);
+
+        _this.startRecordingButton.on('pointerover', function () {
+            document.querySelector("canvas").style.cursor = "pointer";
+        });
+
+        _this.resumeRecordingButton.on('pointerover', function () {
+            document.querySelector("canvas").style.cursor = "pointer";
+        });
+
+        _this.pauseRecordingButton.on('pointerover', function () {
+            document.querySelector("canvas").style.cursor = "pointer";
+        });
+
+        _this.saveRecordingButton.on('pointerover', function () {
+            document.querySelector("canvas").style.cursor = "pointer";
+        });
+
+        _this.startRecordingButton.on('pointerout', function () {
+            document.querySelector("canvas").style.cursor = "default";
+        });
+
+        _this.resumeRecordingButton.on('pointerout', function () {
+            document.querySelector("canvas").style.cursor = "default";
+        });
+
+        _this.pauseRecordingButton.on('pointerout', function () {
+            document.querySelector("canvas").style.cursor = "default";
+        });
+
+        _this.saveRecordingButton.on('pointerout', function () {
+            document.querySelector("canvas").style.cursor = "default";
+        });
+
+        _this.startRecordingButton.on('pointerdown', function () {
+            _this.startRecordingButton.disableInteractive().setAlpha(0.5);
+
+            _this.pauseRecordingButton.setInteractive().setAlpha(1);
+            _this.saveRecordingButton.setInteractive().setAlpha(1);
+
+            let text = "Started Recording.";
+            textToSpeech(text);
+
+            // Starting Recording
+            start_recording();
+        });
+
+        _this.pauseRecordingButton.on('pointerdown', function () {
+            _this.pauseRecordingButton.disableInteractive().setAlpha(0.5);
+            _this.resumeRecordingButton.setInteractive().setAlpha(1);
+
+            let text = "Paused recording";
+            textToSpeech(text);
+
+            // Pausing recording
+            pause_recording();
+        });
+
+        _this.resumeRecordingButton.on('pointerdown', function () {
+            _this.resumeRecordingButton.disableInteractive().setAlpha(0.5);
+            _this.pauseRecordingButton.setInteractive().setAlpha(1);
+
+            let text = "Resumed Recording.";
+            textToSpeech(text);
+
+            // Resuming recording
+            resume_recording();
+        });
+
+
+
+        _this.saveRecordingButton.on('pointerdown', function () {
+            _this.saveRecordingButton.disableInteractive().setAlpha(0.5);
+            _this.startRecordingButton.setInteractive().setAlpha(1);
+            _this.resumeRecordingButton.disableInteractive().setAlpha(0.5);
+            _this.pauseRecordingButton.disableInteractive().setAlpha(0.5);
+
+            let text = "Saved Recording. It is ready to be downloaded."
+            textToSpeech(text);
+
+            // Saving Recording
+            stop_recording();
+        });
+    }
+
     setupGame() {
         let _this = this;
         _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
@@ -1352,7 +1429,7 @@ class Scene2 extends Phaser.Scene {
 
         _this.clockSound = _this.sound.add("clockTicking", {volume: 4, loop: true});
 
-        _this.addFullScreenButton();
+        addFullScreenButton(_this);
 
         _this.wonGameData = null;
 
@@ -1368,6 +1445,7 @@ class Scene2 extends Phaser.Scene {
                 if(me === currentGame.adminUsername) {
                     currentGame.startGameRequest(socket);
                 }
+                _this.addRecordingButtons();
             },
             [],
             _this

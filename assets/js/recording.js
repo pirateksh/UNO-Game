@@ -47,7 +47,7 @@ async function start_recording() {
 
     MEDIA_RECORDER.onstop = (ev) => {
         let blob = new Blob(chunks, {'type': 'video/webm'});
-        alert("Recording is ready to be Downloaded");
+        // alert("Recording is ready to be Downloaded");
         chunks = [];
         let videoURL = window.URL.createObjectURL(blob);
         // let innerHTML = "download_link_" + VIDEO_COUNT;
@@ -70,7 +70,7 @@ function pause_recording(){
     }
     else if(MEDIA_RECORDER.state === "recording"){
         MEDIA_RECORDER.pause();
-        alert("Recoding Paused");
+        // alert("Recoding Paused");
         console.log(MEDIA_RECORDER.state);
     }
     else if(MEDIA_RECORDER.state === "paused"){
@@ -95,7 +95,7 @@ function resume_recording(){
     }
     else if(MEDIA_RECORDER.state === "paused"){
         MEDIA_RECORDER.resume();
-        alert("Recoding Resumed");
+        // alert("Recoding Resumed");
         console.log(MEDIA_RECORDER.state);
     }
 }

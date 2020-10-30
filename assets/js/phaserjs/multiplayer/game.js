@@ -53,6 +53,8 @@ window.onload = function () {
         uniqueIdX: 50,
         uniqueIdY: height - 50,
         backgroundMusicVolume: 0.3,
+        fullScreenButtonX: width - 16,
+        fullScreenButtonY: 16,
 	};
 
 	let config = {
@@ -247,5 +249,43 @@ function addLabelOnLiveFeed(scene, vidElem, label) {
             },
             callbackScope: _this,
         });
+    }, _this);
+}
+
+function addFullScreenButton(scene) {
+    let _this = scene;
+    let FKey = _this.input.keyboard.addKey('F');
+
+    FKey.on('down', function () {
+        if (_this.scale.isFullscreen) {
+            _this.fullScreenButton.setFrame(0);
+            _this.scale.stopFullscreen();
+        }
+        else {
+            _this.fullScreenButton.setFrame(1);
+            _this.scale.startFullscreen();
+        }
+
+    }, _this);
+
+    _this.fullScreenButton = _this.add.image(gameDetails.fullScreenButtonX, gameDetails.fullScreenButtonY, 'fullscreen', 0).setOrigin(1, 0).setScale(0.5).setInteractive();
+
+    _this.fullScreenButton.on('pointerover', function () {
+        document.querySelector("canvas").style.cursor = "pointer";
+    });
+
+    _this.fullScreenButton.on('pointerout', function () {
+        document.querySelector("canvas").style.cursor = "default";
+    });
+
+    _this.fullScreenButton.on('pointerup', function () {
+        if (_this.scale.isFullscreen) {
+            _this.fullScreenButton.setFrame(0);
+            _this.scale.stopFullscreen();
+        }
+        else {
+            _this.fullScreenButton.setFrame(1);
+            _this.scale.startFullscreen();
+        }
     }, _this);
 }
