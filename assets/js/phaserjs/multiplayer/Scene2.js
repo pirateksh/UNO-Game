@@ -202,7 +202,8 @@ class Scene2 extends Phaser.Scene {
             else if(status === "failed_call_uno") { // TODO: Add banned sound mp3.
                 let username = data.username;
                 if(username === me) {
-                    alert("You UNO Call failed!");
+                    let text = "You UNO Call failed!";
+                    textToSpeech(text);
                 }
             }
             else if(status === "catch_player") {
@@ -1345,7 +1346,6 @@ class Scene2 extends Phaser.Scene {
         _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
         _this.starfield2.setOrigin(0,0);
 
-
         _this.backgroundMusic = _this.sound.add("backgroundMusic", {volume: gameDetails.backgroundMusicVolume, loop: true});
         _this.backgroundMusic.play();
         _this.isBackgroundMusicPlaying = true;
@@ -1386,7 +1386,7 @@ class Scene2 extends Phaser.Scene {
             menuButtonX += 40;
         }
         // Adding Music Toggle Button
-        _this.addMusicToggleButton(100, gameDetails.crossButtonY);
+        _this.addMusicToggleButton(menuButtonX, menuButtonY);
 
         // Adding Uno Button and Unique Game ID
         _this.addUniqueIdAndUnoButton();

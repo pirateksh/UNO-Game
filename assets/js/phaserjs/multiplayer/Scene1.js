@@ -502,12 +502,10 @@ class Scene1 extends Phaser.Scene {
                     wormhole.play();
                     let spaceSound = _this.sound.add("space");
                     spaceSound.play();
-                    console.log(spaceSound);
                     _this.time.delayedCall(3000, function () {
                         wormhole.destroy();
-                        spaceSound.destroy();
+                        spaceSound.stop();
                         _this.scene.start("playGame");
-
                     }, [], _this);
                 }
             }

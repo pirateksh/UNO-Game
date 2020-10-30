@@ -1,4 +1,5 @@
 import magic
+import json
 from django.shortcuts import render, get_object_or_404, HttpResponse, HttpResponseRedirect, reverse, Http404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -36,11 +37,15 @@ def user_profile_view(request, username):
     # if visitor.is_authenticated:
     visited_profile = UserProfile.objects.get(user=visited_user)
     avatar_upload_form = AvatarUploadForm()
+
+    # history = json.loads(get_history(username=username))
+    history = get_history(username=username)
     context = {
         "visited_user": visited_user,
         "visited_profile": visited_profile,
         "avatar_upload_form": avatar_upload_form,
     }
+    context.update(history)
     return render(request, 'user_profile/profile_new.html', context=context)
     # else:
     #     message = f"Oops! User with username {username} not found!"
@@ -161,19 +166,8 @@ def avatar_upload(request, username):
         return render(request, '404.html', {"message": message})
 
 
-@login_required
-def history(request, username):
-    user = request.user
-    visited_user_qs = User.objects.filter(username=username)
-    if not visited_user_qs:
-        message = f"User with username {username} does'nt exist."
-        return render(request, '404.html', {"message": message})
-
-    visited_user = visited_user_qs[0]
-    if visited_user.username != user.username:
-        message = f"Why are you interested in someone else's history?"
-        return render(request, '404.html', {"message": message})
-
+def get_history(username):
+    user = User.objects.get(username=username)
     participant_qs = Participant.objects.filter(user=user)
 
     public_games = []
@@ -219,8 +213,8 @@ def history(request, username):
         for player in player_qs:
             print(f"{player.user.username} (Score: {player.score}")
 
-    context = {
+    response = {
         "custom_game_data": custom_game_data,
         "public_game_data": public_game_data,
     }
-    return render(request, 'user_profile/history.html', context=context)
+    return response

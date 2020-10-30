@@ -69,6 +69,9 @@ window.onload = function () {
 		height: height,
 		scene: [Scene1, Scene2, Scene3],
 		pixelArt: true,
+        audio: {
+            disableWebAudio: true
+        },
 		// Added for Physics Engine
 		physics: {
 			default: "arcade",
