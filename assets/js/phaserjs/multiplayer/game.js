@@ -50,6 +50,9 @@ window.onload = function () {
         dimAlpha: 0.2,
 		timeOutLimitInSeconds: 10,
         liveFeedScale: 0.2,
+        uniqueIdX: 50,
+        uniqueIdY: height - 50,
+        backgroundMusicVolume: 0.3,
 	};
 
 	let config = {
@@ -138,10 +141,18 @@ function resize() {
 
 function copyToClipboard(text) {
 	navigator.clipboard.writeText(text).then(function() {
-		alert("Unique ID has been copied to clipboard.")
+		text = "Unique ID has been copied to clipboard.";
+		textToSpeech(text);
 	}, function(err) {
-		alert("Alas! Unique ID could not be copied to clipboard.");
+	    console.log(err);
+		text = "Unique ID could not be copied to clipboard.";
+		textToSpeech(text);
 	});
+}
+
+function textToSpeech(text) {
+    let msg = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(msg);
 }
 
 function addLabelOnLiveFeed(scene, vidElem, label) {

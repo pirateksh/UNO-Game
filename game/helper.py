@@ -193,7 +193,7 @@ class PlayerServer:
 class GameServer:
     PUBLIC, FRIEND = 0, 1
     PUBLIC_ROOM_LIMIT = 2
-    WINNING_SCORE = 50
+    WINNING_SCORE = 500
     AVAILABLE_FRIEND_GAMES = []
     AVAILABLE_PUBLIC_GAMES = []
     # TODO: What will happen if deck runs out of cards. -- Kshitiz

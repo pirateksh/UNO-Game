@@ -13,183 +13,8 @@ class Scene2 extends Phaser.Scene {
         _this.config = game.config;
         let config = _this.config;
 
-        _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
-        _this.starfield2.setOrigin(0,0);
-
-
-        _this.backgroundMusic = _this.sound.add("backgroundMusic", {volume: 0.3, loop: true});
-        _this.backgroundMusic.play();
-
-        _this.clockSound = _this.sound.add("clockTicking", {volume: 4, loop: true});
-
-        let FKey = this.input.keyboard.addKey('F');
-
-        FKey.on('down', function () {
-            if (this.scale.isFullscreen) {
-                button.setFrame(0);
-                this.scale.stopFullscreen();
-            }
-            else {
-                button.setFrame(1);
-                this.scale.startFullscreen();
-            }
-
-        }, this);
-
-        let fullScreenButton = _this.add.image(game.config.width-16, 16, 'fullscreen', 0).setOrigin(1, 0).setScale(0.5).setInteractive();
-
-        fullScreenButton.on('pointerup', function () {
-            if (_this.scale.isFullscreen) {
-                fullScreenButton.setFrame(0);
-                _this.scale.stopFullscreen();
-            }
-            else {
-                fullScreenButton.setFrame(1);
-                _this.scale.startFullscreen();
-            }
-        }, _this);
-
-
-        _this.videoX = 90;
-        _this.videoY = 90;
-        _this.videoGroup = [];
-        _this.labelGroup = _this.physics.add.group();
-        _this.streamDict = _this.scene.get("bootGame").streamDict;
-
-        for(let label in _this.streamDict) {
-            if(_this.streamDict.hasOwnProperty(label)) {
-                let stream = _this.streamDict[label];
-                let vidElem = _this.add.video(_this.videoX, _this.videoY);
-                _this.videoY += 105;
-                vidElem.loadURL("", 'loadeddata', false);
-                vidElem.video.srcObject = stream;
-                vidElem.video.addEventListener('loadedmetadata', () => {
-                    vidElem.video.play();
-                    vidElem.depth = 0;
-                    vidElem.setData({"username": label});
-                    vidElem.setScale(gameDetails.liveFeedScale);
-                    _this.videoGroup.push(vidElem);
-                    vidElem.setData({"username": label});
-                });
-
-                addLabelOnLiveFeed(_this, vidElem, label);
-
-                if(label === me){
-                    vidElem.video.muted = true;
-                }
-            }
-        }
-
-
-        // Playing Welcome Audio
-        _this.sound.play("welcome");
-
-        // Sending delayed startGameRequest.
-        _this.time.delayedCall(
-            2000,
-            function() {
-                if(me === currentGame.adminUsername) {
-                    currentGame.startGameRequest(socket);
-                }
-            }, 
-            [], 
-            _this
-        );
-            
-        
-
-        _this.timeRemainingToSkip = gameDetails.timeOutLimitInSeconds;
-        _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, _this.config.height - 50, "pixelFont", _this.timeRemainingToSkip, 50);
-
-        // Adding exit button
-        _this.exitButton = _this.physics.add.sprite(gameDetails.exitButtonX, gameDetails.exitButtonY, "exitButton");
-        _this.exitButton.setScale(gameDetails.roundButtonScale);
-        _this.exitButton.setInteractive();
-        _this.exitButton.on("pointerout", function (pointer) {
-            _this.exitButton.play("exitButtonOut");
-        });
-
-        _this.exitButton.on("pointerover", function (pointer) {
-            _this.exitButton.play("exitButtonOver");
-        });
-
-        _this.exitButton.on("pointerdown", function (pointer) {
-            // alert("Do you really want to exit?");
-            currentGame.leaveGameRequest(socket);
-            _this.scene.start("endGame");
-        });
-
-        if(me === currentGame.adminUsername  && currentGame.gameType === Game.FRIEND) {
-            // Adding cross button
-            _this.crossButton = _this.physics.add.sprite(gameDetails.crossButtonX, gameDetails.crossButtonY, "crossButton");
-            _this.crossButton.setScale(gameDetails.roundButtonScale);
-            _this.crossButton.setInteractive();
-            _this.crossButton.on("pointerout", function (pointer) {
-                _this.crossButton.play("crossButtonOut");
-            });
-
-            _this.crossButton.on("pointerover", function (pointer) {
-                _this.crossButton.play("crossButtonOver");
-            });
-
-            _this.crossButton.on("pointerdown", function (pointer) {
-                // alert("Do you really want to end the game?");
-                currentGame.endGameRequest(socket);
-            });
-        }
-
-        // Adding Unique ID of Game.
-        _this.uniqueIdTag = _this.add.text(50, game.config.height - 50, `Unique ID: ${currentGame.uniqueId}`);
-
-        _this.unoButton = _this.physics.add.sprite(gameDetails.unoButtonX, gameDetails.unoButtonY, "unoButton");
-        _this.unoButton.setInteractive();
-        _this.unoButton.setScale(gameDetails.unoButtonScale);
-        _this.unoButton.on("pointerover", function (pointer) {
-            document.querySelector("canvas").style.cursor = "pointer";
-            _this.unoButton.play("unoButtonOver");
-        });
-
-        _this.unoButton.on("pointerout", function (pointer) {
-            document.querySelector("canvas").style.cursor = "default";
-            _this.unoButton.play("unoButtonOut");
-        });
-
-        _this.unoButton.on("pointerdown", function (pointer) {
-            currentGame.callUnoRequest(socket);
-        });
-
-        _this.deck = _this.physics.add.group();
-        _this.discardedTopCards = _this.physics.add.group();
-        _this.maxTopCardDepth = -1;
-
-        _this.playerNameBitMap =  _this.physics.add.group();
-        _this.playerRemainingCardsCountBitMap = _this.physics.add.group();
-        _this.challengeButtons = _this.physics.add.group();
-
-        let initialPosX = 0, initialPosY = 0;
-        _this.deckX = config.width/2 - initialPosX;
-        _this.deckY = config.height/2 + initialPosY;
-        for(let i = 0; i < 4; ++i) {
-            let cardBack = _this.physics.add.sprite(gameDetails.deckX + initialPosX, gameDetails.deckY + initialPosY, "cardBack");
-            cardBack.setScale(gameDetails.deckScale);
-            _this.topDeckCard = cardBack;
-            _this.deck.add(cardBack);
-            initialPosX -= 3;
-            initialPosY += 2;
-        }
-
-        _this.topDeckCard.on("pointerover", function (pointer) {
-            _this.topDeckCard.y = gameDetails.deckY + 20;
-        });
-
-        _this.topDeckCard.on("pointerout", function (pointer) {
-            _this.topDeckCard.y = gameDetails.deckY;
-        });
-
-        _this.topDeckCard.on("pointerdown", function (pointer) {
-            console.log("Deck card has been clicked.");
-            currentGame.drawCardRequest(socket); ////
-        });
+        // Setting up and Starting the Game.
+        _this.setupGame();
 
         socket.addEventListener("message", function (e) {
             let backendResponse = JSON.parse(e.data);
@@ -361,7 +186,8 @@ class Scene2 extends Phaser.Scene {
                 let wonUsername = wonData.username;
                 let wonScore = wonData.score;
                 // Game.addScoreToDOM(wonUsername, wonScore);
-                alert(`${wonUsername} won with score = ${wonScore}. Start a new game or leave the room.`);
+                let text = `${wonUsername} won the game with score = ${wonScore}.`;
+                textToSpeech(text);
                 currentGame.changeSceneRequest(socket, 3);
             }
             else if(status === "call_uno") {
@@ -386,8 +212,8 @@ class Scene2 extends Phaser.Scene {
 
                 if(caught === me) {
                 let drawnCards = JSON.parse(caughtData.drawnCards);
-                console.log("CAUGHT", catcher, caught, caughtData);
-                    alert(`You were caught by ${catcher}.`);
+                    let text = `You were caught by ${catcher}.`;
+                    textToSpeech(text);
                     for(let drawnCard of drawnCards) {
                         let category = drawnCard.category, number = drawnCard.number;
                         let drawnCardObject = new Card(category, number);
@@ -403,7 +229,8 @@ class Scene2 extends Phaser.Scene {
                     _this.adjustSelfHandOnTable();
                 }
                 else {
-                    alert(`${catcher} caught ${caught}.`);
+                    let text = `${catcher} caught ${caught}.`;
+                    textToSpeech(text);
                     for(let i = 0; i < 2; ++i) { // Only two cards are drawn in this case.
                         _this.drawCardOpp(caught);
                     }
@@ -431,7 +258,9 @@ class Scene2 extends Phaser.Scene {
                 _this.makeHandInteractive();
                 let username = data.username;
                 let timeOutData = backendResponse.timeOutData;
-                alert(`${username} couldn't play card in given time limit. ${username} is penalised with 2 cards.`);
+                let text = `${username}; couldn't play card in given time limit. ${username} is penalised with 2 cards.`
+                textToSpeech(text);
+
                 if(username === me) {
                     let drawnCards = JSON.parse(timeOutData.drawnCards);
                     for(let drawnCard of drawnCards) {
@@ -483,7 +312,8 @@ class Scene2 extends Phaser.Scene {
                                 repeat: 0,
                                 onComplete: function () {
                                     oppPlayerSprite.destroy();
-                                    alert(`${leftUsername} has left the game. ${leftUsername}'s card will be included into the deck.`);
+                                    let text = `${leftUsername} has left the game. ${leftUsername}'s card will be included into the deck.`;
+                                    textToSpeech(text);
                                 },
                                 callbackScope: _this
                             });
@@ -518,6 +348,14 @@ class Scene2 extends Phaser.Scene {
                 }
                 else {
                     console.log("Tha hi nhi");
+                }
+            }
+            else if(status === "cheating") {
+                let cheatingUsername = data.username;
+                console.log(`${cheatingUsername} is trying to CHEAT!`);
+                if(me === cheatingUsername) {
+                    let text = "Please be Patient while playing the cards!";
+                    textToSpeech(text);
                 }
             }
         });
@@ -595,8 +433,8 @@ class Scene2 extends Phaser.Scene {
         let gameData = JSON.parse(backendResponse.gameData);
         let wonUsername = wonData.username;
         let wonScore = wonData.score;
-        // Game.addScoreToDOM(wonUsername, wonScore);
-        alert(`${wonUsername} won with score = ${wonScore}. New round is going to start.`);
+        let text = `${wonUsername} won with score ${wonScore}. New round is going to start.`;
+        textToSpeech(text);
 
         // Emptying Hands.
         let removeCardSpritesArray = [];
@@ -1311,6 +1149,253 @@ class Scene2 extends Phaser.Scene {
         }
 
         return animKey;
+    }
+
+    importVideoStreamsFromScene1() {
+        let _this = this;
+        _this.videoX = 90;
+        _this.videoY = 90;
+        _this.videoGroup = [];
+        _this.labelGroup = _this.physics.add.group();
+        _this.streamDict = _this.scene.get("bootGame").streamDict;
+
+        for(let label in _this.streamDict) {
+            if(_this.streamDict.hasOwnProperty(label)) {
+                let stream = _this.streamDict[label];
+                let vidElem = _this.add.video(_this.videoX, _this.videoY);
+                _this.videoY += 105;
+                vidElem.loadURL("", 'loadeddata', false);
+                vidElem.video.srcObject = stream;
+                vidElem.video.addEventListener('loadedmetadata', () => {
+                    vidElem.video.play();
+                    vidElem.depth = 0;
+                    vidElem.setData({"username": label});
+                    vidElem.setScale(gameDetails.liveFeedScale);
+                    _this.videoGroup.push(vidElem);
+                    vidElem.setData({"username": label});
+                });
+
+                addLabelOnLiveFeed(_this, vidElem, label);
+
+                if(label === me){
+                    vidElem.video.muted = true;
+                }
+            }
+        }
+    }
+
+    addDeckCards() {
+        let _this = this;
+        _this.deck = _this.physics.add.group();
+        _this.discardedTopCards = _this.physics.add.group();
+        _this.maxTopCardDepth = -1;
+        let initialPosX = 0, initialPosY = 0;
+        _this.deckX = game.config.width/2 - initialPosX;
+        _this.deckY = game.config.height/2 + initialPosY;
+        for(let i = 0; i < 4; ++i) {
+            let cardBack = _this.physics.add.sprite(gameDetails.deckX + initialPosX, gameDetails.deckY + initialPosY, "cardBack");
+            cardBack.setScale(gameDetails.deckScale);
+            _this.topDeckCard = cardBack;
+            _this.deck.add(cardBack);
+            initialPosX -= 3;
+            initialPosY += 2;
+        }
+
+        _this.topDeckCard.on("pointerover", function (pointer) {
+            _this.topDeckCard.y = gameDetails.deckY + 20;
+        });
+
+        _this.topDeckCard.on("pointerout", function (pointer) {
+            document.querySelector("canvas").style.cursor = "default";
+            _this.topDeckCard.y = gameDetails.deckY;
+        });
+
+        _this.topDeckCard.on("pointerdown", function (pointer) {
+            document.querySelector("canvas").style.cursor = "pointer";
+            currentGame.drawCardRequest(socket);
+        });
+    }
+
+    addFullScreenButton() {
+        let _this = this;
+        let FKey = this.input.keyboard.addKey('F');
+
+        FKey.on('down', function () {
+            if (this.scale.isFullscreen) {
+                _this.fullScreenButton.setFrame(0);
+                this.scale.stopFullscreen();
+            }
+            else {
+                _this.fullScreenButton.setFrame(1);
+                this.scale.startFullscreen();
+            }
+
+        }, this);
+
+        _this.fullScreenButton = _this.add.image(game.config.width-16, 16, 'fullscreen', 0).setOrigin(1, 0).setScale(0.5).setInteractive();
+
+        _this.fullScreenButton.on('pointerup', function () {
+            if (_this.scale.isFullscreen) {
+                _this.fullScreenButton.setFrame(0);
+                _this.scale.stopFullscreen();
+            }
+            else {
+                _this.fullScreenButton.setFrame(1);
+                _this.scale.startFullscreen();
+            }
+        }, _this);
+    }
+
+    addCrossButton(x, y) {
+        let _this = this;
+        _this.crossButton = _this.physics.add.sprite(x, y, "crossButton");
+        _this.crossButton.setScale(gameDetails.roundButtonScale);
+        _this.crossButton.setInteractive();
+        _this.crossButton.on("pointerout", function (pointer) {
+            document.querySelector("canvas").style.cursor = "default";
+            _this.crossButton.play("crossButtonOut");
+        });
+
+        _this.crossButton.on("pointerover", function (pointer) {
+            document.querySelector("canvas").style.cursor = "pointer";
+            _this.crossButton.play("crossButtonOver");
+        });
+
+        _this.crossButton.on("pointerdown", function (pointer) {
+            // alert("Do you really want to end the game?");
+            currentGame.endGameRequest(socket);
+        });
+    }
+
+    addExitButton(x, y) {
+        let _this = this;
+        _this.exitButton = _this.physics.add.sprite(x, y, "exitButton");
+        _this.exitButton.setScale(gameDetails.roundButtonScale);
+        _this.exitButton.setInteractive();
+        _this.exitButton.on("pointerout", function (pointer) {
+            document.querySelector("canvas").style.cursor = "default";
+            _this.exitButton.play("exitButtonOut");
+        });
+
+        _this.exitButton.on("pointerover", function (pointer) {
+            document.querySelector("canvas").style.cursor = "pointer";
+            _this.exitButton.play("exitButtonOver");
+        });
+
+        _this.exitButton.on("pointerdown", function (pointer) {
+            // alert("Do you really want to exit?");
+            currentGame.leaveGameRequest(socket);
+            _this.scene.start("endGame");
+        });
+    }
+
+    addUniqueIdAndUnoButton() {
+        let _this = this;
+        // Adding Unique ID of Game.
+        _this.uniqueIdTag = _this.add.text(gameDetails.uniqueIdX, gameDetails.uniqueIdY, `Unique ID: ${currentGame.uniqueId}`);
+
+        _this.unoButton = _this.physics.add.sprite(gameDetails.unoButtonX, gameDetails.unoButtonY, "unoButton");
+        _this.unoButton.setInteractive();
+        _this.unoButton.setScale(gameDetails.unoButtonScale);
+        _this.unoButton.on("pointerover", function (pointer) {
+            document.querySelector("canvas").style.cursor = "pointer";
+            _this.unoButton.play("unoButtonOver");
+        });
+
+        _this.unoButton.on("pointerout", function (pointer) {
+            document.querySelector("canvas").style.cursor = "default";
+            _this.unoButton.play("unoButtonOut");
+        });
+
+        _this.unoButton.on("pointerdown", function (pointer) {
+            currentGame.callUnoRequest(socket);
+        });
+    }
+
+    addMusicToggleButton(x, y) {
+        let _this = this;
+        _this.musicToggleButton = _this.physics.add.sprite(x, y, "musicToggleButton");
+        _this.musicToggleButton.setScale(gameDetails.roundButtonScale);
+        _this.musicToggleButton.setInteractive();
+        _this.musicToggleButton.on("pointerover", function () {
+            document.querySelector("canvas").style.cursor = "pointer";
+            _this.musicToggleButton.play("musicToggleButtonOver");
+        });
+
+        _this.musicToggleButton.on("pointerout", function () {
+
+            document.querySelector("canvas").style.cursor = "default";
+            _this.musicToggleButton.play("musicToggleButtonOut");
+        });
+
+        _this.musicToggleButton.on("pointerdown", function () {
+            if(_this.isBackgroundMusicPlaying) {
+                _this.backgroundMusic.stop();
+                _this.isBackgroundMusicPlaying = false;
+            }
+            else {
+                _this.backgroundMusic.play();
+                _this.isBackgroundMusicPlaying = true;
+            }
+        });
+    }
+
+    setupGame() {
+        let _this = this;
+        _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
+        _this.starfield2.setOrigin(0,0);
+
+
+        _this.backgroundMusic = _this.sound.add("backgroundMusic", {volume: gameDetails.backgroundMusicVolume, loop: true});
+        _this.backgroundMusic.play();
+        _this.isBackgroundMusicPlaying = true;
+
+        _this.clockSound = _this.sound.add("clockTicking", {volume: 4, loop: true});
+
+        _this.addFullScreenButton();
+
+        _this.wonGameData = null;
+
+        _this.importVideoStreamsFromScene1();
+
+        // Playing Welcome Audio
+        _this.sound.play("welcome");
+
+        // Sending delayed startGameRequest.
+        _this.time.delayedCall(
+            2000,
+            function() {
+                if(me === currentGame.adminUsername) {
+                    currentGame.startGameRequest(socket);
+                }
+            },
+            [],
+            _this
+        );
+
+        _this.timeRemainingToSkip = gameDetails.timeOutLimitInSeconds;
+        _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, _this.config.height - 50, "pixelFont", _this.timeRemainingToSkip, 50);
+
+        // Adding exit button
+        let menuButtonX = gameDetails.exitButtonX, menuButtonY = gameDetails.exitButtonY;
+        _this.addExitButton(menuButtonX, menuButtonY);
+        menuButtonX += 40;
+        if(me === currentGame.adminUsername  && currentGame.gameType === Game.FRIEND) {
+            // Adding cross button
+            _this.addCrossButton(menuButtonX, menuButtonY);
+            menuButtonX += 40;
+        }
+        // Adding Music Toggle Button
+        _this.addMusicToggleButton(100, gameDetails.crossButtonY);
+
+        // Adding Uno Button and Unique Game ID
+        _this.addUniqueIdAndUnoButton();
+
+        _this.playerNameBitMap =  _this.physics.add.group();
+        _this.playerRemainingCardsCountBitMap = _this.physics.add.group();
+        _this.challengeButtons = _this.physics.add.group();
+
+        _this.addDeckCards();
     }
 
     update() {

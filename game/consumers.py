@@ -115,7 +115,18 @@ class GameRoomConsumer(AsyncConsumer):
                             forced_draw_data = returned_data
                 else:
                     # Handle Cheating
-                    pass
+                    cheating_response = {
+                        "status": "cheating",
+                        "message": "Trying to play Illegal Move",
+                        "data": {
+                            "username": str(self.me.username),
+                        }
+                    }
+                    await self.send({
+                        "type": "websocket.send",
+                        "text": json.dumps(cheating_response),
+                    })
+                    return
             elif type_of_event == "voluntary_draw_card":  # When current player clicked on deck to draw the card.
                 client_data = text_of_event['data']
                 server_data = {
@@ -125,7 +136,18 @@ class GameRoomConsumer(AsyncConsumer):
                     voluntary_draw_data = self.game.draw_card()
                 else:
                     # Handle Cheating
-                    pass
+                    cheating_response = {
+                        "status": "cheating",
+                        "message": "Trying to play Illegal Move",
+                        "data": {
+                            "username": str(self.me.username),
+                        }
+                    }
+                    await self.send({
+                        "type": "websocket.send",
+                        "text": json.dumps(cheating_response),
+                    })
+                    return
             elif type_of_event == "keep.card":  # Player kept the card after drawing.
                 client_data = text_of_event['data']
                 server_data = {

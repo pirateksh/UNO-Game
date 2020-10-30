@@ -68,6 +68,11 @@ class Scene1 extends Phaser.Scene {
             frameHeight: 73
         });
 
+        this.load.spritesheet("musicToggleButton", `${generatePath("spritesheets", "music_toggle_button.png")}`, {
+            frameWidth: 75,
+            frameHeight: 75
+        });
+
 
         this.load.spritesheet("playButton", `${generatePath("spritesheets", "play_button.png")}`, {
             frameWidth: 562,
@@ -201,7 +206,7 @@ class Scene1 extends Phaser.Scene {
         const my_peer = new Peer(undefined, { // making available a Peer Object from peerjs library to work on the root path
             host: '/',
             port: '8001'
-            // host: 'pirateksh-e684ae26.localhost.run',
+            // host: 'pirateksh-028b1663.localhost.run',
             // port: ''
 
             // host: 'sangwan-e071a5cd.localhost.run',
@@ -510,12 +515,14 @@ class Scene1 extends Phaser.Scene {
 
         socket.onerror = function (e) {
             console.log("error");
-            alert("This Game is Probably Full. Try Another One!");
+            let text = "This Game is Probably Full. Try Another One!";
+            textToSpeech(text);
             window.location.replace(redirectUrl);
         };
 
         socket.onclose = function (e) {
-            console.log("close");
+            let text = "Alas! You got disconnected!";
+            textToSpeech(text);
         };
 
         /*******************************
@@ -551,14 +558,16 @@ class Scene1 extends Phaser.Scene {
                         currentGame.changeSceneRequest(socket, 2);
                     }
                     else {
-                        alert("Wait for more players to join.");
+                        let text = "Wait for more players to join.";
+                        textToSpeech(text);
                     }
                 } else {
                     currentGame.changeSceneRequest(socket, 2);
                 }
             }
             else {
-                alert("Wait for Video/Audio stream to load.");
+                let text = "Wait for Video/Audio stream to load.";
+                textToSpeech(text);
             }
         });
     }
@@ -684,6 +693,26 @@ class Scene1 extends Phaser.Scene {
         this.anims.create({
             key: "exitButtonOver",
             frames: this.anims.generateFrameNumbers("exitButton", {
+                start: 1,
+                end: 1
+            }),
+            frameRate: 20,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: "musicToggleButtonOut",
+            frames: this.anims.generateFrameNumbers("musicToggleButton", {
+                start: 0,
+                end: 0
+            }),
+            frameRate: 20,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: "musicToggleButtonOver",
+            frames: this.anims.generateFrameNumbers("musicToggleButton", {
                 start: 1,
                 end: 1
             }),
