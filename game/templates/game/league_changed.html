@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+{% comment %}
+    league_change_context = {
+        "player": player,
+        "profile": player_profile,
+        "is_league_changed": player_profile.is_league_changed,
+    }
+{% endcomment %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>League Changed</title>
+</head>
+<body>
+    {% if is_league_changed == profile.LEAGUE_UPGRADED %}
+        Congratulations! Your League has been upgraded to {{ profile.current_league }}.
+    {% elif is_league_changed == profile.LEAGUE_DEGRADED %}
+        Alas! Your League has been degraded to {{ profile.current_league }}.
+    {% endif %}
+</body>
+</html>

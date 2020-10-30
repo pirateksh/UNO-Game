@@ -92,12 +92,12 @@ class GameRoomConsumer(AsyncConsumer):
                                 text_of_event['status'] = "won_game"
                                 type_of_event = "won_game"
 
-                                await self.handle_winning_game(winner_username=winner_username)
-
-                                for loser_username in self.game.player_usernames:
-                                    await self.increase_total_played_games_count(player_username=loser_username)
-                                    if loser_username != winner_username:
-                                        await self.handle_losing_game(loser_username=loser_username)
+                                for player_obj in self.game.players:
+                                    await self.increase_total_played_games_count(player_username=player_obj.username)
+                                    if player_obj.username == winner_username:
+                                        await self.handle_winning_game(winner_player_obj=player_obj)
+                                    else:
+                                        await self.handle_losing_game(loser_player_obj=player_obj)
 
                                 # Creating Game History in Database
                                 await self.create_game_history()
@@ -495,12 +495,14 @@ class GameRoomConsumer(AsyncConsumer):
         player_profile.save()
 
     @database_sync_to_async
-    def handle_winning_game(self, winner_username):
+    def handle_winning_game(self, winner_player_obj):
         """
         Updates the value in the database when a user wins the game.
-        :param winner_username: Username of player who won the game.
+        :param winner_player_obj: Player Server object of winner.
         :return:
         """
+        winner_username = winner_player_obj.username
+
         # Fetching User object.
         winner = User.objects.get(username=winner_username)
 
@@ -517,20 +519,33 @@ class GameRoomConsumer(AsyncConsumer):
         winner_profile.winning_streak += 1
 
         # Updating current rating
-        winner_profile.current_rating += self.player_server_obj.rating_change
+        winner_profile.current_rating += winner_player_obj.rating_change
 
         # Updating maximum rating
         winner_profile.maximum_rating = max(winner_profile.maximum_rating, winner_profile.current_rating)
 
+        league = winner_profile.current_league
+        updated_league = winner_profile.get_current_league()
+        if winner_player_obj.rating_change > 0:
+            if league != updated_league:
+                winner_profile.is_league_changed = UserProfile.LEAGUE_UPGRADED
+        elif winner_player_obj.rating_change < 0:
+            if league != updated_league:
+                winner_profile.is_league_changed = UserProfile.LEAGUE_DEGRADED
+
+        winner_profile.current_league = updated_league
+
         winner_profile.save()
 
     @database_sync_to_async
-    def handle_losing_game(self, loser_username):
+    def handle_losing_game(self, loser_player_obj):
         """
         Updates the value in the database when a user loses the game.
-        :param loser_username: Username of player who lost the game.
+        :param loser_player_obj: Player Server object of Loser.
         :return:
         """
+
+        loser_username = loser_player_obj.username
 
         loser = User.objects.get(username=loser_username)
 
@@ -540,10 +555,21 @@ class GameRoomConsumer(AsyncConsumer):
         loser_profile.winning_streak = 0
 
         # Updating current rating
-        loser_profile.current_rating += self.player_server_obj.rating_change
+        loser_profile.current_rating += loser_player_obj.rating_change
 
         # Updating maximum rating
         loser_profile.maximum_rating = max(loser_profile.maximum_rating, loser_profile.current_rating)
+
+        league = loser_profile.current_league
+        updated_league = loser_profile.get_current_league()
+        if loser_player_obj.rating_change > 0:
+            if league != updated_league:
+                loser_profile.is_league_changed = UserProfile.LEAGUE_UPGRADED
+        elif loser_player_obj.rating_change < 0:
+            if league != updated_league:
+                loser_profile.is_league_changed = UserProfile.LEAGUE_DEGRADED
+
+        loser_profile.current_league = updated_league
 
         loser_profile.save()
 

@@ -14,18 +14,21 @@ def user_directory_path(instance, filename):
     """
     # File will be uploaded to MEDIA_ROOT/user_<id>/<filename>
     return f"img/profile_avatars/{instance.user.username}/{filename}"
-    # return 'profile_avatar/' + 'user_{0}/{1}'.format(instance.user.username, filename)
 
 
 class UserProfile(models.Model):
 
-    NOOBIE, EXPERT, CHAMPION, UNIVERSE_BOSS = "Noobie", "Expert", "Champion", "Universe Boss"
-    # SUPER_NATURAL, AMATEUR, PUPIL, OP
+    NOOBIE, AMATEUR, EXPERT, CHAMPION, UNIVERSE_BOSS = "Noobie", "Amateur", "Expert", "Champion", "Universe Boss"
+    SUPER_NATURAL, OP = "Super Natural", "OP"
+
     league_choices = (
-        (NOOBIE, "Noobie"),
-        (EXPERT, "Expert"),
-        (CHAMPION, "Champion"),
-        (UNIVERSE_BOSS, "Universe Boss"),
+        (NOOBIE, "noobie"),
+        (AMATEUR, "amateur"),
+        (EXPERT, "expert"),
+        (CHAMPION, "champion"),
+        (SUPER_NATURAL, "super natural"),
+        (UNIVERSE_BOSS, "universe boss"),
+        (OP, "op"),
     )
 
     # User whose profile is to be created.
@@ -62,17 +65,44 @@ class UserProfile(models.Model):
     current_league = models.CharField(max_length=255, choices=league_choices, default=NOOBIE,
                                       verbose_name="Current League")
 
-    current_rating = models.IntegerField(default=0, verbose_name="Current Rating")
+    current_rating = models.IntegerField(default=500, verbose_name="Current Rating")
 
     maximum_league = models.CharField(max_length=255, choices=league_choices, default=NOOBIE,
                                       verbose_name="Maximum League")
 
-    maximum_rating = models.IntegerField(default=0, verbose_name="Maximum Rating")
-    # maximum_league/rating = models.CharField()
-
-    # image/avatar at assets/img/profile_images
+    maximum_rating = models.IntegerField(default=500, verbose_name="Maximum Rating")
 
     is_online = models.BooleanField(default=False, verbose_name="Is Online")
 
+    LEAGUE_UPGRADED, LEAGUE_DEGRADED, LEAGUE_STABLE = 1, 2, 0
+    is_league_changed = models.PositiveSmallIntegerField(default=LEAGUE_STABLE, verbose_name="Is League Changed")
+
     def __str__(self):
         return self.user.username
+
+    RATING_THRESHOLDS = {
+        NOOBIE: 1000,
+        AMATEUR: 1700,
+        EXPERT: 2500,
+        CHAMPION: 3200,
+        SUPER_NATURAL: 4000,
+        UNIVERSE_BOSS: 5000,
+        OP: 6200,
+    }
+
+    def get_current_league(self):
+        rating = self.current_rating
+        if rating < self.RATING_THRESHOLDS[self.NOOBIE]:
+            return self.NOOBIE
+        elif rating < self.RATING_THRESHOLDS[self.AMATEUR]:
+            return self.AMATEUR
+        elif rating < self.RATING_THRESHOLDS[self.EXPERT]:
+            return self.EXPERT
+        elif rating < self.RATING_THRESHOLDS[self.CHAMPION]:
+            return self.CHAMPION
+        elif rating < self.RATING_THRESHOLDS[self.SUPER_NATURAL]:
+            return self.SUPER_NATURAL
+        elif rating < self.RATING_THRESHOLDS[self.UNIVERSE_BOSS]:
+            return self.UNIVERSE_BOSS
+        elif rating < self.RATING_THRESHOLDS[self.OP]:
+            return self.OP

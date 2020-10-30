@@ -40,7 +40,8 @@ def broadcast_notification(group_name, message):
         }
     )
 
-# @login_required
+
+@login_required
 def play_now(request):
     player = request.user
     if not player.is_authenticated:
@@ -51,6 +52,17 @@ def play_now(request):
     if not player_profile.is_email_verified:
         messages.info(request, f"Your email is not verified.")
         return HttpResponseRedirect(reverse('user_profile', kwargs={"username": player.username}))
+
+    # Show animation in case player's league upgraded/degraded.
+    if player_profile.is_league_changed != UserProfile.LEAGUE_STABLE:
+        league_change_context = {
+            "player": player,
+            "profile": player_profile,
+            "is_league_changed": player_profile.is_league_changed,
+        }
+        player_profile.is_league_changed = UserProfile.LEAGUE_STABLE
+        player_profile.save()
+        return render(request, 'game/league_changed.html', league_change_context)
     return render(request, 'game/play_now.html', {})
 
 
