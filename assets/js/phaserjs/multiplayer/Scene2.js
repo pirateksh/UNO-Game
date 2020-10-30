@@ -1317,10 +1317,12 @@ class Scene2 extends Phaser.Scene {
 
         _this.musicToggleButton.on("pointerdown", function () {
             if(_this.isBackgroundMusicPlaying) {
+                _this.musicToggleButton.setAlpha(0.5);
                 _this.backgroundMusic.stop();
                 _this.isBackgroundMusicPlaying = false;
             }
             else {
+                _this.musicToggleButton.setAlpha(1);
                 _this.backgroundMusic.play();
                 _this.isBackgroundMusicPlaying = true;
             }
