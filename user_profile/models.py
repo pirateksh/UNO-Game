@@ -75,7 +75,14 @@ class UserProfile(models.Model):
     is_online = models.BooleanField(default=False, verbose_name="Is Online")
 
     LEAGUE_UPGRADED, LEAGUE_DEGRADED, LEAGUE_STABLE = 1, 2, 0
-    is_league_changed = models.PositiveSmallIntegerField(default=LEAGUE_STABLE, verbose_name="Is League Changed")
+    is_league_changed_choices = (
+        (LEAGUE_STABLE, "No"),
+        (LEAGUE_UPGRADED, "Upgraded"),
+        (LEAGUE_DEGRADED, "Degraded"),
+    )
+
+    is_league_changed = models.PositiveSmallIntegerField(default=LEAGUE_STABLE, choices=is_league_changed_choices,
+                                                         verbose_name="Is League Changed")
 
     def __str__(self):
         return self.user.username

@@ -314,7 +314,8 @@
 
             timeOutRequest(socket) {
                 if(me === this.getCurrentPlayer()) {
-                    alert("TIME OUT: Your turn will be skipped!");
+                    let text = "Time out.";
+                    textToSpeech(text);
                     let data = {"status": "time_out", "message": "Time Out for this player.", "data": {"username": me}};
                     let response = {"type": "time.out", "text": data};
                     socket.send(JSON.stringify(response));

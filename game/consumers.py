@@ -33,7 +33,8 @@ class GameRoomConsumer(AsyncConsumer):
 
         self.game_room_id = f"game_room_{self.unique_id}"
 
-        self.player_server_obj = PlayerServer(username=self.me.username)
+        self.player_server_obj = PlayerServer(username=self.me.username,
+                                              rating_before_start=self.user_profile_obj.current_rating)
 
         self.game = GameServer.create_new_game(unique_id=self.unique_id, player=self.player_server_obj,
                                                game_type=self.game_type, league=league)
@@ -610,7 +611,8 @@ class GameRoomConsumer(AsyncConsumer):
                 player_username = player_obj.username
                 player_score = player_obj.score
                 player_rating_change = player_obj.rating_change
+                player_seed = player_obj.seed
                 player = User.objects.get(username=player_username)
                 Participant.objects.create(user=player, game_room=game_room_history, score=player_score,
-                                           rating_change=player_rating_change)
+                                           rating_change=player_rating_change, seed=player_seed)
         return None

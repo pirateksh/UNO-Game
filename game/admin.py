@@ -8,7 +8,7 @@ class GameHistoryAdmin(admin.ModelAdmin):
 
 
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ['user', 'game_room', 'score', 'rating_change']
+    list_display = ['user', 'game_room', 'score', 'seed', 'rating_change']
 
 
 admin.site.register(GameHistory, GameHistoryAdmin)

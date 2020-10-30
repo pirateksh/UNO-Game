@@ -111,7 +111,7 @@ function stop_recording() {
     }
     if(MEDIA_RECORDER.state !== "inactive"){
         MEDIA_RECORDER.stop();
-        alert("Recoding Stopped for " + VIDEO_COUNT);
+        // alert("Recoding Stopped for " + VIDEO_COUNT);
         console.log(MEDIA_RECORDER.state);
     }
     $('id_start_btn').prop('disabled', false);

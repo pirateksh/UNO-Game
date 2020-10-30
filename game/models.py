@@ -38,6 +38,8 @@ class Participant(models.Model):
 
     rating_change = models.IntegerField(default=0, verbose_name="Rating Change")
 
+    seed = models.FloatField(default=0.0, verbose_name="Seed")
+
     def __str__(self):
         return f"{self.user.username}"
 
