@@ -6,16 +6,36 @@
         "is_league_changed": player_profile.is_league_changed,
     }
 {% endcomment %}
-<html lang="en">
+<html lang="en" class="h-100">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=7">
+    <meta name="color-scheme" content="dark light">
     <title>League Changed</title>
+    <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
+    <link href="https://fonts.googleapis.com/css2?family=Monoton&display=swap" rel="stylesheet"> 
+    <style>
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 1000;
+            color: whitesmoke;
+            font-style: oblique;
+            font-family: 'Monoton', cursive;
+        }
+    </style>
 </head>
-<body>
-    {% if is_league_changed == profile.LEAGUE_UPGRADED %}
-        Congratulations! Your League has been upgraded to {{ profile.current_league }}.
-    {% elif is_league_changed == profile.LEAGUE_DEGRADED %}
-        Alas! Your League has been degraded to {{ profile.current_league }}.
-    {% endif %}
+<body class="h-100" style="background: linear-gradient(to right, rgb(242, 112, 156), rgb(255, 148, 114));">
+    <div class="container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="col-10 col-md-10 col-lg-10">
+            {% if is_league_changed == profile.LEAGUE_UPGRADED %}
+                <h1>Congratulations! Your League has been upgraded to {{ profile.current_league }}.</h1>
+            {% elif is_league_changed == profile.LEAGUE_DEGRADED %}
+                <h1>Alas! Your League has been degraded to {{ profile.current_league }}.</h1>
+            {% endif %}
+            </div>
+        </div>
+    </div>
 </body>
 </html>
