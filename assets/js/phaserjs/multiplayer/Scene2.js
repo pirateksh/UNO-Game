@@ -8,6 +8,18 @@ class Scene2 extends Phaser.Scene {
     *  2. Try to implement a game tour for new players.
     *  3. Can make customizable cards available to players of certain league.
     * */
+
+    createAudioSource(audioElem, play){
+        // Creating a new MediaElementAudioSourceNode by giving it the audio HTML element
+        let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let sourceNode = audioCtx.createMediaElementSource(audioElem);
+        let destinationNode = audioCtx.createMediaStreamDestination();
+        sourceNode.connect(destinationNode);
+        let AudioStream = destinationNode.stream;
+        AudioElementsFromCanvas["background"] = AudioStream;
+        sourceNode.connect(audioCtx.destination);
+    }  
+
     create() {
         let _this = this;
         _this.config = game.config;
@@ -16,11 +28,9 @@ class Scene2 extends Phaser.Scene {
         _this.starfield2 = _this.add.tileSprite(0, 0, game.config.width, game.config.height, "starfield_2");
         _this.starfield2.setOrigin(0,0);
 
-
         _this.backgroundMusic = _this.sound.add("backgroundMusic", {volume: 0.3, loop: true});
         _this.backgroundMusic.play();
-
-        _this.clockSound = _this.sound.add("clockTicking", {volume: 4, loop: true});
+        _this.createAudioSource(_this.backgroundMusic.audio); // To add this audio element to Recording
 
         let FKey = this.input.keyboard.addKey('F');
 
@@ -82,7 +92,8 @@ class Scene2 extends Phaser.Scene {
 
 
         // Playing Welcome Audio
-        _this.sound.play("welcome");
+        _this.welcome = _this.sound.add("welcome", {volume: 1, loop: false});
+        _this.welcome.play();
 
         // Sending delayed startGameRequest.
         _this.time.delayedCall(
@@ -228,6 +239,7 @@ class Scene2 extends Phaser.Scene {
                 _this.startTimer();
 
                 _this.sound.play("playCard");
+
 
                 _this.playCardEventConsumer(backendResponse, false);
 
