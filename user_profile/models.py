@@ -53,14 +53,26 @@ class UserProfile(models.Model):
     # Whether Email has been verified or not
     is_email_verified = models.BooleanField(default=False)
 
-    # Total Number of games played
-    total_games_count = models.IntegerField(default=0, verbose_name="Count of Games Played")
+    # # Total Number of games played
+    # total_games_count = models.IntegerField(default=0, verbose_name="Count of Games Played")
+    #
+    # # Number of Games won by this player
+    # won_games_count = models.IntegerField(default=0, verbose_name="Count of Games Won")
 
-    # Number of Games won by this player
-    won_games_count = models.IntegerField(default=0, verbose_name="Count of Games Won")
+    # Total Number of public games played
+    total_public_games_count = models.IntegerField(default=0, verbose_name="# of Public Games Played")
 
-    # Number of rounds won by this player
-    won_rounds_count = models.IntegerField(default=0, verbose_name="Count of Rounds Won")
+    # Number of public games won by this player
+    won_public_games_count = models.IntegerField(default=0, verbose_name="# of Public Games Won")
+
+    # Total Number of custom games played
+    total_custom_games_count = models.IntegerField(default=0, verbose_name="# of Custom Games Played")
+
+    # Number of public games won by this player
+    won_custom_games_count = models.IntegerField(default=0, verbose_name="# of Custom Games Won")
+
+    # # Number of rounds won by this player
+    # won_rounds_count = models.IntegerField(default=0, verbose_name="Count of Rounds Won")
 
     # Winning streak of player.
     winning_streak = models.IntegerField(default=0, verbose_name="Winning Streak")

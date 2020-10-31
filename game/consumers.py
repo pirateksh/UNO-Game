@@ -68,7 +68,7 @@ class GameRoomConsumer(AsyncConsumer):
                 self.game.start_game()
 
                 # This can be called by Friend Game only.
-                if self.game.game_type == GameServer.FRIEND:
+                if self.game.game_type == GameServer.CUSTOM:
                     GameServer.AVAILABLE_FRIEND_GAMES.remove(self.game)
                 if self.game.game_type == GameServer.PUBLIC:
                     GameServer.AVAILABLE_PUBLIC_GAMES.remove(self.game)
@@ -94,7 +94,6 @@ class GameRoomConsumer(AsyncConsumer):
                                 type_of_event = "won_game"
 
                                 for player_obj in self.game.players:
-                                    await self.increase_total_played_games_count(player_username=player_obj.username)
                                     if player_obj.username == winner_username:
                                         await self.handle_winning_game(winner_player_obj=player_obj)
                                     else:
@@ -252,7 +251,7 @@ class GameRoomConsumer(AsyncConsumer):
             )
 
             if type_of_event == "user.new":
-                if self.game.game_type == GameServer.FRIEND:
+                if self.game.game_type == GameServer.CUSTOM:
                     if self.game.get_count_of_players() == 10:
                         GameServer.AVAILABLE_FRIEND_GAMES.remove(self.game)
 
@@ -486,16 +485,6 @@ class GameRoomConsumer(AsyncConsumer):
         return UserProfile.objects.get(user=me)
 
     @database_sync_to_async
-    def increase_total_played_games_count(self, player_username):
-        player = User.objects.get(username=player_username)
-
-        player_profile = UserProfile.objects.get(user=player)
-
-        player_profile.total_games_count += 1
-
-        player_profile.save()
-
-    @database_sync_to_async
     def handle_winning_game(self, winner_player_obj):
         """
         Updates the value in the database when a user wins the game.
@@ -510,11 +499,12 @@ class GameRoomConsumer(AsyncConsumer):
         # Fetching UserProfile object.
         winner_profile = UserProfile.objects.get(user=winner)
 
-        # Updating won games count
-        winner_profile.won_games_count += 1
-
-        # Updating won rounds count
-        winner_profile.won_rounds_count += 1
+        if self.game_type == GameServer.PUBLIC:
+            winner_profile.total_public_games_count += 1
+            winner_profile.won_public_games_count += 1
+        elif self.game_type == GameServer.CUSTOM:
+            winner_profile.total_custom_games_count += 1
+            winner_profile.won_custom_games_count += 1
 
         # Updating winning streak
         winner_profile.winning_streak += 1
@@ -552,6 +542,12 @@ class GameRoomConsumer(AsyncConsumer):
 
         loser_profile = UserProfile.objects.get(user=loser)
 
+        # Increasing Game Count
+        if self.game_type == GameServer.PUBLIC:
+            loser_profile.total_public_games_count += 1
+        elif self.game_type == GameServer.CUSTOM:
+            loser_profile.total_custom_games_count += 1
+
         # Resetting Winning streak
         loser_profile.winning_streak = 0
 
@@ -583,7 +579,7 @@ class GameRoomConsumer(AsyncConsumer):
             game_type = None
             if self.game_type == GameServer.PUBLIC:
                 game_type = GameHistory.PUBLIC
-            elif self.game_type == GameServer.FRIEND:
+            elif self.game_type == GameServer.CUSTOM:
                 game_type = GameHistory.CUSTOM
 
             game_room_history = GameHistory.objects.create(unique_game_id=unique_id, game_type=game_type,

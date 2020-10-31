@@ -179,15 +179,20 @@ class Scene1 extends Phaser.Scene {
             loop: -1
         });
 
-
         _this.joinedX = game.config.width / 2;
         _this.joinedY = game.config.height / 2 + 130;
+        let emptyTagCoordinates = [];
+        for(let i = 0; i < 5; ++i) {
+            let emptyCoordinateLeft = {"isEmpty": true, "x": _this.joinedX - 200, "y": _this.joinedY};
+            let emptyCoordinateRight = {"isEmpty": true, "x": _this.joinedX + 120, "y": _this.joinedY};
+            _this.joinedY += 30;
+            emptyTagCoordinates.push(emptyCoordinateLeft);
+            emptyTagCoordinates.push(emptyCoordinateRight);
+        }
 
         /*******************************
             WEBSOCKET CONNECTION
          *******************************/
-
-
         // Fetching Endpoint
         let loc = window.location;
         let wsStart = 'ws://';
@@ -250,40 +255,46 @@ class Scene1 extends Phaser.Scene {
         });
 
         _this.videoX = 80;
-        _this.videoY = 80;
+        _this.videoY = 100;
+        let emptyVideoStreamCoordinates = [];
+        for(let i = 0; i < 5; ++i) {
+            let emptyVideoCoordinateLeft = {"isEmpty": true, "x": _this.videoX, "y": _this.videoY};
+            let emptyVideoCoordinateRight = {"isEmpty": true, "x": _this.videoX + 1110, "y": _this.videoY};
+            _this.videoY += 105;
+            emptyVideoStreamCoordinates.push(emptyVideoCoordinateLeft);
+            emptyVideoStreamCoordinates.push(emptyVideoCoordinateRight);
+        }
         _this.videoGroup = [];
         _this.labelGroup = _this.physics.add.group();
         _this.streamDict = {};
 
         function addVideoStream(Video, stream, label="Some user in Room") {
+            let vidElem;
+            for(let i = 0; i < emptyVideoStreamCoordinates.length; ++i) {
+                let emptyVideoCoordinate = emptyVideoStreamCoordinates[i];
+                if(emptyVideoCoordinate.isEmpty) {
+                    let x = emptyVideoCoordinate.x, y = emptyVideoCoordinate.y;
+                    vidElem = _this.add.video(x, y);
+                    emptyVideoStreamCoordinates[i].isEmpty = false;
+                    vidElem.loadURL("", 'loadeddata', false);
+                    vidElem.video.srcObject = stream;
+                    _this.streamDict[label] = stream;
+                    vidElem.video.addEventListener('loadedmetadata', () => {
+                        vidElem.video.play();
+                        vidElem.depth = 0;
+                        vidElem.setData({"username": label});
+                        vidElem.setScale(gameDetails.liveFeedScale);
+                        _this.videoGroup.push(vidElem);
+                    });
 
-        // Just for testing Stream outside the Canvas.
-            // Video.srcObject = stream;
-            // Video.style.border = 'solid';
-            // document.getElementById('VideoGrid').appendChild(Video);
-            // Video.muted = false;
-            // Video.addEventListener('loadedmetadata', () => {
-            //     Video.play();
-            // });
+                    addLabelOnLiveFeed(_this, vidElem, label);
 
-            let vidElem = _this.add.video(_this.videoX, _this.videoY);
-            _this.videoY += 105;
-            vidElem.loadURL("", 'loadeddata', false);
-            vidElem.video.srcObject = stream;
-            _this.streamDict[label] = stream;
-            vidElem.video.addEventListener('loadedmetadata', () => {
-                vidElem.video.play();
-                vidElem.depth = 0;
-                vidElem.setData({"username": label});
-                vidElem.setScale(gameDetails.liveFeedScale);
-                _this.videoGroup.push(vidElem);
-            });
-
-            addLabelOnLiveFeed(_this, vidElem, label);
-
-            if(label === me){
-                vidElem.video.muted = true;
-                console.log("Self Stream Was Muted.")
+                    if(label === me){
+                        vidElem.video.muted = true;
+                        console.log("Self Stream Was Muted.")
+                    }
+                    break;
+                }
             }
         }
 
@@ -364,43 +375,28 @@ class Scene1 extends Phaser.Scene {
                     }
 
                     // Adding Unique ID of Game.
-                    _this.uniqueIdTag = _this.add.text(15, game.config.height - 30, `Unique ID: ${currentGame.uniqueId} (Click to Copy)`);
-                    _this.uniqueIdTag.setInteractive();
-                    _this.uniqueIdTag.on("pointerover", function (pointer) {
-                        document.querySelector("canvas").style.cursor = "pointer";
-                    });
-                    _this.uniqueIdTag.on("pointerout", function (pointer) {
-                        document.querySelector("canvas").style.cursor = "default";
-                    });
-                    _this.uniqueIdTag.on("pointerdown", function (pointer) {
-                        copyToClipboard(currentGame.uniqueId);
-                    });
+                    _this.addUniqueIdTag();
 
                     for(let i = 0; i < currentGame.players.length; ++i) {
                         let player = currentGame.players[i];
-                        let playerTag;
-                        if(i % 2) {
-                            if(player === currentGame.adminUsername && currentGame.gameType === Game.FRIEND) {
-                                playerTag = _this.add.text(_this.joinedX + 120, _this.joinedY, `${player}(admin)`, {fill: '#00ff00'});
+                        for(let j = 0; j < emptyTagCoordinates.length; ++j) {
+                            let tagCoordinate = emptyTagCoordinates[j];
+                            let isEmpty = tagCoordinate.isEmpty;
+                            if(isEmpty) {
+                                let x = tagCoordinate.x, y = tagCoordinate.y;
+                                let text;
+                                if(player === currentGame.adminUsername && currentGame.gameType === Game.FRIEND) {
+                                    text = `${player}(admin)`;
+                                } else {
+                                    text = `${player}`;
+                                }
+                                let playerTag = _this.add.text(x, y, text, {fill: '#00ff00'});
+                                playerTag.setData({'username': player});
+                                _this.joinedPlayersTag.add(playerTag);
+                                emptyTagCoordinates[j].isEmpty = false;
+                                break;
                             }
-                            else {
-                                playerTag = _this.add.text(_this.joinedX + 120, _this.joinedY, player, {fill: '#00ff00'});
-                            }
-
-                            playerTag.setData({'username': player});
-                            _this.joinedPlayersTag.add(playerTag);
                         }
-                        else {
-                            if(player === currentGame.adminUsername && currentGame.gameType === Game.FRIEND) {
-                                playerTag = _this.add.text(_this.joinedX - 200, _this.joinedY, `${player}(admin)`, {fill: '#00ff00'});
-                            }
-                            else {
-                                playerTag = _this.add.text(_this.joinedX - 200, _this.joinedY, player, {fill: '#00ff00'});
-                            }
-                            playerTag.setData({'username': player});
-                            _this.joinedPlayersTag.add(playerTag);
-                        }
-                        _this.joinedY += 20;
                     }
                 }
              }
@@ -411,21 +407,26 @@ class Scene1 extends Phaser.Scene {
                 let new_user_username = data.new_user_username;
                 console.log("New User connected: ", new_user_username);
                 connectToNewUser(unique_peer_id, new_user_username);
-                // currentGame.connectPlayer(new_user_username);
                 if(!currentGame.players.includes(new_user_username)) {
                     currentGame.players.push(new_user_username);
-                    let playerCount = currentGame.players.length - 1;
-                    if(playerCount % 2) {
-                        let playerTag = _this.add.text(_this.joinedX + 120, _this.joinedY, new_user_username, {fill: '#00ff00'});
-                        playerTag.setData({'username': new_user_username});
-                        _this.joinedPlayersTag.add(playerTag);
+                    for(let j = 0; j < emptyTagCoordinates.length; ++j) {
+                        let tagCoordinate = emptyTagCoordinates[j];
+                        let isEmpty = tagCoordinate.isEmpty;
+                        if(isEmpty) {
+                            let x = tagCoordinate.x, y = tagCoordinate.y;
+                            let text;
+                            if(new_user_username === currentGame.adminUsername && currentGame.gameType === Game.FRIEND) {
+                                text = `${new_user_username}(admin)`;
+                            } else {
+                                text = `${new_user_username}`;
+                            }
+                            let playerTag = _this.add.text(x, y, text, {fill: '#00ff00'});
+                            playerTag.setData({'username': new_user_username});
+                            _this.joinedPlayersTag.add(playerTag);
+                            emptyTagCoordinates[j].isEmpty = false;
+                            break;
+                        }
                     }
-                    else {
-                        let playerTag = _this.add.text(_this.joinedX - 200, _this.joinedY, new_user_username, {fill: '#00ff00'});
-                        playerTag.setData({'username': new_user_username});
-                        _this.joinedPlayersTag.add(playerTag);
-                    }
-                    _this.joinedY += 20;
                 }
 
                 if(currentGame.players.length === 2 && currentGame.gameType === Game.PUBLIC) {
@@ -446,28 +447,40 @@ class Scene1 extends Phaser.Scene {
             }
             else if(status === "user_left_room"){
                 let left_user_username = data.left_user_username;
-
-                if(currentGame.isGameStarted === false) {
+                console.log(`${left_user_username} left.`);
+                if(currentGame.isGameRunning === false) {
                     if(currentGame.players.includes(left_user_username)) {
                         currentGame.players.splice(currentGame.players.indexOf(left_user_username), 1); // TESTING
                     }
-
                     for(let i = 0; i < _this.joinedPlayersTag.getChildren().length; ++i) {
                         let leftPlayerTag = _this.joinedPlayersTag.getChildren()[i];
                         let labelText = _this.labelGroup.getChildren()[i];
                         let vidElem = _this.videoGroup[i];
                         let leftPlayerUsername = leftPlayerTag.getData("username");
                         if(left_user_username === leftPlayerUsername) {
+                            for(let j = 0; j < emptyTagCoordinates.length; ++j) {
+                                let tagCoordinate = emptyTagCoordinates[j];
+                                if(tagCoordinate.x === leftPlayerTag.x && tagCoordinate.y === leftPlayerTag.y) {
+                                    emptyTagCoordinates[j].isEmpty = true;
+                                    break;
+                                }
+                            }
                             leftPlayerTag.destroy();
                             labelText.destroy();
                             _this.videoGroup.splice(i, 1);
+                            for(let j = 0; j < emptyVideoStreamCoordinates.length; ++j) {
+                                let videoCoordinate = emptyVideoStreamCoordinates[j];
+                                if(videoCoordinate.x === vidElem.x && videoCoordinate.y === vidElem.y) {
+                                    emptyVideoStreamCoordinates[j].isEmpty = true;
+                                    break;
+                                }
+                            }
                             vidElem.destroy();
                             _this.videoY -= 105;
                             break;
                         }
                     }
                 }
-                
 
                 if (peers[left_user_username]){
                     peers[left_user_username].close();
@@ -481,10 +494,6 @@ class Scene1 extends Phaser.Scene {
                 } else{
                     console.log("This user was not yet added in the Peers Network.");
                 }
-            }
-            else if(status === "broadcast_notification") {
-                // let elementToAppend = `<li>${message}</li>`;
-                // notificationList.append(elementToAppend);
             }
             else if(status === "change_scene") {
                 let sceneNumber = data.sceneNumber;
@@ -526,6 +535,26 @@ class Scene1 extends Phaser.Scene {
 
         // Calling method to create all the animations used in game.
         _this.createAllAnimations();
+    }
+
+    addUniqueIdTag() {
+        let _this = this;
+        if(currentGame.gameType === Game.FRIEND) {
+            _this.uniqueIdTag = _this.add.text(15, game.config.height - 30, `Unique ID: ${currentGame.uniqueId} (Click to Copy)`);
+            _this.uniqueIdTag.setInteractive();
+            _this.uniqueIdTag.on("pointerover", function (pointer) {
+                document.querySelector("canvas").style.cursor = "pointer";
+            });
+            _this.uniqueIdTag.on("pointerout", function (pointer) {
+                document.querySelector("canvas").style.cursor = "default";
+            });
+            _this.uniqueIdTag.on("pointerdown", function (pointer) {
+                copyToClipboard(currentGame.uniqueId);
+            });
+        }
+        else {
+            _this.uniqueIdTag = _this.add.text(15, game.config.height - 30, `Unique ID: ${currentGame.uniqueId}`);
+        }
     }
 
     addPlayButton() {

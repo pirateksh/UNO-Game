@@ -123,13 +123,13 @@ def enter_friend_play(request):
                         return render(request, '404.html', {"message": message})
                     return HttpResponseRedirect(
                         reverse('enter_game_room',
-                                kwargs={"game_type": GameServer.FRIEND, "unique_id": unique_id}))
+                                kwargs={"game_type": GameServer.CUSTOM, "unique_id": unique_id}))
         message = f"Custom Game Room with ID {unique_id} does'nt exist."
         return render(request, '404.html', {"message": message})
     elif request.method == "GET":  # Creating New Game and Entering
         unique_id = id_generator(10)
         return HttpResponseRedirect(
-            reverse('enter_game_room', kwargs={"game_type": GameServer.FRIEND, "unique_id": unique_id}))
+            reverse('enter_game_room', kwargs={"game_type": GameServer.CUSTOM, "unique_id": unique_id}))
 
 
 @login_required
@@ -138,7 +138,7 @@ def enter_game_room(request, game_type, unique_id):
         View to Enter the Game Room. This can be called only after
         a player has Joined the Game Room.
     :param request:
-    :param game_type: Type of Game: PUBLIC or FRIEND.
+    :param game_type: Type of Game: PUBLIC or CUSTOM.
     :param unique_id:
     :return:
     """
@@ -157,107 +157,3 @@ def enter_game_room(request, game_type, unique_id):
         'unique_id': unique_id,
     }
     return render(request, 'game/enter_game_room.html', context)
-
-    # error_message = f"Game with unique_id {unique_id} not found."
-    # raise Http404(error_message)
-
-    # if game_room_qs:
-    #     # If Game Room Exists
-    #     game_room = game_room_qs[0]
-    #     all_game_room_players_qs = Player.objects.filter(game_room=game_room)
-    #     players_qs = Player.objects.filter(player=user, game_room=game_room)
-    #     online_player_qs = Player.objects.filter(player=user, is_online=True)
-    #
-    #     # If user has already entered into another Game Room
-    #     if online_player_qs and online_player_qs[0].game_room != game_room:
-    #         error_message = f"You are already present in other game rooms. Leave them to join this room."
-    #         raise Http404(error_message)
-    #
-    #     # If user has not joined the room but is trying to enter it.
-    #     if not players_qs:
-    #         error_message = "You are not a member of this Room. Join the room and then try to enter."
-    #         raise Http404(error_message)
-    #
-    #     # TODO: Uncomment this -- Kshitiz
-    #     # If Game has already started in the Game Room. In this case Player won't be allowed to join it.from
-    #     # if game_room.is_game_running and online_player_qs[0].game_room != game_room:
-    #     #     error_message = f"A Game has started/is running in this Game Room (Unique ID: {unique_id}). Wait for it to end or join another Game Room."
-    #     #     raise Http404(error_message)
-    #
-    #     """
-    #         The functionality implemented by below commented code is currently being done in the consumers.py.
-    #
-    #         # # Setting Player's is_online status to true
-    #         # player = players_qs[0]
-    #         # player.is_online = True
-    #         # player.save()
-    #     """
-    #
-    #     context = {
-    #         'game_room': game_room,
-    #         'players': all_game_room_players_qs,
-    #     }
-    #     return render(request, 'game/enter_game_room.html', context)
-    # else:
-    #     error_message = f"Game with unique_id {unique_id} not found."
-    #     raise Http404(error_message)
-
-
-# @login_required
-# def create_game_room(request):
-#     """
-#         View to Create Game Room
-#     :param request:
-#     :return:
-#     """
-#     user = request.user
-#     if user.is_authenticated:
-#         # Creating a new GameRoom Object
-#         new_game_room = GameRoom.objects.create(admin=user, type=GameRoom.FRIEND)
-#
-#         # Creating a Player Object corresponding to admin
-#         player_obj = Player.objects.create(player=user, game_room=new_game_room)
-#
-#         return HttpResponseRedirect(reverse('user_profile', kwargs={'username': user.username}))
-#     else:
-#         return HttpResponse(f"Oops! User with username {user.username} not found!")
-#
-#
-# @login_required
-# def join_game_room(request, unique_id):
-#     """
-#         View to Join Existing Game Room, if not already joined.
-#     :param request:
-#     :param unique_id: Unique Game ID of the Game Room
-#     :return:
-#     """
-#     game_room_qs = GameRoom.objects.filter(unique_game_id=unique_id)
-#     user = request.user
-#
-#     if not user.is_authenticated:
-#         error_message = f"Login / Signup to join a Game Room."
-#         raise Http404(error_message)
-#
-#     if game_room_qs:
-#
-#         game_room = game_room_qs[0]
-#         player_obj = Player.objects.filter(game_room=game_room, player=user)
-#         if player_obj:
-#             error_message = f"You are already in this Game Room (Unique ID: {unique_id})."
-#             raise Http404(error_message)
-#
-#         # If there are already 10 i.e. maximum players who have joined this Game Room.
-#         if game_room.joined_player_count == MAX_JOINED_PLAYER_COUNT:
-#             error_message = f"This Game Room (Unique ID: {unique_id}) has reached it's maximum player limit. You won't be able to join this. "
-#             raise Http404(error_message)
-#
-#         # Creating new Player Object if this user has not joined the room
-#         Player.objects.create(player=user, game_room=game_room)
-#
-#         try:
-#             return HttpResponseRedirect(reverse('enter_game_room', kwargs={'unique_id': unique_id}))
-#         except Http404:
-#             return HttpResponseRedirect(reverse('user_profile', kwargs={'username': user.username}))
-#     else:
-#         error_message = f"Game with unique_id {unique_id} not found."
-#         raise Http404(error_message)
