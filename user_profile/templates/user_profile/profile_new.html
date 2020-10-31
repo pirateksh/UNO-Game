@@ -217,158 +217,66 @@
                                         <div class="card-header">
                                             <p class="text-uppercase text-secondary"><strong>public multiplayer</strong></p>
                                         </div>
-                                        
-                                            <div class="card-body about-bg">
-                                                <table class="table text-center table-borderless">
-                                                    <tr>
-                                                        <th><p>Unique ID:</p></th>
-                                                        <th><p>{{ public_game_datum.game.unique_game_id }}</p></th>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><p>Ended At:</p></th>
-                                                        <th><p>{{ public_game_datum.game.concluded_at }}</p></th>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><p>Winner:</p></th>
-                                                        <th><p><a href="{% url 'user_profile' public_game_datum.game.winner_username %}">{{ public_game_datum.game.winner_username }}</a></p></th>
-                                                    </tr>
-                                                    <tr>
-                                                        <th colspan="2">
-                                                            <!-- Button trigger modal -->
-                                                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#public_multiplayer">
-                                                                Participants
-                                                            </button>
-                                                        </th>
-                                                    {% comment %} <table class="table table-borderless">
-                                                        <tr>
-                                                            <th><p>Unique ID:</p></th>
-                                                            <th><p>{{ public_game_datum.game.unique_game_id }}</p></th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th><p>Ended At:</p></th>
-                                                            <th><p>{{ public_game_datum.game.concluded_at }}</p></th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th><p>Winner:</p></th>
-
-                                                            <th>
-                                                                <p>
-                                                                    <a class="nav-link" data-toggle="pill" href="{% url 'user_profile' public_game_datum.game.winner_username %}">
-                                                                        <img src="{{ public_game_datum.winner_profile.avatar.url }}" alt="avatar" width="25px" class="rounded-circle" />
-                                                                        {{ public_game_datum.game.winner_username }}
-                                                                    </a>
-                                                                </p>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th colspan="2">
-                                                                <!-- Button trigger modal -->
-                                                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#id_public_multiplayer_{{ public_game_datum.game.unique_game_id }}">
-                                                                    Participants
-                                                                </button>
-                                                            </th>
-                                                            {% comment %} <table class="table table-borderless">
-                                                                <tr>
-                                                                    <th colspan="3"><h5>Participants:</h5></th>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><p>Name</p></th>
-                                                                    <th><p>Score</p></th>
-                                                                    <th><p>Rating Change</p></th>
-                                                                </tr>
-                                                                {% for participant in public_game_datum.participants %}
-                                                                    <tr>
-                                                                        <td><p><a href="{% url 'user_profile' participant.user.username %}">{{ participant.user.username }}</a></p></td>
-                                                                        <td><p>{{ participant.score }}</p></td>
-                                                                        <td><p>{{ participant.rating_change }}</p></td>
-                                                                    </tr>
-                                                                {% endfor %}
-                                                            </table> {% endcomment %}
-                                                        </tr>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        
+                                        <div class="card-body about-bg">
+                                            <table class="table text-center table-borderless">
+                                                <tr>
+                                                    <th><p>Unique ID:</p></th>
+                                                    <th><p>{{ public_game_datum.game.unique_game_id }}</p></th>
+                                                </tr>
+                                                <tr>
+                                                    <th><p>Ended At:</p></th>
+                                                    <th><p>{{ public_game_datum.game.concluded_at }}</p></th>
+                                                </tr>
+                                                <tr>
+                                                    <th><p>Winner:</p></th>
+                                                    <th><p><a href="{% url 'user_profile' public_game_datum.game.winner_username %}">{{ public_game_datum.game.winner_username }}</a></p></th>
+                                                </tr>
+                                                <tr>
+                                                    <th colspan="2">
+                                                        <!-- Button trigger modal -->
+                                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#id_public_multiplayer_{{ public_game_datum.game.unique_game_id }}">
+                                                            Participants
+                                                        </button>
+                                                    </th>
+                                                </tr>
+                                            </table>
+                                        </div>
                                     </div>
                                 </li>
                                 {% endfor %}
-                            <!-- PUBLIC MULTI-PLAYER GAME HISTORY ENDED-->
+                                <!-- PUBLIC MULTI-PLAYER GAME HISTORY ENDED-->
 
-                            <!-- CUSTOM MULTI-PLAYER GAME HISTORY -->
-                            {% for custom_game_datum in custom_game_data %}
+                                <!-- CUSTOM MULTI-PLAYER GAME HISTORY -->
+                                {% for custom_game_datum in custom_game_data %}
                                 <li class="flexlist-item">
                                     <div class="card text-center" style="width: 20rem; height:100%;">
                                         <div class="card-header">
                                             <p class="text-uppercase text-secondary"><strong>custom multiplayer</strong></p>
                                         </div>
-                                        
-                                            <div class="card-body about-bg">
-                                                <table class="table text-center table-borderless">
-                                                    <tr>
-                                                        <th><p>Unique ID:</p></th>
-                                                        <th><p>{{ custom_game_datum.game.unique_game_id }}</p></th>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><p>Ended At:</p></th>
-                                                        <th><p>{{ custom_game_datum.game.concluded_at }}</p></th>
-                                                    </tr>
-                                                    <tr>
-                                                        <th><p>Winner:</p></th>
-                                                        <th><p><a href="{% url 'user_profile' custom_game_datum.game.winner_username %}">{{ custom_game_datum.game.winner_username }}</a></p></th>
-                                                    </tr>
-                                                    <tr>
+                                        <div class="card-body about-bg">
+                                            <table class="table text-center table-borderless">
+                                                <tr>
+                                                    <th><p>Unique ID:</p></th>
+                                                    <th><p>{{ custom_game_datum.game.unique_game_id }}</p></th>
+                                                </tr>
+                                                <tr>
+                                                    <th><p>Ended At:</p></th>
+                                                    <th><p>{{ custom_game_datum.game.concluded_at }}</p></th>
+                                                </tr>
+                                                <tr>
+                                                    <th><p>Winner:</p></th>
+                                                    <th><p><a href="{% url 'user_profile' custom_game_datum.game.winner_username %}">{{ custom_game_datum.game.winner_username }}</a></p></th>
+                                                </tr>
+                                                <tr>
                                                     <th colspan="2">
                                                         <!-- Button trigger modal -->
-                                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#custom_multiplayer">
+                                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#id_custom_multiplayer_{{ custom_game_datum.game.unique_game_id }}">
                                                             Participants
                                                         </button>
                                                     </th>
-                                                    {% comment %} <table class="table table-borderless">
-                                                        <tr>
-                                                            <th><p>Ended At:</p></th>
-                                                            <th><p>{{ custom_game_datum.game.concluded_at }}</p></th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th><p>Winner:</p></th>
-                                                            <th>
-                                                                <p>
-
-                                                                    <a class="nav-link" data-toggle="pill" href="{% url 'user_profile' custom_game_datum.game.winner_username %}">
-                                                                        <img src="{{ custom_game_datum.winner_profile.avatar.url }}" alt="avatar" width="25px" class="rounded-circle" />
-                                                                        {{ custom_game_datum.game.winner_username }}
-                                                                    </a>
-                                                                </p>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                        <th colspan="2">
-                                                            <!-- Button trigger modal -->
-                                                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#id_custom_multiplayer_{{ custom_game_datum.game.unique_game_id }}">
-                                                                Participants
-                                                            </button>
-                                                        </th>
-                                                        {% comment %} <table class="table table-borderless">
-                                                            <tr>
-                                                                <th colspan="3"><h5>Participants:</h5></th>
-                                                            </tr>
-                                                            <tr>
-                                                                <th><p>Name</p></th>
-                                                                <th><p>Score</p></th>
-                                                                <th><p>Rating Change</p></th>
-                                                            </tr>
-                                                            {% for participant in custom_game_datum.participants %}
-                                                                <tr>
-                                                                    <td><p><a href="{% url 'user_profile' participant.user.username %}">{{ participant.user.username }}</a></p></td>
-                                                                    <td><p>{{ participant.score }}</p></td>
-                                                                    <td><p>{{ participant.rating_change }}</p></td>
-                                                                </tr>
-                                                            {% endfor %}
-                                                        </table> {% endcomment %}
-                                                        </tr>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        
+                                                </tr>
+                                            </table>
+                                        </div>
                                     </div>
                                 </li>
                                 {% endfor %}
