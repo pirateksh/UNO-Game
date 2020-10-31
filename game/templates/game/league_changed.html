@@ -24,6 +24,9 @@
             font-style: oblique;
             font-family: 'Monoton', cursive;
         }
+        strong {
+            color: darkslategray;
+        }
     </style>
 </head>
 <body class="h-100" style="background: linear-gradient(to right, rgb(242, 112, 156), rgb(255, 148, 114));">
@@ -31,9 +34,9 @@
         <div class="row h-100 justify-content-center align-items-center">
             <div class="col-10 col-md-10 col-lg-10">
             {% if is_league_changed == profile.LEAGUE_UPGRADED %}
-                <h1>Congratulations! Your League has been upgraded to {{ profile.current_league }}.</h1>
+                <h1>Congratulations! Your League has been upgraded to <strong>{{ profile.current_league }}</strong>.</h1>
             {% elif is_league_changed == profile.LEAGUE_DEGRADED %}
-                <h1>Alas! Your League has been degraded to {{ profile.current_league }}.</h1>
+                <h1>Alas! Your League has been degraded to </strong>{{ profile.current_league }}</strong>.</h1>
             {% endif %}
             </div>
         </div>
