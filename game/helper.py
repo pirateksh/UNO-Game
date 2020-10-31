@@ -199,7 +199,7 @@ class PlayerServer:
 class GameServer:
     PUBLIC, FRIEND = 0, 1
     PUBLIC_ROOM_LIMIT = 2
-    WINNING_SCORE = 50
+    WINNING_SCORE = 1
     AVAILABLE_FRIEND_GAMES = []
     AVAILABLE_PUBLIC_GAMES = []
     # TODO: What will happen if deck runs out of cards. -- Kshitiz
@@ -307,7 +307,8 @@ class GameServer:
         self.deck.cards.remove(chosen_card)
         return chosen_card
 
-    def get_elo_win_probability(self, a, b):
+    @staticmethod
+    def get_elo_win_probability(a, b):
         return 1.0 / (1 + pow(10, (b - a) / 400.0))
 
     def calculate_seed(self, player, rating):
@@ -322,12 +323,16 @@ class GameServer:
         for opponent in self.players:
             if player.username != opponent.username:
                 opponent_rating = int(opponent.rating_before_start)
-                probability = self.get_elo_win_probability(opponent_rating, player_rating)
+                probability = GameServer.get_elo_win_probability(opponent_rating, player_rating)
                 seed += probability
         seed = float(seed + 1.0)
         return seed
 
     def decide_winner(self):
+        """
+        Method to decide winner and calculate rating changes based on seed and actual rank.
+        :return:
+        """
         rank = 1
         if self.players:
             self.players.sort(key=lambda x: int(x.score), reverse=True)
@@ -337,30 +342,19 @@ class GameServer:
                 # Assigning actual rank to players
                 player.rank = float(rank)
                 rank += 1
-
-                print(f"{player.username} Rank = {player.rank}")
-                print(f"{player.username} Seed = {player.seed}")
                 geometric_mean = (player.rank * player.seed) ** 0.5
-                print(f"Geometric Mean = {geometric_mean}")
-
-                rating = int(player.rating_before_start)
 
                 # Using Binary Search to find rating r suck that this player will have seed == geometric_mean
-                left, right = 100, 10000
-                for _ in range(20):
-                    r = (left + right) / 2.0
-                    r_wins_probability = self.get_elo_win_probability(r, rating)
-                    new_rating = math.log10(1 / (r_wins_probability) - 1) * 400 + r
-
-                    if new_rating > r:
-                        left = r
+                left, right = 1, 8000
+                while right - left > 1:
+                    mid = (left + right) // 2
+                    if self.calculate_seed(player=player, rating=mid) < geometric_mean:
+                        right = mid
                     else:
-                        right = r
-                    _ += 1
-                mean_rating = (left + right) // 2
+                        left = mid
 
-                print(f"{player.username}'s R = {mean_rating}")
-                rating_change = (mean_rating - int(player.rating_before_start))/2
+                perceived_rating = left
+                rating_change = (perceived_rating - int(player.rating_before_start))/2
                 player.rating_change = int(rating_change)
                 # Clearing Player's Hand as Winner is being decided.
                 player.hand.clear()

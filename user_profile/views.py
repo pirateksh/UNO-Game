@@ -38,7 +38,18 @@ def user_profile_view(request, username):
     visited_profile = UserProfile.objects.get(user=visited_user)
     avatar_upload_form = AvatarUploadForm()
 
-    # history = json.loads(get_history(username=username))
+    current_league = visited_profile.current_league
+    current_rating = visited_profile.current_rating
+    current_league_progress = 100 * (current_rating / UserProfile.RATING_THRESHOLDS[current_league])
+    overall_win_rate = 100 * (visited_profile.won_games_count / visited_profile.total_games_count)
+    print(f"current_league_progress = {current_league_progress}")
+    print(f"overall_win_rate = {overall_win_rate}")
+
+    stats = {
+        "current_league_progress": int(current_league_progress),
+        "overall_win_rate": int(overall_win_rate)
+    }
+
     history = get_history(username=username)
     context = {
         "visited_user": visited_user,
@@ -46,6 +57,8 @@ def user_profile_view(request, username):
         "avatar_upload_form": avatar_upload_form,
     }
     context.update(history)
+    context.update(stats)
+
     return render(request, 'user_profile/profile_new.html', context=context)
     # else:
     #     message = f"Oops! User with username {username} not found!"
@@ -179,39 +192,35 @@ def get_history(username):
         elif game_room.game_type == GameHistory.CUSTOM:
             custom_games.append(game_room)
 
-    print("Public Games: ")
     public_game_data = []
     for game in public_games:
-        winner = game.winner_username
+        winner_username = game.winner_username
+        winner = User.objects.get(username=winner_username)
+        winner_profile = UserProfile.objects.get(user=winner)
         concluded_at = game.concluded_at
         unique_id = game.unique_game_id
-        print(f"Unique ID: {unique_id}")
-        print(f"Concluded at: {concluded_at}")
         player_qs = Participant.objects.filter(game_room=game)
-        print(f"Winner: {winner}")
         data = {
             "game": game,
             "participants": player_qs,
+            "winner_profile": winner_profile,
         }
         public_game_data.append(data)
 
-    print("Custom Game: ")
     custom_game_data = []
     for game in custom_games:
-        winner = game.winner_username
+        winner_username = game.winner_username
+        winner = User.objects.get(username=winner_username)
+        winner_profile = UserProfile.objects.get(user=winner)
         concluded_at = game.concluded_at
         unique_id = game.unique_game_id
-        print(f"Unique ID: {unique_id}")
-        print(f"Concluded at: {concluded_at}")
         player_qs = Participant.objects.filter(game_room=game)
-        print(f"Winner: {winner}")
         data = {
             "game": game,
             "participants": player_qs,
+            "winner_profile": winner_profile,
         }
         custom_game_data.append(data)
-        for player in player_qs:
-            print(f"{player.user.username} (Score: {player.score}")
 
     response = {
         "custom_game_data": custom_game_data,

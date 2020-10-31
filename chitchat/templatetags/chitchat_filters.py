@@ -8,4 +8,4 @@ def ellipses(message_string, max_length=20):
 	if len(message_string) <= max_length:
 		return message_string
 	else:
-	    return message_string[:max_length] + "..."
+		return message_string[:max_length] + "..."

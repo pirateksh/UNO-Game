@@ -67,8 +67,8 @@ class UserProfile(models.Model):
 
     current_rating = models.IntegerField(default=500, verbose_name="Current Rating")
 
-    maximum_league = models.CharField(max_length=255, choices=league_choices, default=NOOBIE,
-                                      verbose_name="Maximum League")
+    # maximum_league = models.CharField(max_length=255, choices=league_choices, default=NOOBIE,
+    #                                   verbose_name="Maximum League")
 
     maximum_rating = models.IntegerField(default=500, verbose_name="Maximum Rating")
 

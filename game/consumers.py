@@ -574,24 +574,6 @@ class GameRoomConsumer(AsyncConsumer):
 
         loser_profile.save()
 
-    @database_sync_to_async
-    def handle_winning_round(self, winner_username):
-        """
-        Updates the value in the database when a user wins the round.
-        :param winner_username: Username of player who won the round.
-        :return:
-        """
-        # Fetching User object.
-        winner = User.objects.get(username=winner_username)
-
-        # Fetching UserProfile object.
-        winner_profile = UserProfile.objects.get(user=winner)
-
-        # Updating won rounds count
-        winner_profile.won_rounds_count += 1
-
-        winner_profile.save()
-
     #  TODO: Implementing History
     @database_sync_to_async
     def create_game_history(self):
