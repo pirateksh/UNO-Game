@@ -9,11 +9,10 @@
     <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
     <link rel="shortcut icon" href="{% static 'img/logo.png' %}" type="image/x-icon">
     
-{#    <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">#}
-{#    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">#}
-{#    <link rel="stylesheet" href="{% static "fonts/font-awesome.min.css"%}">#}
-{#    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">#}
-{#    <link rel="stylesheet" href="{% static 'css/style.css' %}">#}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+    <link rel="stylesheet" href="{% static "fonts/font-awesome.min.css"%}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script type="text/javascript" src="{% static 'js/phaserjs/phaser.min.js' %}"></script>
     <title>
@@ -25,7 +24,7 @@
 
     {% endblock %}
 </head>
-<body>
+<body class="text-center" style="background: linear-gradient(90deg, #e3ffe7 0%, #d9e7ff 100%);">
     {% block content %} {% endblock %}
 
 {#    <script src=" {% static 'js/jquery.min.js' %} "></script>#}

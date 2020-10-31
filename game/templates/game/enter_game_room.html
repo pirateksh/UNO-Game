@@ -16,7 +16,7 @@
         {#        transform: translate(-50%, -50%);#}
         {#    }#}
         #VideoGrid{
-            border: red dotted 2px;
+            {#border: red dotted 2px;#}
             width: 40%;
             {#display: grid;#}
             grid-template-columns: repeat(auto-fill, 300px);
@@ -32,10 +32,10 @@
 {% endblock %}
 
 {% block content %}
-    <button id="id_start_btn" onclick="start_recording()"> Start Recording Game</button>
-    <button id="id_pause_btn" onclick="pause_recording()" disabled> Pause Recording</button>
-    <button id="id_resume_btn" onclick="resume_recording()" disabled> Resume Recording</button>
-    <button id="id_stop_btn" onclick="stop_recording()" disabled> Stop Recording</button>
+    <button class="btn btn-info" id="id_start_btn" onclick="start_recording()"> Start Recording Game</button>
+    <button class="btn btn-warning" id="id_pause_btn" onclick="pause_recording()" disabled> Pause Recording</button>
+    <button class="btn btn-primary" id="id_resume_btn" onclick="resume_recording()" disabled> Resume Recording</button>
+    <button class="btn btn-danger" id="id_stop_btn" onclick="stop_recording()" disabled> Stop Recording</button>
 {#    {% if game_room %}#}
 {#        <div style="border-style: dotted;" class="container-fluid" id="id_phaser_game"></div>#}
 {#        <div>#}
@@ -54,8 +54,8 @@
 {#            </video>#}
         </div>
 
-        <ol id="id_download_links">
-        </ol>
+        <ul id="id_download_links">
+        </ul>
 {#    {% endif %}#}
 {% endblock %}
 
