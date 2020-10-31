@@ -55,6 +55,7 @@ window.onload = function () {
         backgroundMusicVolume: 0.3,
         fullScreenButtonX: width - 16,
         fullScreenButtonY: 16,
+        userAvatarScale: 0.3,
 	};
 
 	let config = {
@@ -92,6 +93,17 @@ window.onload = function () {
 
 function generatePath(folderName, fileName) {
 	return `../../../../static/phaser_assets/${folderName}/${fileName}`;
+}
+
+function getDefaultImagePath() {
+    let ext = "jpg";
+    let filename = "default_male";
+    return `../../../..${mediaUrl}${filename}.${ext}`;
+}
+
+function getUserAvatarPath(username) {
+    let ext = "jpg";
+    return `../../../..${mediaUrl}img/profile_avatars/${username}/avatar_${username}.${ext}`;
 }
 
 function getImagePoint(category, number) {
@@ -288,4 +300,17 @@ function addFullScreenButton(scene) {
             _this.scale.startFullscreen();
         }
     }, _this);
+}
+
+function doesFileExist(urlToFile) {
+    // Source: https://www.kirupa.com/html5/checking_if_a_file_exists.htm#:~:text=To%20use%20it%20in%20your,the%20file%20doesn't%20exist.
+    let xhr = new XMLHttpRequest();
+    xhr.open('HEAD', urlToFile, false);
+    xhr.send();
+
+    if (xhr.status == "404") {
+        return false;
+    } else {
+        return true;
+    }
 }

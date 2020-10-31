@@ -8,6 +8,8 @@ class Scene1 extends Phaser.Scene {
         this.load.image("starfield_1", `${generatePath("images", "starfield_1.png")}`);
         this.load.image("starfield_2", `${generatePath("images", "starfield_2.jpg")}`);
 
+        this.load.image("defaultAvatar", `${getDefaultImagePath()}`);
+
         this.load.spritesheet("unoLogo", `${generatePath("spritesheets", "uno.png")}`, {
             frameWidth: 419,
             frameHeight: 369
@@ -180,12 +182,12 @@ class Scene1 extends Phaser.Scene {
         });
 
         _this.joinedX = game.config.width / 2;
-        _this.joinedY = game.config.height / 2 + 130;
+        _this.joinedY = game.config.height / 2 + 80;
         let emptyTagCoordinates = [];
         for(let i = 0; i < 5; ++i) {
-            let emptyCoordinateLeft = {"isEmpty": true, "x": _this.joinedX - 200, "y": _this.joinedY};
-            let emptyCoordinateRight = {"isEmpty": true, "x": _this.joinedX + 120, "y": _this.joinedY};
-            _this.joinedY += 30;
+            let emptyCoordinateLeft = {"isEmpty": true, "x": _this.joinedX - 260, "y": _this.joinedY};
+            let emptyCoordinateRight = {"isEmpty": true, "x": _this.joinedX + 170, "y": _this.joinedY};
+            _this.joinedY += 35;
             emptyTagCoordinates.push(emptyCoordinateLeft);
             emptyTagCoordinates.push(emptyCoordinateRight);
         }
@@ -350,6 +352,7 @@ class Scene1 extends Phaser.Scene {
             });
 
         _this.joinedPlayersTag = _this.physics.add.group();
+        _this.joinedPlayersAvatar = _this.physics.add.group();
 
         socket.addEventListener("message", function (e) {
             let backendResponse = JSON.parse(e.data);
@@ -367,10 +370,10 @@ class Scene1 extends Phaser.Scene {
                     }
                     else { // TODO: Change this
                         if(currentGame.gameType === Game.FRIEND) {
-                            _this.add.text(game.config.width/2 - 140, game.config.height/2 + 70, "Wait for admin to start the game....");
+                            _this.add.text(game.config.width/2 - 140, game.config.height/2 + 30, "Wait for admin to start the game.");
                         }
                         else if(currentGame.gameType === Game.PUBLIC) {
-                            _this.add.text(game.config.width/2 - 160, game.config.height/2 + 70, "Game will start once sufficient players join.");
+                            _this.add.text(game.config.width/2 - 160, game.config.height/2 + 30, "Game will start once sufficient players join.");
                         }
                     }
 
@@ -393,6 +396,7 @@ class Scene1 extends Phaser.Scene {
                                 let playerTag = _this.add.text(x, y, text, {fill: '#00ff00'});
                                 playerTag.setData({'username': player});
                                 _this.joinedPlayersTag.add(playerTag);
+                                _this.loadAndPlaceUserAvatar(player, x, y);
                                 emptyTagCoordinates[j].isEmpty = false;
                                 break;
                             }
@@ -423,6 +427,8 @@ class Scene1 extends Phaser.Scene {
                             let playerTag = _this.add.text(x, y, text, {fill: '#00ff00'});
                             playerTag.setData({'username': new_user_username});
                             _this.joinedPlayersTag.add(playerTag);
+                            _this.loadAndPlaceUserAvatar(new_user_username, x, y);
+
                             emptyTagCoordinates[j].isEmpty = false;
                             break;
                         }
@@ -456,6 +462,7 @@ class Scene1 extends Phaser.Scene {
                         let leftPlayerTag = _this.joinedPlayersTag.getChildren()[i];
                         let labelText = _this.labelGroup.getChildren()[i];
                         let vidElem = _this.videoGroup[i];
+                        let avatarElem = _this.joinedPlayersAvatar.getChildren()[i];
                         let leftPlayerUsername = leftPlayerTag.getData("username");
                         if(left_user_username === leftPlayerUsername) {
                             for(let j = 0; j < emptyTagCoordinates.length; ++j) {
@@ -476,7 +483,7 @@ class Scene1 extends Phaser.Scene {
                                 }
                             }
                             vidElem.destroy();
-                            _this.videoY -= 105;
+                            avatarElem.destroy();
                             break;
                         }
                     }
@@ -535,6 +542,26 @@ class Scene1 extends Phaser.Scene {
 
         // Calling method to create all the animations used in game.
         _this.createAllAnimations();
+    }
+
+    loadAndPlaceUserAvatar(username, x, y) {
+        let _this = this;
+        let path = `${getUserAvatarPath(username)}`, img;
+
+        if(doesFileExist(path)) {
+            console.log("File Exists.");
+            _this.load.image(`avatar_${username}`, path);
+            _this.load.once('complete', function () {
+                img = _this.add.image(x - 20, y+8, `avatar_${username}`).setScale(gameDetails.userAvatarScale);
+                _this.joinedPlayersAvatar.add(img);
+            });
+            _this.load.start();
+        }
+        else {
+            console.log("File DNE.");
+            img = _this.add.image(x - 20, y+8, "defaultAvatar").setScale(0.12).setDepth(1);
+            _this.joinedPlayersAvatar.add(img);
+        }
     }
 
     addUniqueIdTag() {
