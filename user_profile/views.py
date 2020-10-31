@@ -1,5 +1,6 @@
 import magic
 import json
+import os
 from django.shortcuts import render, get_object_or_404, HttpResponse, HttpResponseRedirect, reverse, Http404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -140,6 +141,23 @@ def check_in_memory_mime(request):
     return mime
 
 
+def delete_existing_avatar(username):
+    """
+    Function to delete existing avatar (if exists) of user before uploading new avatar.
+    :param username: username of user whose avatar is to be deleted.
+    :return:
+    """
+    try:
+        path = f"media/img/profile_avatars/{username}"
+        files = os.listdir(path=path)
+        for file_ in files:
+            os.remove(f"{path}/{file_}")
+        print(f"Existing avatar deleted.")
+        return
+    except OSError:
+        return
+
+
 @login_required
 def avatar_upload(request, username):
     """
@@ -150,13 +168,16 @@ def avatar_upload(request, username):
         print(request.FILES)
 
         if avatar_form.is_valid():
-            # print("Hello")
             user = User.objects.get(username=username)
             user_prof = UserProfile.objects.get(user=user)
             if clean_file(request, avatar_form):
                 mime = check_in_memory_mime(request)
                 if mime == 'image/jpg' or mime == 'image/jpeg' or mime == 'image/png':
                     img = avatar_form.cleaned_data['avatar']
+
+                    # Deleting existing avatar of user.
+                    delete_existing_avatar(username=username)
+
                     user_prof.avatar = img
                     user_prof.save()
                     messages.success(request, f"Avatar uploaded successfully!")

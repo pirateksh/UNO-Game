@@ -13,7 +13,10 @@ def user_directory_path(instance, filename):
         A function to return path where image will be stored after uploading.
     """
     # File will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-    return f"img/profile_avatars/{instance.user.username}/{filename}"
+    ext = filename.split(".")[-1]
+    # ext = "jpg"
+    username = instance.user.username
+    return f"img/profile_avatars/{username}/avatar_{username}.{ext}"
 
 
 class UserProfile(models.Model):
@@ -39,6 +42,7 @@ class UserProfile(models.Model):
         default='default_male.jpg',
         upload_to=user_directory_path,
         processors=[ResizeToFill(100, 100)],
+        format='JPEG',
         # allow_empty_file=False,
         # validators=[MimetypeValidator('image/jpg')],
         options={'quality': 100},

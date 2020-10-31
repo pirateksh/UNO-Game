@@ -318,14 +318,12 @@ class GameServer:
         :param rating: Rating based on which seed is to be calculated
         :return: Seed for player
         """
-        seed = 0.0
+        seed = 1.0
         player_rating = int(rating)
         for opponent in self.players:
             if player.username != opponent.username:
                 opponent_rating = int(opponent.rating_before_start)
-                probability = GameServer.get_elo_win_probability(opponent_rating, player_rating)
-                seed += probability
-        seed = float(seed + 1.0)
+                seed += GameServer.get_elo_win_probability(opponent_rating, player_rating)
         return seed
 
     def decide_winner(self):
