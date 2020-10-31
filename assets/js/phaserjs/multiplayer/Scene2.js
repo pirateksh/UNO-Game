@@ -259,7 +259,7 @@ class Scene2 extends Phaser.Scene {
                 _this.makeHandInteractive();
                 let username = data.username;
                 let timeOutData = backendResponse.timeOutData;
-                let text = `${username}; couldn't play card in given time limit. ${username} is penalised with 2 cards.`
+                let text = `Time Out. ${username} is penalised with 2 cards.`;
                 textToSpeech(text);
 
                 if(username === me) {
@@ -313,7 +313,7 @@ class Scene2 extends Phaser.Scene {
                                 repeat: 0,
                                 onComplete: function () {
                                     oppPlayerSprite.destroy();
-                                    let text = `${leftUsername} has left the game. ${leftUsername}'s card will be included into the deck.`;
+                                    let text = `${leftUsername} has left the game.`;
                                     textToSpeech(text);
                                 },
                                 callbackScope: _this
@@ -434,8 +434,19 @@ class Scene2 extends Phaser.Scene {
         let gameData = JSON.parse(backendResponse.gameData);
         let wonUsername = wonData.username;
         let wonScore = wonData.score;
-        let text = `${wonUsername} won with score ${wonScore}. New round is going to start.`;
+        let text = `${wonUsername} won the round. New round is going to start.`;
         textToSpeech(text);
+
+        // Updating Score of Round Winner.
+        for(let i = 0; i < _this.playerScoreLabel.getChildren().length; ++i) {
+            let scoreLabel = _this.playerScoreLabel.getChildren()[i];
+            let scoreUsername = scoreLabel.getData("username");
+            if(scoreUsername === wonUsername) {
+                console.log("WonScore:", wonScore);
+                scoreLabel.text = `score:${wonScore}`;
+                break;
+            }
+        }
 
         // Emptying Hands.
         let removeCardSpritesArray = [];
@@ -473,10 +484,11 @@ class Scene2 extends Phaser.Scene {
         _this.playerRemainingCardsCountBitMap.clear(true, true);
         _this.turnIndicator.destroy();
 
+        _this.newRound = true;
+
         // TODO: Next Round will start in 3 2 1....
         // Starting new round.
         currentGame.copyData(gameData);
-        console.log("After Won: ", gameData);
         if(serializedPlayer) {
             _this.startGameEventConsumer(serializedPlayer);
         }
@@ -516,33 +528,49 @@ class Scene2 extends Phaser.Scene {
                 repeat: 0,
                 onComplete: function (){
                     // Adding Player's name.
-                    let nameBitMap = _this.add.text(newX - 30, newY + 20, otherPlayer, {backgroundColor: "0x000000"});
-                    _this.playerNameBitMap.add(nameBitMap);
+                    if(!_this.newRound) {
+                        let nameBitMap = _this.add.text(newX - 20, newY + 20, otherPlayer, {backgroundColor: "0x000000"});
+                        _this.playerNameBitMap.add(nameBitMap);
+
+                        let scoreLabel = _this.add.text(newX - 20, newY + 40, "score:0",{backgroundColor: "0x000000"});
+                        scoreLabel.setData({"username": otherPlayer});
+                        _this.playerScoreLabel.add(scoreLabel);
+                        let avatar;
+
+                        let path = `${getUserAvatarPath(otherPlayer)}`;
+                        if(doesFileExist(path)) {
+                            avatar = _this.add.image(newX - 40, newY + 40, `avatar_${otherPlayer}`).setScale(0.3);
+                        }
+                        else {
+                            avatar = _this.add.image(newX - 40, newY + 40, "defaultAvatar").setScale(0.12);
+                        }
+
+                        _this.playerAvatar.add(avatar);
+
+                        // Adding Challenge Button
+                        let challengeButton = _this.physics.add.sprite(newX - 63, newY, "challengeButton");
+                        challengeButton.setInteractive();
+                        challengeButton.setScale(gameDetails.roundButtonScale);
+                        challengeButton.setData({"username": otherPlayer});
+                        challengeButton.on("pointerover", function (pointer) {
+                            document.querySelector("canvas").style.cursor = "pointer";
+                            challengeButton.setFrame(1);
+                        });
+                        challengeButton.on("pointerout", function (pointer) {
+                            document.querySelector("canvas").style.cursor = "default";
+                            challengeButton.setFrame(0);
+                        });
+                        challengeButton.on("pointerdown", function (pointer) {
+                            currentGame.catchPlayerRequest(socket, otherPlayer);
+                        });
+
+                        _this.challengeButtons.add(challengeButton);
+                    }
 
                     // Adding Player's card count.
-                    let cardCountBitMap = _this.add.text(newX + 50, newY, "7", {fontSize: 25, backgroundColor: "0x000000"});
+                    let cardCountBitMap = _this.add.text(newX + 50, newY - 15, "7", {fontSize: 25, backgroundColor: "0x000000"});
                     cardCountBitMap.setData({"username": otherPlayer});
                     _this.playerRemainingCardsCountBitMap.add(cardCountBitMap);
-
-                    // Adding Challenge Button
-                    let challengeButton = _this.physics.add.sprite(newX + 40, newY + 50, "challengeButton");
-                    challengeButton.setInteractive();
-                    challengeButton.setScale(gameDetails.roundButtonScale);
-                    challengeButton.setData({"username": otherPlayer});
-                    challengeButton.on("pointerover", function (pointer) {
-                        document.querySelector("canvas").style.cursor = "pointer";
-                        challengeButton.setFrame(1);
-                    });
-                    challengeButton.on("pointerout", function (pointer) {
-                        document.querySelector("canvas").style.cursor = "default";
-                        challengeButton.setFrame(0);
-                    });
-                    challengeButton.on("pointerdown", function (pointer) {
-                        currentGame.catchPlayerRequest(socket, otherPlayer);
-                    });
-
-                    _this.challengeButtons.add(challengeButton);
-
                 },
                 callbackScope: _this
             });
@@ -1022,6 +1050,8 @@ class Scene2 extends Phaser.Scene {
         _this.oppHandGroup.clear(true, true);
         _this.playerNameBitMap.clear(true, true);
         _this.playerRemainingCardsCountBitMap.clear(true, true);
+        _this.playerAvatar.clear(true, true);
+        _this.playerScoreLabel.clear(true, true);
         _this.challengeButtons.clear(true, true);
         _this.turnIndicator.destroy();
 
@@ -1090,9 +1120,7 @@ class Scene2 extends Phaser.Scene {
                 }
                 else {
                     _this.makeHandInteractive();
-
                     // Setting as top Card.
-
                     _this.topCardSprite = playedCardSprite;
                     currentGame.setTopCard(card);
                 }
@@ -1170,8 +1198,16 @@ class Scene2 extends Phaser.Scene {
 
     importVideoStreamsFromScene1() {
         let _this = this;
-        _this.videoX = 90;
-        _this.videoY = 90;
+        _this.videoX = 80;
+        _this.videoY = 100;
+        let emptyVideoStreamCoordinates = [];
+        for(let i = 0; i < 5; ++i) {
+            let emptyVideoCoordinateLeft = {"isEmpty": true, "x": _this.videoX, "y": _this.videoY};
+            let emptyVideoCoordinateRight = {"isEmpty": true, "x": _this.videoX + 1110, "y": _this.videoY};
+            _this.videoY += 105;
+            emptyVideoStreamCoordinates.push(emptyVideoCoordinateLeft);
+            emptyVideoStreamCoordinates.push(emptyVideoCoordinateRight);
+        }
         _this.videoGroup = [];
         _this.labelGroup = _this.physics.add.group();
         _this.streamDict = _this.scene.get("bootGame").streamDict;
@@ -1179,23 +1215,31 @@ class Scene2 extends Phaser.Scene {
         for(let label in _this.streamDict) {
             if(_this.streamDict.hasOwnProperty(label)) {
                 let stream = _this.streamDict[label];
-                let vidElem = _this.add.video(_this.videoX, _this.videoY);
-                _this.videoY += 105;
-                vidElem.loadURL("", 'loadeddata', false);
-                vidElem.video.srcObject = stream;
-                vidElem.video.addEventListener('loadedmetadata', () => {
-                    vidElem.video.play();
-                    vidElem.depth = 0;
-                    vidElem.setData({"username": label});
-                    vidElem.setScale(gameDetails.liveFeedScale);
-                    _this.videoGroup.push(vidElem);
-                    vidElem.setData({"username": label});
-                });
+                let vidElem;
+                for(let i = 0; i < emptyVideoStreamCoordinates.length; ++i) {
+                    let emptyVideoCoordinate = emptyVideoStreamCoordinates[i];
+                    if(emptyVideoCoordinate.isEmpty) {
+                        let x = emptyVideoCoordinate.x, y = emptyVideoCoordinate.y;
+                        vidElem = _this.add.video(x, y);
+                        emptyVideoStreamCoordinates[i].isEmpty = false;
+                        vidElem.loadURL("", 'loadeddata', false);
+                        vidElem.video.srcObject = stream;
+                        vidElem.video.addEventListener('loadedmetadata', () => {
+                            vidElem.video.play();
+                            vidElem.depth = 0;
+                            vidElem.setData({"username": label});
+                            vidElem.setScale(gameDetails.liveFeedScale);
+                            _this.videoGroup.push(vidElem);
+                            vidElem.setData({"username": label});
+                        });
 
-                addLabelOnLiveFeed(_this, vidElem, label);
+                        addLabelOnLiveFeed(_this, vidElem, label);
 
-                if(label === me){
-                    vidElem.video.muted = true;
+                        if(label === me){
+                            vidElem.video.muted = true;
+                        }
+                        break;
+                    }
                 }
             }
         }
@@ -1437,21 +1481,13 @@ class Scene2 extends Phaser.Scene {
 
         _this.importVideoStreamsFromScene1();
 
+        _this.newRound = false;
+
         // Playing Welcome Audio
         _this.sound.play("welcome");
 
-        // Sending delayed startGameRequest.
-        _this.time.delayedCall(
-            2000,
-            function() {
-                if(me === currentGame.adminUsername) {
-                    currentGame.startGameRequest(socket);
-                }
-                _this.addRecordingButtons();
-            },
-            [],
-            _this
-        );
+        // Used in update()
+        _this.isGameStarted = false;
 
         _this.timeRemainingToSkip = gameDetails.timeOutLimitInSeconds;
         _this.timeRemainingCounter =_this.add.bitmapText(_this.config.width - 50, _this.config.height - 50, "pixelFont", _this.timeRemainingToSkip, 50);
@@ -1472,6 +1508,8 @@ class Scene2 extends Phaser.Scene {
         _this.addUniqueIdAndUnoButton();
 
         _this.playerNameBitMap =  _this.physics.add.group();
+        _this.playerAvatar =  _this.physics.add.group();
+        _this.playerScoreLabel =  _this.physics.add.group();
         _this.playerRemainingCardsCountBitMap = _this.physics.add.group();
         _this.challengeButtons = _this.physics.add.group();
 
@@ -1481,5 +1519,25 @@ class Scene2 extends Phaser.Scene {
     update() {
         let _this = this;
         _this.timeRemainingCounter.setText(_this.timeRemainingToSkip);
+
+
+        if (currentGame != null && (!_this.isGameStarted)) {
+            if (_this.videoGroup.length === currentGame.players.length) {
+                // console.log("Sending Change Scene Request!");
+                _this.isGameStarted = true;
+                // Sending delayed startGameRequest.
+                _this.time.delayedCall(
+                    2000,
+                    function() {
+                        if(me === currentGame.adminUsername) {
+                            currentGame.startGameRequest(socket);
+                        }
+                        _this.addRecordingButtons();
+                    },
+                    [],
+                    _this
+                );
+            }
+        }
     }
 }

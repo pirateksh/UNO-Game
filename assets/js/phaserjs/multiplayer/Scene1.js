@@ -4,9 +4,14 @@ class Scene1 extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("table", `${generatePath("images", "table.jpg")}`);
-        this.load.image("starfield_1", `${generatePath("images", "starfield_1.png")}`);
+        // this.load.image("table", `${generatePath("images", "table.jpg")}`);
+        // this.load.image("starfield_1", `${generatePath("images", "starfield_1.png")}`);
         this.load.image("starfield_2", `${generatePath("images", "starfield_2.jpg")}`);
+
+
+        this.load.image("trophy", `${generatePath("images", "max_trophy.png")}`);
+
+        this.load.image("winLogo", `${generatePath("images", "win.png")}`);
 
         this.load.image("defaultAvatar", `${getDefaultImagePath()}`);
 
@@ -354,6 +359,9 @@ class Scene1 extends Phaser.Scene {
         _this.joinedPlayersTag = _this.physics.add.group();
         _this.joinedPlayersAvatar = _this.physics.add.group();
 
+        // Used in update()
+        _this.isChangeSceneRequestSent = false;
+
         socket.addEventListener("message", function (e) {
             let backendResponse = JSON.parse(e.data);
             let status = backendResponse.status;
@@ -433,22 +441,6 @@ class Scene1 extends Phaser.Scene {
                             break;
                         }
                     }
-                }
-
-                if(currentGame.players.length === 2 && currentGame.gameType === Game.PUBLIC) {
-                    // If this is a public game send change scene request after Max. Player Join.
-                    _this.sound.play("10Seconds");
-                    _this.time.delayedCall(
-                        10000,
-                        function () {
-                            if(me === currentGame.adminUsername) {
-                                console.log("DELAYED Change Scene.");
-                                currentGame.changeSceneRequest(socket, 2);
-                            }
-                        },
-                        [], _this
-                    );
-                    
                 }
             }
             else if(status === "user_left_room"){
@@ -629,5 +621,30 @@ class Scene1 extends Phaser.Scene {
 			frameRate: 50, // play at 20 frames per second
 			repeat: -1 // For infinite loop (repeat) we user -1
 		});
+    }
+
+    update() {
+        let _this = this;
+        if (currentGame !=null && !_this.isChangeSceneRequestSent) {
+            if (currentGame.gameType === Game.PUBLIC && currentGame.players.length === Game.MAX_LIMIT) {
+                if (_this.videoGroup.length === currentGame.players.length) {
+                    // If this is a public game send change scene request after Max. Player Join.
+                    console.log("Sending Change Scene Request!");
+                    _this.isChangeSceneRequestSent = true;
+                    // _this.sound.play("10Seconds");
+                    _this.time.delayedCall(
+                        2000,
+                        function () {
+                            if (me === currentGame.adminUsername) {
+                                console.log("Sent Change Scene Request!");
+                                currentGame.changeSceneRequest(socket, 2);
+                            }
+                        },
+                        [], _this
+                    );
+
+                }
+            }
+        }
     }
 }

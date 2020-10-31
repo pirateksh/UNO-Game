@@ -15,27 +15,27 @@
         {#        left: 50%;#}
         {#        transform: translate(-50%, -50%);#}
         {#    }#}
-        #VideoGrid{
-            border: red dotted 2px;
-            width: 40%;
+        {##VideoGrid{#}
+        {#    border: red dotted 2px;#}
+        {#    width: 40%;#}
             {#display: grid;#}
-            grid-template-columns: repeat(auto-fill, 300px);
-            grid-auto-rows: 300px;
-        }
-        video{
+        {#    grid-template-columns: repeat(auto-fill, 300px);#}
+        {#    grid-auto-rows: 300px;#}
+        {# }#}
+        {#video{#}
             {#display: inline-block;#}
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        {#    width: 100%;#}
+        {#    height: 100%;#}
+        {#    object-fit: cover;#}
+        {# }#}
     </style>
 {% endblock %}
 
 {% block content %}
-    <button id="id_start_btn" onclick="start_recording()"> Start Recording Game</button>
-    <button id="id_pause_btn" onclick="pause_recording()" disabled> Pause Recording</button>
-    <button id="id_resume_btn" onclick="resume_recording()" disabled> Resume Recording</button>
-    <button id="id_stop_btn" onclick="stop_recording()" disabled> Stop Recording</button>
+{#    <button id="id_start_btn" onclick="start_recording()"> Start Recording Game</button>#}
+{#    <button id="id_pause_btn" onclick="pause_recording()" disabled> Pause Recording</button>#}
+{#    <button id="id_resume_btn" onclick="resume_recording()" disabled> Resume Recording</button>#}
+{#    <button id="id_stop_btn" onclick="stop_recording()" disabled> Stop Recording</button>#}
 {#    {% if game_room %}#}
 {#        <div style="border-style: dotted;" class="container-fluid" id="id_phaser_game"></div>#}
 {#        <div>#}
@@ -46,13 +46,13 @@
 {#            <br/>#}
 {#        </div>#}
 
-        <div id="VideoGrid">
+{#        <div id="VideoGrid">#}
 {#            <video id="id_stream_video" controls></video>#}
 {#            <video >#}
 {#                <source src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">#}
 {#                Your browser does not support HTML video.#}
 {#            </video>#}
-        </div>
+{#        </div>#}
 
         <ol id="id_download_links">
         </ol>
@@ -159,6 +159,7 @@
 
             static PUBLIC = 0;
             static FRIEND = 1;
+            static MAX_LIMIT = 2;
 
             constructor(gameData) {
                 this.uniqueId = gameData.uniqueId;
