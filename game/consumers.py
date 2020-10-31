@@ -107,7 +107,7 @@ class GameRoomConsumer(AsyncConsumer):
                                 text_of_event['status'] = "won_round"
                                 type_of_event = "won_round"
 
-                                await self.handle_winning_round(winner_username=winner_username)
+                                # await self.handle_winning_round(winner_username=winner_username)
 
                                 print(f"This round ended. Get ready for next round.")
 
