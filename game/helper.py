@@ -197,7 +197,7 @@ class PlayerServer:
 
 
 class GameServer:
-    PUBLIC, FRIEND = 0, 1
+    PUBLIC, CUSTOM = 0, 1
     PUBLIC_ROOM_LIMIT = 2
     WINNING_SCORE = 1
     AVAILABLE_FRIEND_GAMES = []
@@ -240,16 +240,16 @@ class GameServer:
             new_public_game = GameServer(unique_id, player=player, game_type=game_type, league=league)
             cls.AVAILABLE_PUBLIC_GAMES.append(new_public_game)
             return new_public_game
-        elif game_type == cls.FRIEND:
+        elif game_type == cls.CUSTOM:
             for friend_game in cls.AVAILABLE_FRIEND_GAMES:
                 if friend_game.unique_id == unique_id:
                     if friend_game.get_count_of_players() < 10:
-                        print("Returning Existing Friend Game.")
+                        print("Returning Existing Custom Game.")
                         friend_game.players.append(player)
                         friend_game.player_usernames.append(player.username)
                         return friend_game
                     return None
-            print("Creating New Friend Game.")
+            print("Creating New Custom Game.")
             new_friend_game = GameServer(unique_id, player=player, game_type=game_type, league=league)
             cls.AVAILABLE_FRIEND_GAMES.append(new_friend_game)
             return new_friend_game
@@ -318,14 +318,12 @@ class GameServer:
         :param rating: Rating based on which seed is to be calculated
         :return: Seed for player
         """
-        seed = 0.0
+        seed = 1.0
         player_rating = int(rating)
         for opponent in self.players:
             if player.username != opponent.username:
                 opponent_rating = int(opponent.rating_before_start)
-                probability = GameServer.get_elo_win_probability(opponent_rating, player_rating)
-                seed += probability
-        seed = float(seed + 1.0)
+                seed += GameServer.get_elo_win_probability(opponent_rating, player_rating)
         return seed
 
     def decide_winner(self):

@@ -5,10 +5,11 @@
         "visited_user": visited_user,
         "visited_profile": visited_profile,
         "avatar_upload_form": avatar_upload_form,
-        "custom_game_data": custom_game_data,
-        "public_game_data": public_game_data,
+        "all_game_data": all_game_data,
         "current_league_progress": int(current_league_progress),
-        "overall_win_rate": int(overall_win_rate)
+        "overall_win_rate": int(overall_win_rate),
+        "public_win_rate": int(public_win_rate),
+        "custom_win_rate": int(custom_win_rate),
     }
 {% endcomment %}
 {% block styles %}
@@ -23,7 +24,7 @@
 {% endblock %}
 
 {% block title %}
-    {{ user.username }}'s Profile
+    {{ visited_user.username }}'s Profile
 {% endblock %}
 
 {% block content %}
@@ -66,7 +67,7 @@
 
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <h6 class="text-primary font-weight-bold m-0">Win Stats</h6>
+                        <h6 class="text-primary font-weight-bold m-0">Win Rates</h6>
                     </div>
                     <div class="card-body card-bg">
 {#                        <h4 class="small font-weight-bold">Win Rate of Current League<span class="float-right">20%</span></h4>#}
@@ -77,14 +78,33 @@
 {#                        <div class="progress progress-sm mb-3">#}
 {#                            <div class="progress-bar bg-warning" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%;"><span class="sr-only">40%</span></div>#}
 {#                        </div>#}
-                        <h4 class="small font-weight-bold">Overall Win Rate<span class="float-right">{{ overall_win_rate }}%</span></h4>
-                        <div class="progress progress-sm mb-3">
-                            <div class="progress-bar bg-primary" aria-valuenow="{{ overall_win_rate }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ overall_win_rate }}%;"><span class="sr-only">{{ overall_win_rate }}%</span></div>
-                        </div>
-{#                        <h4 class="small font-weight-bold">Win Rate VS Friends<span class="float-right">80%</span></h4>#}
-{#                        <div class="progress progress-sm mb-3">#}
-{#                            <div class="progress-bar bg-info" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%;"><span class="sr-only">80%</span></div>#}
-{#                        </div>#}
+                    {% if public_win_rate != -1 or custom_win_rate != -1 %}
+                         {% if overall_win_rate != -1 %}
+                            <h4 class="small font-weight-bold">Overall<span class="float-right">{{ overall_win_rate }}%</span></h4>
+                            <div class="progress progress-sm mb-3">
+                                <div class="progress-bar bg-primary" aria-valuenow="{{ overall_win_rate }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ overall_win_rate }}%;"><span class="sr-only">{{ overall_win_rate }}%</span></div>
+                            </div>
+                        {% endif %}
+
+                        {% if public_win_rate != -1 %}
+                            <h4 class="small font-weight-bold">Public Multi-player<span class="float-right">{{ public_win_rate }}%</span></h4>
+                            <div class="progress progress-sm mb-3">
+                                <div class="progress-bar bg-info" aria-valuenow="{{ public_win_rate }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ public_win_rate }}%;"><span class="sr-only">{{ public_win_rate }}%</span></div>
+                            </div>
+                        {% endif %}
+
+                        {% if custom_win_rate != -1 %}
+                            <h4 class="small font-weight-bold">Custom Multi-player<span class="float-right">{{ custom_win_rate }}%</span></h4>
+                            <div class="progress progress-sm mb-3">
+                                <div class="progress-bar bg-info" aria-valuenow="{{ custom_win_rate }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ custom_win_rate }}%;"><span class="sr-only">{{ custom_win_rate }}%</span></div>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <p>You haven't played any match yet.</p>
+                        <p><a href="{% url 'play_now' %}">Click to Play Now</a></p>
+                    {% endif %}
+
+
                     </div>
                 </div>
             </div>
@@ -174,6 +194,10 @@
                                                 <img src="{% static "img/profile/played.png" %}" alt="" width="60px"><br>
                                                 <strong>NO OF MATCHES PLAYED</strong>
                                             </th>
+                                            <th scope="col">
+                                                <img src="{% static "img/profile/win.png" %}" alt="" width="60px"><br>
+                                                <strong>WINNING STREAK</strong>
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -188,10 +212,13 @@
                                                 {{ visited_profile.maximum_rating }}
                                             </td>
                                             <td>
-                                                {{ visited_profile.won_games_count }}
+                                                {{ visited_profile.won_public_games_count|add:visited_profile.won_custom_games_count }}
                                             </td>
                                             <td>
-                                                {{ visited_profile.total_games_count }}
+                                                {{ visited_profile.total_custom_games_count|add:visited_profile.total_public_games_count }}
+                                            </td>
+                                            <td>
+                                                {{ visited_profile.winning_streak }}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -210,77 +237,57 @@
                         </div>
                         <div class="card-body card-hd" style="overflow-x: scroll;">
                             <ul class="flexlist">
-                                {% for public_game_datum in public_game_data %}
-                                <!-- PUBLIC MULTI-PLAYER GAME HISTORY -->
-                                <li class="flexlist-item">
-                                    <div class="card text-center" style="width: 20rem; height:100%;">
-                                        <div class="card-header">
-                                            <p class="text-uppercase text-secondary"><strong>public multiplayer</strong></p>
-                                        </div>
-                                        <div class="card-body about-bg">
-                                            <table class="table text-center table-borderless">
-                                                <tr>
-                                                    <th><p>Unique ID:</p></th>
-                                                    <th><p>{{ public_game_datum.game.unique_game_id }}</p></th>
-                                                </tr>
-                                                <tr>
-                                                    <th><p>Ended At:</p></th>
-                                                    <th><p>{{ public_game_datum.game.concluded_at }}</p></th>
-                                                </tr>
-                                                <tr>
-                                                    <th><p>Winner:</p></th>
-                                                    <th><p><a href="{% url 'user_profile' public_game_datum.game.winner_username %}">{{ public_game_datum.game.winner_username }}</a></p></th>
-                                                </tr>
-                                                <tr>
-                                                    <th colspan="2">
-                                                        <!-- Button trigger modal -->
-                                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#id_public_multiplayer_{{ public_game_datum.game.unique_game_id }}">
-                                                            Participants
-                                                        </button>
-                                                    </th>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </li>
-                                {% endfor %}
-                                <!-- PUBLIC MULTI-PLAYER GAME HISTORY ENDED-->
+                                <!-- MULTI-PLAYER GAME HISTORY -->
+                                {% if all_game_data %}
+                                    {% for all_game_datum in all_game_data %}
+                                        <li class="flexlist-item">
+                                            <div class="card text-center" style="width: 20rem; height:100%;">
+                                                <div class="card-header">
+                                                    {% if all_game_datum.game.game_type == all_game_datum.game.PUBLIC %}
+                                                        <p class="text-uppercase text-secondary"><strong>public multiplayer</strong></p>
+                                                    {% else %}
+                                                        <p class="text-uppercase text-secondary"><strong>custom multiplayer</strong></p>
+                                                    {% endif %}
 
-                                <!-- CUSTOM MULTI-PLAYER GAME HISTORY -->
-                                {% for custom_game_datum in custom_game_data %}
-                                <li class="flexlist-item">
-                                    <div class="card text-center" style="width: 20rem; height:100%;">
-                                        <div class="card-header">
-                                            <p class="text-uppercase text-secondary"><strong>custom multiplayer</strong></p>
-                                        </div>
-                                        <div class="card-body about-bg">
-                                            <table class="table text-center table-borderless">
-                                                <tr>
-                                                    <th><p>Unique ID:</p></th>
-                                                    <th><p>{{ custom_game_datum.game.unique_game_id }}</p></th>
-                                                </tr>
-                                                <tr>
-                                                    <th><p>Ended At:</p></th>
-                                                    <th><p>{{ custom_game_datum.game.concluded_at }}</p></th>
-                                                </tr>
-                                                <tr>
-                                                    <th><p>Winner:</p></th>
-                                                    <th><p><a href="{% url 'user_profile' custom_game_datum.game.winner_username %}">{{ custom_game_datum.game.winner_username }}</a></p></th>
-                                                </tr>
-                                                <tr>
-                                                    <th colspan="2">
-                                                        <!-- Button trigger modal -->
-                                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#id_custom_multiplayer_{{ custom_game_datum.game.unique_game_id }}">
-                                                            Participants
-                                                        </button>
-                                                    </th>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </li>
-                                {% endfor %}
-                                <!-- CUSTOM MULTI-PLAYER GAME HISTORY ENDED -->
+                                                </div>
+                                                <div class="card-body about-bg">
+                                                    <table class="table text-center table-borderless">
+                                                        <tr>
+                                                            <th><p>Unique ID:</p></th>
+                                                            <th><p>{{ all_game_datum.game.unique_game_id }}</p></th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th><p>Ended At:</p></th>
+                                                            <th><p>{{ all_game_datum.game.concluded_at }}</p></th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th><p>Winner:</p></th>
+                                                            <th>
+                                                                <p>
+                                                                    <a class="nav-link" href="{% url 'user_profile' all_game_datum.game.winner_username %}">
+                                                                        <img src="{{ all_game_datum.winner.userprofile.avatar.url }}" alt="avatar" width="25px" class="rounded-circle" />
+                                                                        {{ all_game_datum.game.winner_username }}
+                                                                    </a>
+                                                                </p>
+                                                            </th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th colspan="2">
+                                                                <!-- Button trigger modal -->
+                                                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#id_multiplayer_game_{{ all_game_datum.game.unique_game_id }}">
+                                                                    Participants
+                                                                </button>
+                                                            </th>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                {% else %}
+                                    You haven't played any multi-player yet. &nbsp; <a href="{% url 'play_now' %}">Click to Play Now.</a>
+                                {% endif %}
+                                <!-- MULTI-PLAYER GAME HISTORY ENDED -->
                             </ul>        
                         </div>
 
@@ -290,75 +297,48 @@
             </div> {# 4 #}
         </div>
     </div>
-{#        </div>#}
-{#    </div>#}
 
-{# Modal start#}
-    <!-- Modal public -->
-    {% for public_game_datum in public_game_data %}
-        <div class="modal fade" id="id_public_multiplayer_{{ public_game_datum.game.unique_game_id }}" tabindex="-1" aria-labelledby="public_multiplayerLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header card-bg">
-                <h5 class="modal-title" id="exampleModalLabel">Participants</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="modal-body card-hd">
-                    <table class="table table-borderless">
-                        <tr>
-                            <th><p>Name</p></th>
-                            <th><p>Score</p></th>
-                            <th><p>Rating Change</p></th>
-                        </tr>
-                        {% for participant in public_game_datum.participants %}
+    <!-- Modal multiplayer game -->
+    {% if all_game_data %}
+        {% for all_game_datum in all_game_data %}
+            <div class="modal fade" id="id_multiplayer_game_{{ all_game_datum.game.unique_game_id }}" tabindex="-1" aria-labelledby="multiplayerLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header card-bg">
+                    <h5 class="modal-title" id="exampleModalLabel">Participants</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body card-hd">
+                        <table class="table table-borderless">
                             <tr>
-                                <td><p><a href="{% url 'user_profile' participant.user.username %}">{{ participant.user.username }}</a></p></td>
-                                <td><p>{{ participant.score }}</p></td>
-                                <td><p>{{ participant.rating_change }}</p></td>
+                                <th><p>Name</p></th>
+                                <th><p>Score</p></th>
+                                <th><p>Rating Change</p></th>
                             </tr>
-                        {% endfor %}
-                    </table>
+                            {% for participant in all_game_datum.participants %}
+                                <tr>
+                                    <td>
+                                        <p>
+                                            <a class="nav-link" href="{% url 'user_profile' participant.user.username %}">
+                                                <img src="{{ participant.user.userprofile.avatar.url }}" alt="avatar" width="25px" class="rounded-circle" />
+                                                {{ participant.user.username }}
+                                            </a>
+                                        </p>
+                                    </td>
+                                    <td><p>{{ participant.score }}</p></td>
+                                    <td><p>{{ participant.rating_change }}</p></td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
+    {% endif %}
 
-    <!-- Modal custom -->
-    {% for custom_game_datum in custom_game_data %}
-        <div class="modal fade" id="id_custom_multiplayer_{{ custom_game_datum.game.unique_game_id }}" tabindex="-1" aria-labelledby="custom_multiplayerLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header card-bg">
-                <h5 class="modal-title" id="exampleModalLabel">Participants</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="modal-body card-hd">
-                    <table class="table table-borderless">
-                        <tr>
-                            <th><p>Name</p></th>
-                            <th><p>Score</p></th>
-                            <th><p>Rating Change</p></th>
-                        </tr>
-                        {% for participant in custom_game_datum.participants %}
-                            <tr>
-                                <td><p><a href="{% url 'user_profile' participant.user.username %}">{{ participant.user.username }}</a></p></td>
-                                <td><p>{{ participant.score }}</p></td>
-                                <td><p>{{ participant.rating_change }}</p></td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-
-              </div>
-
-            </div>
-          </div>
-        </div>
-    {% endfor %}
 {% endblock %}
 
 {% block javascript %}

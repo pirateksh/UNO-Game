@@ -175,13 +175,12 @@ class BotScene2 extends Phaser.Scene {
 
             if(!_this.isGameRunning) {
                 _this.sound.play('shuffle');
-                _this.startGame(let_bot_game_state, let_player_state, let_playable_cards);
-                _this.botCardCount.text = let_bot_state.length;
+                _this.startGame(let_bot_state, let_bot_game_state, let_player_state, let_playable_cards);
                 _this.isGameRunning = true;
             }
             else {
-                _this.playerHand = [];
 
+                _this.playerHand = [];
 
                 if(_this.drewCard) {
                     let drawnCard = parseCard(let_player_state[let_player_state.length - 1]);
@@ -197,7 +196,7 @@ class BotScene2 extends Phaser.Scene {
                             duration: 700,
                             onComplete: function () {
                                 _this.playerHandSprites.add(drawnCardSprite);
-                                _this.botCardPlayHandler(let_bot_state, let_player_state, let_bot_played_cards, let_playable_cards, let_bot_game_state, top_color, bot_says_uno, bot_won, player_won);
+                                _this.botCardPlayHandler(let_player_state, let_bot_played_cards, let_playable_cards, let_bot_game_state, top_color, bot_says_uno, bot_won, player_won);
                             },
                             callbackScope: _this
                         });
@@ -280,7 +279,7 @@ class BotScene2 extends Phaser.Scene {
         }
     }
 
-    botCardPlayHandler(let_bot_state, let_player_state, let_bot_played_cards, let_playable_cards, let_bot_game_state, top_color, bot_says_uno, bot_won, player_won) {
+    botCardPlayHandler(let_player_state, let_bot_played_cards, let_playable_cards, let_bot_game_state, top_color, bot_says_uno, bot_won, player_won) {
         let _this = this;
         let handIndex = let_player_state.length - 1;
 
@@ -299,7 +298,7 @@ class BotScene2 extends Phaser.Scene {
             }
         }
 
-        _this.playCardBot(let_bot_state, let_bot_played_cards, 0, handIndex, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won);
+        _this.playCardBot(let_bot_played_cards, 0, handIndex, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won);
 
         if((bot_won !== 1 && player_won !== 1) && let_bot_played_cards.length === 0) {
             let newTopCard = parseCard(let_bot_game_state[0]);
@@ -310,13 +309,13 @@ class BotScene2 extends Phaser.Scene {
         }
     }
 
-    playCardBot(let_bot_state, let_bot_played_cards, index, playerHandIndex, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won) {
+    playCardBot(let_bot_played_cards, index, playerHandIndex, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won) {
         let _this = this;
         if(index === let_bot_played_cards.length) {
             _this.playerHandSprites.clear(true, true);
             _this.dealHand(let_player_state, game.config.width/2, game.config.height/2 + 200);
             _this.makeHandInteractive(let_playable_cards);
-            _this.botCardCount.text = let_bot_state.length;
+
             _this.audioEventsHandler(top_color, bot_says_uno, bot_won, player_won);
 
             return;
@@ -357,7 +356,7 @@ class BotScene2 extends Phaser.Scene {
                     else {
                         // _this.playCardBot(let_bot_played_cards, index + 1, playerHandIndex, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won);
                     }
-                    _this.drawCardOnebyOne(let_bot_state, playerHandIndex, index, let_bot_played_cards, count, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won);
+                    _this.drawCardOnebyOne(playerHandIndex, index, let_bot_played_cards, count, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won);
                 },
                 callbackScope: _this,
             });
@@ -395,10 +394,10 @@ class BotScene2 extends Phaser.Scene {
         }
     }
 
-    drawCardOnebyOne(let_bot_state, handIndex, index, let_bot_played_cards, count, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won) {
+    drawCardOnebyOne(handIndex, index, let_bot_played_cards, count, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won) {
         let _this = this;
         if(count === 0) {
-            _this.playCardBot(let_bot_state, let_bot_played_cards, index + 1, handIndex, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won);
+            _this.playCardBot(let_bot_played_cards, index + 1, handIndex, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won);
             return;
         }
         let card = parseCard(let_player_state[handIndex]);
@@ -412,7 +411,7 @@ class BotScene2 extends Phaser.Scene {
             y: gameDetails.myHandY,
             duration: 700,
             onComplete: function () {
-                _this.drawCardOnebyOne(let_bot_state, handIndex+1, index, let_bot_played_cards, count-1, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won);
+                _this.drawCardOnebyOne(handIndex+1, index, let_bot_played_cards, count-1, let_player_state, let_playable_cards, top_color, bot_says_uno, bot_won, player_won);
             }
         });
     }
@@ -528,7 +527,7 @@ class BotScene2 extends Phaser.Scene {
         }
     }
 
-    placeBotHandsOnTable() {
+    placeBotHandsOnTable(let_bot_state) {
         let _this = this;
 
         let botX = gameDetails.centerX , botY = gameDetails.centerY - gameDetails.radius;
@@ -542,7 +541,7 @@ class BotScene2 extends Phaser.Scene {
             duration: 700,
             repeat: 0,
             onComplete: function () {
-                _this.botCardCount = _this.add.text(botX + 50, botY, "7", {fontSize: 25, backgroundColor: "0x000000"});
+                _this.botCardCount = _this.add.text(botX + 50, botY, `${let_bot_state.length}`, {fontSize: 25, backgroundColor: "0x000000"});
                 _this.botName = _this.add.text(botX - 50, botY + 30, "AI Bot", {fontSize: 20, backgroundColor: "0x000000"});
                 // Adding Challenge Button
                 _this.challengeButton = _this.physics.add.sprite(botX + 40, botY + 50, "challengeButton");
@@ -887,14 +886,14 @@ class BotScene2 extends Phaser.Scene {
 		});
     }
 
-    startGame(let_bot_game_state, let_player_state, let_playable_cards) {
+    startGame(let_bot_state, let_bot_game_state, let_player_state, let_playable_cards) {
         let _this = this;
 
         _this.placeTopCard(let_bot_game_state); // Placing Top Card
         _this.dealHand(let_player_state, gameDetails.deckX, gameDetails.deckY); // Dealing Hands
 
         // Placing opponent's hands on the table.
-        _this.placeBotHandsOnTable();
+        _this.placeBotHandsOnTable(let_bot_state);
 
         _this.makeHandInteractive(let_playable_cards);
     }

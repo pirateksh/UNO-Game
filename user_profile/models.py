@@ -13,7 +13,10 @@ def user_directory_path(instance, filename):
         A function to return path where image will be stored after uploading.
     """
     # File will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-    return f"img/profile_avatars/{instance.user.username}/{filename}"
+    ext = filename.split(".")[-1]
+    # ext = "jpg"
+    username = instance.user.username
+    return f"img/profile_avatars/{username}/avatar_{username}.{ext}"
 
 
 class UserProfile(models.Model):
@@ -39,6 +42,7 @@ class UserProfile(models.Model):
         default='default_male.jpg',
         upload_to=user_directory_path,
         processors=[ResizeToFill(100, 100)],
+        format='JPEG',
         # allow_empty_file=False,
         # validators=[MimetypeValidator('image/jpg')],
         options={'quality': 100},
@@ -49,14 +53,26 @@ class UserProfile(models.Model):
     # Whether Email has been verified or not
     is_email_verified = models.BooleanField(default=False)
 
-    # Total Number of games played
-    total_games_count = models.IntegerField(default=0, verbose_name="Count of Games Played")
+    # # Total Number of games played
+    # total_games_count = models.IntegerField(default=0, verbose_name="Count of Games Played")
+    #
+    # # Number of Games won by this player
+    # won_games_count = models.IntegerField(default=0, verbose_name="Count of Games Won")
 
-    # Number of Games won by this player
-    won_games_count = models.IntegerField(default=0, verbose_name="Count of Games Won")
+    # Total Number of public games played
+    total_public_games_count = models.IntegerField(default=0, verbose_name="# of Public Games Played")
 
-    # Number of rounds won by this player
-    won_rounds_count = models.IntegerField(default=0, verbose_name="Count of Rounds Won")
+    # Number of public games won by this player
+    won_public_games_count = models.IntegerField(default=0, verbose_name="# of Public Games Won")
+
+    # Total Number of custom games played
+    total_custom_games_count = models.IntegerField(default=0, verbose_name="# of Custom Games Played")
+
+    # Number of public games won by this player
+    won_custom_games_count = models.IntegerField(default=0, verbose_name="# of Custom Games Won")
+
+    # # Number of rounds won by this player
+    # won_rounds_count = models.IntegerField(default=0, verbose_name="Count of Rounds Won")
 
     # Winning streak of player.
     winning_streak = models.IntegerField(default=0, verbose_name="Winning Streak")
