@@ -441,14 +441,19 @@ class Scene2 extends Phaser.Scene {
         let text = `${wonUsername} won the round. New round is going to start.`;
         textToSpeech(text);
 
+        console.log("WonScore:", wonScore);
         // Updating Score of Round Winner.
-        for(let i = 0; i < _this.playerScoreLabel.getChildren().length; ++i) {
-            let scoreLabel = _this.playerScoreLabel.getChildren()[i];
-            let scoreUsername = scoreLabel.getData("username");
-            if(scoreUsername === wonUsername) {
-                console.log("WonScore:", wonScore);
-                scoreLabel.text = `score:${wonScore}`;
-                break;
+        if(wonUsername === me) { // If this player won the round.
+            _this.selfScoreLabel.text = `score:${wonScore}`;
+        }
+        else { // If opponent won the round.
+            for(let i = 0; i < _this.playerScoreLabel.getChildren().length; ++i) {
+                let scoreLabel = _this.playerScoreLabel.getChildren()[i];
+                let scoreUsername = scoreLabel.getData("username");
+                if(scoreUsername === wonUsername) {
+                    scoreLabel.text = `score:${wonScore}`;
+                    break;
+                }
             }
         }
 
@@ -599,6 +604,11 @@ class Scene2 extends Phaser.Scene {
 
         // Setting Turn Indicator.
         _this.moveOrSetTurnIndicator(false);
+
+        // Setting Self Score Label
+        if(!_this.newRound) {
+            _this.selfScoreLabel = _this.add.text(gameDetails.unoButtonX - 70, gameDetails.unoButtonY - 195, "score:0", {fontSize: 25});
+        }
     }
 
     playCardEventConsumer(backendResponse, won) {
@@ -1056,6 +1066,7 @@ class Scene2 extends Phaser.Scene {
         _this.playerScoreLabel.clear(true, true);
         _this.challengeButtons.clear(true, true);
         _this.turnIndicator.destroy();
+        _this.selfScoreLabel.destroy();
 
         // Disabling CardSprite in Hand of Player.
         for(let i = 0; i < myHand.getCount(); ++i) {
@@ -1462,12 +1473,17 @@ class Scene2 extends Phaser.Scene {
             _this.resumeRecordingButton.disableInteractive().setAlpha(0.5);
             _this.pauseRecordingButton.disableInteractive().setAlpha(0.5);
 
-            let text = "Saved Recording. It is ready to be downloaded."
+            let text = "Saved Recording. It is ready to be downloaded.";
             textToSpeech(text);
 
             // Saving Recording
             stop_recording();
         });
+    }
+
+    addSelfCredentials() {
+        let _this = this;
+        _this.selfScoreLabel = _this.add.text(gameDetails.unoButtonX - 70, gameDetails.unoButtonY - 195, "score:0", {fontSize: 25});
     }
 
     setupGame() {
@@ -1520,6 +1536,8 @@ class Scene2 extends Phaser.Scene {
         _this.challengeButtons = _this.physics.add.group();
 
         _this.addDeckCards();
+
+        // _this.addSelfCredentials();
     }
 
     update() {
