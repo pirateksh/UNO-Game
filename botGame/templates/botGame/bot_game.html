@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block styles %}
-    <style>
+<!--     <style>
         *{
             box-sizing: border-box;
         }
@@ -40,7 +40,7 @@
             float: left;
             width: 200px;
         }
-    </style>
+    </style> -->
 {% endblock %}
 
 {% block title %}
@@ -51,7 +51,7 @@
 <div>
     <h1> Let's Play with Bot. You are Playing with bot: {{ bot }} </h1>
         <div>
-            <div id="div_bs">
+<!--             <div id="div_bs">
                 <b>Bot State:</b>
                 <ol id="bot_state"></ol>
             </div>
@@ -66,7 +66,7 @@
             <div id="div_tc">
                 <b> Top Card: </b>
                 <ol id="bot_game_state"></ol>
-            </div>
+            </div> -->
             <div id="div_pc">
                 <b> Playable Cards: </b>
                 <ol id="playable_cards"></ol>
@@ -74,10 +74,7 @@
             <div id="end_game">
                  <button id="END_GAME">End Game</button>
             </div>
-
-
         </div>
-
 </div>
 {%endblock content%}
 
