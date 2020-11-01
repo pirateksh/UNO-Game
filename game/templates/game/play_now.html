@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% comment %}
+    context = {
+        "top_players": top_players,
+    }
+{% endcomment %}
 
 {% block title %}Play Now{% endblock %}
 
@@ -22,33 +26,17 @@
                     <svg class="ico-cup">
                     <use xlink:href="#cup"></use>
                     </svg>
-                    Leaderboard
+                    Leader Board
                 </h1>
                 <ol>
-                    <li>
-                    <mark>Kshitiz Shrivastava</mark>
-                    <small>315</small>
-                    </li>
-                    <li>
-                    <mark>Ankit Sangwan</mark>
-                    <small>301</small>
-                    </li>
-                    <li>
-                    <mark>Vishwajeet Kumar</mark>
-                    <small>292</small>
-                    </li>
-                    <li>
-                    <mark>Kshitiz Shrivastava</mark>
-                    <small>315</small>
-                    </li>
-                    <li>
-                    <mark>Ankit Sangwan</mark>
-                    <small>301</small>
-                    </li>
-                    <li>
-                    <mark>Ankit Sangwan</mark>
-                    <small>301</small>
-                    </li>
+                    {% for top_player in top_players %}
+                        <a href="{% url 'user_profile' top_player.user.username %}">
+                            <li>
+                                <mark>{{ top_player.user.username }}</mark>
+                                <small>{{ top_player.current_rating }}&nbsp;({{ top_player.current_league }})</small>
+                            </li>
+                        </a>
+                    {% endfor %}
                 </ol>
                 </div>
             </div>

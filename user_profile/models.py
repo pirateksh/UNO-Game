@@ -104,16 +104,20 @@ class UserProfile(models.Model):
         return self.user.username
 
     RATING_THRESHOLDS = {
-        NOOBIE: 1000,
-        AMATEUR: 1700,
-        EXPERT: 2500,
-        CHAMPION: 3200,
-        SUPER_NATURAL: 4000,
+        NOOBIE: 800,
+        AMATEUR: 1400,
+        EXPERT: 2000,
+        CHAMPION: 2800,
+        SUPER_NATURAL: 3800,
         UNIVERSE_BOSS: 5000,
-        OP: 6200,
+        OP: 6400,
     }
 
     def get_current_league(self):
+        """
+        Method which current league based on current rating.
+        :return:
+        """
         rating = self.current_rating
         if rating < self.RATING_THRESHOLDS[self.NOOBIE]:
             return self.NOOBIE

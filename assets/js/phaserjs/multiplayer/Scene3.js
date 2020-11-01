@@ -73,7 +73,14 @@ class Scene3 extends Phaser.Scene {
             });
             for(let i = 0; i < _this.wonGameData.length; ++i) {
                 let player = _this.wonGameData[i];
-                let username = player.username, score = player.score, rating_change = player.rating_change;
+                let username = player.username, score = player.score, rating_change = parseInt(player.rating_change);
+                if(currentGame.gameType === Game.FRIEND) {
+                    // Rating Change should be zero if this is a CUSTOM/FRIEND Game.
+                    rating_change = 0;
+                }
+                if(rating_change > 0) {
+                    rating_change = `+${rating_change}`;
+                }
 
                 _this.add.bitmapText(usrx + 2, entY, "pixelFont", `${username}`, 25);
                 _this.add.bitmapText(scrx + 8, entY, "pixelFont", `${score}`, 25);
