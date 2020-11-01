@@ -4,130 +4,7 @@ class BotScene1 extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("starfield_2", `${generatePath("images", "starfield_2.jpg")}`);
-
-        this.load.spritesheet("unoLogo", `${generatePath("spritesheets", "uno.png")}`, {
-            frameWidth: 419,
-            frameHeight: 369
-        });
-
-        this.load.spritesheet("cardBack", `${generatePath("images", "back.png")}`, {
-            frameWidth: 93,
-            frameHeight: 140
-        });
-
-        this.load.spritesheet("cardFront", `${generatePath("images", "outl.png")}`, {
-            frameWidth: 93,
-            frameHeight: 140
-        });
-
-        this.load.spritesheet("uno", `${generatePath("spritesheets", "uno_game.jpeg")}`, {
-            frameWidth: 57,
-            frameHeight: 86
-        });
-
-        this.load.spritesheet("oppHand", `${generatePath("images", "opp_hand.jpg")}`, {
-            frameWidth: 260,
-            frameHeight: 146
-        });
-
-        this.load.spritesheet("noButton", `${generatePath("spritesheets", "no_button.png")}`, {
-            frameWidth: 149,
-            frameHeight: 149
-        });
-
-        this.load.spritesheet("yesButton", `${generatePath("spritesheets", "yes_button.png")}`, {
-            frameWidth: 148,
-            frameHeight: 148
-        });
-
-        this.load.spritesheet("turnIndicator", `${generatePath("spritesheets", "turn_indicator.png")}`, {
-            frameWidth: 16,
-            frameHeight: 16
-        });
-
-        this.load.spritesheet("unoButton", `${generatePath("spritesheets", "uno_button.png")}`, {
-            frameWidth: 300,
-            frameHeight: 119
-        });
-
-        this.load.spritesheet("challengeButton", `${generatePath("spritesheets", "challenge_button.png")}`, {
-            frameWidth: 73,
-            frameHeight: 73
-        });
-
-        this.load.spritesheet("crossButton", `${generatePath("spritesheets", "cross_button.png")}`, {
-            frameWidth: 73,
-            frameHeight: 73
-        });
-
-        this.load.spritesheet("exitButton", `${generatePath("spritesheets", "exit_button.png")}`, {
-            frameWidth: 73,
-            frameHeight: 73
-        });
-
-
-        this.load.spritesheet("playButton", `${generatePath("spritesheets", "play_button.png")}`, {
-            frameWidth: 562,
-            frameHeight: 221
-        });
-
-        this.load.image("chooseAColor", `${generatePath("spritesheets", "choose_color_rounded.png")}`);
-
-        this.load.spritesheet("chooseBlueButton", `${generatePath("spritesheets", "choose_blue_button.png")}`, {
-            frameWidth: 130,
-            frameHeight: 130
-        });
-
-        this.load.spritesheet("chooseYellowButton", `${generatePath("spritesheets", "choose_yellow_button.png")}`, {
-            frameWidth: 130,
-            frameHeight: 130
-        });
-
-        this.load.spritesheet("chooseGreenButton", `${generatePath("spritesheets", "choose_green_button.png")}`, {
-            frameWidth: 130,
-            frameHeight: 130
-        });
-
-        this.load.spritesheet("chooseRedButton", `${generatePath("spritesheets", "choose_red_button.png")}`, {
-            frameWidth: 130,
-            frameHeight: 130
-        });
-
-        this.load.spritesheet('fullscreen', `${generatePath("spritesheets", "fullscreen-white.png")}`, {
-            frameWidth: 64,
-            frameHeight: 64
-        });
-
-        this.load.bitmapFont("pixelFont", `${generatePath("font", "font.png")}`, `${generatePath("font", "font.xml")}`);
-
-        this.load.video('wormhole', `${generatePath("video", "wormhole.mp4")}`, 'loadeddata', false, true);
-
-        this.load.audio('unoCallVoice', [`${generatePath("sounds", "uno_call.mp3")}`]);
-
-        this.load.audio('unoCallSound', [`${generatePath("sounds", "uno_button.mp3")}`]);
-        this.load.audio('topColorRed', [`${generatePath("sounds", "top_color_red.mp3")}`]);
-        this.load.audio('topColorBlue', [`${generatePath("sounds", "top_color_blue.mp3")}`]);
-        this.load.audio('topColorGreen', [`${generatePath("sounds", "top_color_green.mp3")}`]);
-        this.load.audio('topColorYellow', [`${generatePath("sounds", "top_color_yellow.mp3")}`]);
-        this.load.audio('botWonGame', [`${generatePath("sounds", "bot_won_game.mp3")}`]);
-        this.load.audio('youWonGame', [`${generatePath("sounds", "you_won_game.mp3")}`]);
-
-        this.load.audio('drawSingle', [`${generatePath("sounds", "drawSingle.mp3")}`]);
-        this.load.audio('playCard', [`${generatePath("sounds", "playCard.mp3")}`]);
-        this.load.audio('playerTurn', [`${generatePath("sounds", "playerTurn.mp3")}`]);
-        this.load.audio('plus2', [`${generatePath("sounds", "plus2.mp3")}`]);
-        this.load.audio('specialCards', [`${generatePath("sounds", "specialCards.mp3")}`]);
-        this.load.audio('swish', [`${generatePath("sounds", "swish.mp3")}`]);
-        this.load.audio('tap', [`${generatePath("sounds", "tap.mp3")}`]);
-        this.load.audio('win', [`${generatePath("sounds", "win.mp3")}`]);
-        this.load.audio('shuffle', [`${generatePath("sounds", "card_shuffle.mp3")}`]);
-
-        this.load.audio('space', [`${generatePath("sounds", "space.wav")}`]);
-        this.load.audio('welcome', [`${generatePath("sounds", "welcome_galactic_uno.mp3")}`]);
-        this.load.audio('backgroundMusic', [`${generatePath("sounds", "background.mp3")}`]);
-
-
+        this.preLoadEverything();
     }
 
     create() {
@@ -264,24 +141,68 @@ class BotScene1 extends Phaser.Scene {
 
     addPlayButton() {
         let _this = this;
-        _this.playButton = _this.physics.add.sprite(game.config.width/2, game.config.height/2 + 80, "playButton");
-        _this.playButton.setScale(gameDetails.playButtonScale);
-        _this.playButton.setInteractive();
 
-        _this.playButton.on("pointerover", function (pointer) {
-            _this.playButton.play("playButtonOver");
+        _this.easyButton = _this.physics.add.sprite(game.config.width/2 - 200, game.config.height/2 + 100, "easyButton")
+                                            .setScale(gameDetails.playButtonScale)
+                                            .setInteractive();
+
+        _this.mediumButton = _this.physics.add.sprite(game.config.width/2 + 200, game.config.height/2 + 100, "mediumButton")
+                                            .setScale(gameDetails.playButtonScale)
+                                            .setInteractive();
+
+
+        _this.easyButton.on("pointerover", function (pointer) {
+            document.querySelector("canvas").style.cursor = "pointer";
+            _this.easyButton.setFrame(1);
         });
 
-        _this.playButton.on("pointerout", function (pointer) {
-            _this.playButton.play("playButtonOut");
+        _this.easyButton.on("pointerout", function (pointer) {
+            document.querySelector("canvas").style.cursor = "default";
+            _this.easyButton.setFrame(0);
         });
 
-        _this.playButton.on("pointerdown", function (pointer) {
-            // console.log("PLAY NOW CLICKED!");
-            let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": 2}};
+        _this.easyButton.on("pointerdown", function (pointer) {
+            let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": 2, "botLevel": 0}};
             let response = {"type": "change.scene", "text": data};
             socket.send(JSON.stringify(response));
         });
+
+        _this.mediumButton.on("pointerover", function (pointer) {
+            document.querySelector("canvas").style.cursor = "pointer";
+            _this.mediumButton.setFrame(1);
+        });
+
+        _this.mediumButton.on("pointerout", function (pointer) {
+            document.querySelector("canvas").style.cursor = "default";
+            _this.mediumButton.setFrame(0);
+        });
+
+        _this.mediumButton.on("pointerdown", function (pointer) {
+            let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": 2, "botLevel": 1}};
+            let response = {"type": "change.scene", "text": data};
+            socket.send(JSON.stringify(response));
+        });
+
+
+
+        // _this.playButton = _this.physics.add.sprite(game.config.width/2, game.config.height/2 + 80, "playButton");
+        // _this.playButton.setScale(gameDetails.playButtonScale);
+        // _this.playButton.setInteractive();
+        //
+        // _this.playButton.on("pointerover", function (pointer) {
+        //     _this.playButton.play("playButtonOver");
+        // });
+        //
+        // _this.playButton.on("pointerout", function (pointer) {
+        //     _this.playButton.play("playButtonOut");
+        // });
+        //
+        // _this.playButton.on("pointerdown", function (pointer) {
+        //     // console.log("PLAY NOW CLICKED!");
+        //     let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": 2}};
+        //     let response = {"type": "change.scene", "text": data};
+        //     socket.send(JSON.stringify(response));
+        // });
     }
 
     createAllAnimations() {
@@ -511,5 +432,140 @@ class BotScene1 extends Phaser.Scene {
             frameRate: 20,
             repeat: 0
         });
+    }
+
+    preLoadEverything(){
+        this.load.image("starfield_2", `${generatePath("images", "starfield_2.jpg")}`);
+
+        this.load.spritesheet("unoLogo", `${generatePath("spritesheets", "uno.png")}`, {
+            frameWidth: 419,
+            frameHeight: 369
+        });
+
+        this.load.spritesheet("cardBack", `${generatePath("images", "back.png")}`, {
+            frameWidth: 93,
+            frameHeight: 140
+        });
+
+        this.load.spritesheet("cardFront", `${generatePath("images", "outl.png")}`, {
+            frameWidth: 93,
+            frameHeight: 140
+        });
+
+        this.load.spritesheet("uno", `${generatePath("spritesheets", "uno_game.jpeg")}`, {
+            frameWidth: 57,
+            frameHeight: 86
+        });
+
+        this.load.spritesheet("oppHand", `${generatePath("images", "opp_hand.jpg")}`, {
+            frameWidth: 260,
+            frameHeight: 146
+        });
+
+        this.load.spritesheet("noButton", `${generatePath("spritesheets", "no_button.png")}`, {
+            frameWidth: 149,
+            frameHeight: 149
+        });
+
+        this.load.spritesheet("yesButton", `${generatePath("spritesheets", "yes_button.png")}`, {
+            frameWidth: 148,
+            frameHeight: 148
+        });
+
+        this.load.spritesheet("turnIndicator", `${generatePath("spritesheets", "turn_indicator.png")}`, {
+            frameWidth: 16,
+            frameHeight: 16
+        });
+
+        this.load.spritesheet("unoButton", `${generatePath("spritesheets", "uno_button.png")}`, {
+            frameWidth: 300,
+            frameHeight: 119
+        });
+
+        this.load.spritesheet("challengeButton", `${generatePath("spritesheets", "challenge_button.png")}`, {
+            frameWidth: 73,
+            frameHeight: 73
+        });
+
+        this.load.spritesheet("crossButton", `${generatePath("spritesheets", "cross_button.png")}`, {
+            frameWidth: 73,
+            frameHeight: 73
+        });
+
+        this.load.spritesheet("exitButton", `${generatePath("spritesheets", "exit_button.png")}`, {
+            frameWidth: 73,
+            frameHeight: 73
+        });
+
+
+        this.load.spritesheet("playButton", `${generatePath("spritesheets", "play_button.png")}`, {
+            frameWidth: 562,
+            frameHeight: 221
+        });
+
+        this.load.image("chooseAColor", `${generatePath("spritesheets", "choose_color_rounded.png")}`);
+
+        this.load.spritesheet("chooseBlueButton", `${generatePath("spritesheets", "choose_blue_button.png")}`, {
+            frameWidth: 130,
+            frameHeight: 130
+        });
+
+        this.load.spritesheet("chooseYellowButton", `${generatePath("spritesheets", "choose_yellow_button.png")}`, {
+            frameWidth: 130,
+            frameHeight: 130
+        });
+
+        this.load.spritesheet("chooseGreenButton", `${generatePath("spritesheets", "choose_green_button.png")}`, {
+            frameWidth: 130,
+            frameHeight: 130
+        });
+
+        this.load.spritesheet("chooseRedButton", `${generatePath("spritesheets", "choose_red_button.png")}`, {
+            frameWidth: 130,
+            frameHeight: 130
+        });
+
+        this.load.spritesheet('fullscreen', `${generatePath("spritesheets", "fullscreen-white.png")}`, {
+            frameWidth: 64,
+            frameHeight: 64
+        });
+
+        this.load.spritesheet('easyButton', `${generatePath("spritesheets", "easy_button.png")}`, {
+            frameWidth: 182,
+            frameHeight: 56
+        });
+
+        this.load.spritesheet('mediumButton', `${generatePath("spritesheets", "medium_button.png")}`, {
+            frameWidth: 182,
+            frameHeight: 56
+        });
+
+        this.load.bitmapFont("pixelFont", `${generatePath("font", "font.png")}`, `${generatePath("font", "font.xml")}`);
+
+        this.load.video('wormhole', `${generatePath("video", "wormhole.mp4")}`, 'loadeddata', false, true);
+
+        this.load.audio('unoCallVoice', [`${generatePath("sounds", "uno_call.mp3")}`]);
+
+        this.load.audio('unoCallSound', [`${generatePath("sounds", "uno_button.mp3")}`]);
+        this.load.audio('topColorRed', [`${generatePath("sounds", "top_color_red.mp3")}`]);
+        this.load.audio('topColorBlue', [`${generatePath("sounds", "top_color_blue.mp3")}`]);
+        this.load.audio('topColorGreen', [`${generatePath("sounds", "top_color_green.mp3")}`]);
+        this.load.audio('topColorYellow', [`${generatePath("sounds", "top_color_yellow.mp3")}`]);
+        this.load.audio('botWonGame', [`${generatePath("sounds", "bot_won_game.mp3")}`]);
+        this.load.audio('youWonGame', [`${generatePath("sounds", "you_won_game.mp3")}`]);
+
+        this.load.audio('drawSingle', [`${generatePath("sounds", "drawSingle.mp3")}`]);
+        this.load.audio('playCard', [`${generatePath("sounds", "playCard.mp3")}`]);
+        this.load.audio('playerTurn', [`${generatePath("sounds", "playerTurn.mp3")}`]);
+        this.load.audio('plus2', [`${generatePath("sounds", "plus2.mp3")}`]);
+        this.load.audio('specialCards', [`${generatePath("sounds", "specialCards.mp3")}`]);
+        this.load.audio('swish', [`${generatePath("sounds", "swish.mp3")}`]);
+        this.load.audio('tap', [`${generatePath("sounds", "tap.mp3")}`]);
+        this.load.audio('win', [`${generatePath("sounds", "win.mp3")}`]);
+        this.load.audio('shuffle', [`${generatePath("sounds", "card_shuffle.mp3")}`]);
+
+        this.load.audio('space', [`${generatePath("sounds", "space.wav")}`]);
+        this.load.audio('welcome', [`${generatePath("sounds", "welcome_galactic_uno.mp3")}`]);
+        this.load.audio('backgroundMusic', [`${generatePath("sounds", "background.mp3")}`]);
     }
 }

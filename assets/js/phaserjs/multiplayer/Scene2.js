@@ -256,7 +256,8 @@ class Scene2 extends Phaser.Scene {
                 let catcher = data.catcher;
                 let caught = data.caught;
                 if(catcher === me) {
-                    alert(`Your catch request failed. Probably ${caught} already yelled UNO or ${caught} has more than one card.`)
+                    let text = `You cannot catch ${caught} at this moment.`;
+                    textToSpeech(text);
                 }
             }
             if(status === "change_scene") {
@@ -1341,7 +1342,6 @@ class Scene2 extends Phaser.Scene {
         });
 
         _this.crossButton.on("pointerdown", function (pointer) {
-            // alert("Do you really want to end the game?");
             currentGame.endGameRequest(socket);
         });
     }
@@ -1362,7 +1362,6 @@ class Scene2 extends Phaser.Scene {
         });
 
         _this.exitButton.on("pointerdown", function (pointer) {
-            // alert("Do you really want to exit?");
             currentGame.leaveGameRequest(socket);
             _this.scene.start("endGame");
         });

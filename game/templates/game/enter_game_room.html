@@ -299,7 +299,8 @@
                     socket.send(JSON.stringify(response));
                 }
                 else {
-                    alert("You are not game Room Admin!");
+                    let text = "You are not game Room Admin.";
+                    textToSpeech(text);
                 }
             }
 
@@ -310,7 +311,8 @@
                     socket.send(JSON.stringify(response));
                 }
                 else {
-                    alert("You are not game Room Admin!");
+                    let text = "You are not game Room Admin.";
+                    textToSpeech(text);
                 }
             }
 
@@ -334,11 +336,13 @@
                         socket.send(JSON.stringify(response));
                     }
                     else {
-                        alert("You cannot play this card!");
+                        let text = "You cannot play this card.";
+                        textToSpeech(text);
                     }
                 }
                 else {
-                    alert(`Cheating: You = ${me} and Current Player = ${this.getCurrentPlayer()}`);
+                    let text = "Please wait for your turn.";
+                    textToSpeech(text);
                 }
             }
 
@@ -351,11 +355,13 @@
                         socket.send(JSON.stringify(response));
                     }
                     else {
-                        alert("You have already drawn a card for this move!");
+                        let text = "You have already drawn a card for this move!";
+                        textToSpeech(text);
                     }
                 }
                 else {
-                    alert(`Cheating: You = ${me} and Current Player = ${this.getCurrentPlayer()}`);
+                    let text = "Please wait for your turn.";
+                    textToSpeech(text);
                 }
             }
 
@@ -366,13 +372,15 @@
                     socket.send(JSON.stringify(response));
                 }
                 else {
-                    alert(`Cheating: You = ${me} and Current Player = ${this.getCurrentPlayer()}`);
+                    let text = "Please wait for your turn.";
+                    textToSpeech(text);
                 }
             }
 
             callUnoRequest(socket) {
                 if(!this.isGameRunning) { // If game has not started yet.
-                    alert("Glad to see your excitement, but let the game begin first!");
+                    let text = "Glad to see your excitement, but let the game begin first!";
+                    textToSpeech(text);
                     return;
                 }
 
@@ -383,13 +391,15 @@
                     socket.send(JSON.stringify(response));
                 }
                 else {
-                    alert("We understand you are eager to scream UNO, but you also need to be left with only one card to scream UNO!");
+                    let text = "We understand you are eager to scream UNO, but you also need to be left with only one card to scream UNO!";
+                    textToSpeech(text);
                 }
             }
 
             catchPlayerRequest(socket, oppUsername) { // Called when current player points out that someone has not called UNO.
                 if(!this.isGameRunning) { // If game has not started yet.
-                    alert("Glad to see your excitement, but let the game begin first!");
+                    let text = "Glad to see your excitement, but let the game begin first!";
+                    textToSpeech(text);
                     return;
                 }
 
