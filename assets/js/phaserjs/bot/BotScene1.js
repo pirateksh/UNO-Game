@@ -208,16 +208,17 @@ class BotScene1 extends Phaser.Scene {
             id_player_state.empty();
             id_bot_game_state.empty();
             id_playable_cards.empty();
-
-            // Creating the Draw Card Button
-            id_playable_cards.append("<button id='DRAW_CARD'>" + "Draw Card" + "</button>");
-            let draw_card_button = document.getElementById('DRAW_CARD');
-            draw_card_button.addEventListener('click', send_card_play_request, false);
-            draw_card_button.myParam = "DRAW_CARD";
-            // Creating the End Game Button
-            let end_game_button = document.getElementById('END_GAME');
-            end_game_button.addEventListener('click', send_end_game_request, false);
-            end_game_button.myParam = "END_GAME";
+            
+        // Both Button are now incorporated inside the UI
+            // // Creating the Draw Card Button
+            // id_playable_cards.append("<button id='DRAW_CARD'>" + "Draw Card" + "</button>");
+            // let draw_card_button = document.getElementById('DRAW_CARD');
+            // draw_card_button.addEventListener('click', send_card_play_request, false);
+            // draw_card_button.myParam = "DRAW_CARD";
+            // // Creating the End Game Button
+            // let end_game_button = document.getElementById('END_GAME');
+            // end_game_button.addEventListener('click', send_end_game_request, false);
+            // end_game_button.myParam = "END_GAME";
 
 
             let server_response = JSON.parse(e.data);

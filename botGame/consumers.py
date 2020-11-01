@@ -101,11 +101,21 @@ class PlayerState:
 
 
 class BotGameState:
-    def __init__(self, bot_game_room, bot_id, player):
+    """
+    Properties/State:
+        1. bot_game_room i.e. name of the room in which game is being played
+        2. player i.e. username of the player playing with bot
+        3. bot i.e. id of the bot playing
+        4. deck i.e. List of Card objects representing the deck of the game
+        5. top_card i.e. the current top card of the game
+        6. top_card_type i.e. the type of color changing card 1 for WF, 0 for W
+    """
+    def __init__(self, bot_game_room, bot_id, player, level):
         self.bot_game_room = bot_game_room  # a string representing unique game room
         self.player = player  # a string representing username of player
         self.bot = bot_id  # a string representing id of bot
         self.deck = UnoDeckServer()  # object of UnoDeckServer Class
+        self.level = level
         random.shuffle(self.deck.cards)
         self.top_card = None  # Object of UnoCard Class
         self.top_card_type = 0 # This value is valid only if the self.top_card.number is 13. 0 => W and 1 => WF
@@ -175,6 +185,9 @@ def recover_deck(player_state, bot_game_state, bot_state):
 
 
 def can_play_wild_four(player_state, top_color):
+    """
+    helper function that tells if the player with player_state can play its WF or not
+    """
     for card in player_state.cards:
         if card.category == top_color:
             # print("Cannot Play Wild Four")
@@ -184,6 +197,9 @@ def can_play_wild_four(player_state, top_color):
 
 
 def get_playable_cards(player_state, bot_game_state, top_color=None):
+    """
+    return: A List of Cards(in string format) containing all the playable cards of the player_state passed as argument
+    """
     cards = player_state.cards
     category = bot_game_state.top_card.category
     number = bot_game_state.top_card.number
@@ -205,7 +221,6 @@ def get_playable_cards(player_state, bot_game_state, top_color=None):
 
 
 def check_drawn_card_playable(drawn_card_object, player_state, bot_game_state):
-
     category = bot_game_state.top_card.category
     number = bot_game_state.top_card.number
     drawn_card_category = drawn_card_object.category
@@ -485,21 +500,23 @@ def bot_play_card(bot_state, bot_game_state, player_state, top_color=None):
 
 class BotGameServer:
     """
-    Creates a game.
+    Properties/State: 
+        1. bot_state 
+        2. player_state 
+        3. bot_game_state
     """
-    current_games = {}
+    current_games = {} # Dictionary Storing all the Games Currently Being Played on the Server
 
-    def __init__(self, bot_id, player, bot_game_room):
-        # print("Constructor Called From Cls")
+    def __init__(self, bot_id, player, bot_game_room, level):
         self.bot_state = PlayerState(bot_id, [])
         self.player_state = PlayerState(player, [])
-        self.bot_game_state = BotGameState(bot_game_room, bot_id, player)
+        self.bot_game_state = BotGameState(bot_game_room, bot_id, player, level)
         self.deal_hands()
 
     @classmethod
     def create_bot_game(cls, bot_id, player, bot_game_room):
         if cls.current_games.get(bot_game_room) is None:
-            cls.current_games[bot_game_room] = cls(bot_id, player, bot_game_room) # calling the constructor
+            cls.current_games[bot_game_room] = cls(bot_id, player, bot_game_room, level) # calling the constructor
         return cls.current_games[bot_game_room]
 
     @classmethod
@@ -509,7 +526,7 @@ class BotGameServer:
 
     def deal_hands(self, cards_per_player=7):
         """
-        Method to deal hands to all the connected players from the deck of this Game.
+        Method to deal hands to bot and the player from the deck of this Game.
         :param cards_per_player:
         :return:
         """
@@ -520,10 +537,12 @@ class BotGameServer:
 
 
 class BotGameConsumer(AsyncConsumer):
-    player = None
-    bot_game_room = None
-    bot = None
-    game = None
+    
+    player = None # username of the user playing with bot
+    bot_game_room = None # Name of the room stored in DB
+    bot = None # id of the bot
+    # Above 3 properties are set when web_socket connection opens.
+    game = None # Object of BotGameServer class. This is set when player presses the Play Now Button
 
     async def websocket_connect(self, event):
         print("Accepting an handshake request", event)
@@ -535,11 +554,11 @@ class BotGameConsumer(AsyncConsumer):
         self.bot_id = None
         if bot_instance is None:
             print("Error: There was some Problem creating a bot")
-            pass
+            return
         else:
             self.bot_id = bot_instance.id
 
-        bot_game_room = f"bot_{self.bot_id}_{player}"  # This is Just a name given to our Bot-Game-Room
+        bot_game_room = f"bot_{self.bot_id}_{player}"  # This is a name given to our Bot-Game-Room
         # Giving a unique name to the current room as per player username and bot_id
         self.bot_game_room = bot_game_room
         # print(bot_game_room)
@@ -580,7 +599,6 @@ class BotGameConsumer(AsyncConsumer):
         Note 2:
             "response_" prefix signifies that this value we will send as server response, if it is not some constant value.
         """
-
         # Message received after Clicking Play Button
         front_text = event.get('text', None)
         if front_text:
@@ -588,7 +606,7 @@ class BotGameConsumer(AsyncConsumer):
             loaded_dict_data = json.loads(front_text)
             type_of_event = loaded_dict_data.get('type', None)
             text_of_event = loaded_dict_data.get('text', None)
-            print(type_of_event, text_of_event)
+            # print(type_of_event, text_of_event)
             if type_of_event and text_of_event:
                 if type_of_event == "change.scene":
                     # This is surely a Change Scene Request which came after pressing Play Button.
@@ -613,7 +631,6 @@ class BotGameConsumer(AsyncConsumer):
                     # if any state of this game room was present earlier, then retrieve that state
                     self.game = BotGameServer.create_bot_game(bot_id=self.bot_id, player=self.player,
                                                               bot_game_room=self.bot_game_room)
-
                     response_player_state = self.game.player_state.get_all_cards()
                     response_bot_state = self.game.bot_state.get_all_cards()
                     response_bot_game_state = self.game.bot_game_state.get_top_card()
@@ -623,12 +640,12 @@ class BotGameConsumer(AsyncConsumer):
                     if len(response_bot_state) == 1:
                         response_bot_says_uno = 1
                     server_response = {
-                        "player_state": json.dumps(response_player_state),  # list of strings
-                        "bot_state": json.dumps(response_bot_state),  # list of strings
-                        "bot_game_state": json.dumps(response_bot_game_state),  # strings
-                        "playable_cards": response_playable_cards,  # list of strings
-                        "bot_played_cards": [],
-                        "bot_says_uno": response_bot_says_uno
+                        "player_state": json.dumps(response_player_state),  # list of Cards (in string format)
+                        "bot_state": json.dumps(response_bot_state),  # list of Cards (in string format)
+                        "bot_game_state": json.dumps(response_bot_game_state),  # Top Card (in string format)
+                        "playable_cards": response_playable_cards,  # list of Cards (in string format)
+                        "bot_played_cards": [], # list of Cards (in string format)
+                        "bot_says_uno": response_bot_says_uno # a number
                     }
 
                     await self.channel_layer.group_send(
