@@ -56,22 +56,22 @@
         {% include 'user_profile/navbar_profile.html' %}
         <canvas id="canvas-id"></canvas>
 
-        {# TODO: Vishwajeet Fix This. #}
-            <div style="position: absolute; top:5%; right:0; min-height: 200px;">
-                <div aria-live="polite" aria-atomic="true" style="position: absolute; min-height: 200px;">
-                    <!-- Position it -->
-                    <div class="toast_container" style="position: absolute; top: 0; right: 0; z-index:1500; min-height: 200px;">
-                        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                            <div class="toast-header">
-                                <span id="id_toast_message">Heads up, toasts will stack automatically</span>
-                                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            </div>
+        <div style="position: absolute; top:5%; right:0; min-height: 200px;">
+            <div aria-live="polite" aria-atomic="true" style="position: absolute;">
+                <!-- Position it -->
+                <div class="toast_container" style="position: absolute; top: 0; right: 0; z-index:1500; min-width:300px;">
+                    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header">
+                            <span id="id_toast_message">Heads up, toasts will stack automatically</span>
+                            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+
         {% comment %} meteor {% endcomment %}
         <img style="z-index:2; overflow:hidden" alt=""
             id="text1" src="{% static 'img/meteor.png' %}"
@@ -82,17 +82,16 @@
         <img style="z-index:2; overflow:hidden" alt=""
             id="text3" src="{% static 'img/meteor.png' %}"
                 width="80">
-
         {% comment %} meteor ends {% endcomment %}
 
-    <div class="toggle">
-        <input class="toggle-input" type="checkbox">
-        <div class="toggle-bg"></div>
-        <div class="toggle-switch">
-            <div class="toggle-switch-figure"></div>
-            <div class="toggle-switch-figureAlt"></div>
+        <div class="toggle">
+            <input class="toggle-input" type="checkbox">
+            <div class="toggle-bg"></div>
+            <div class="toggle-switch">
+                <div class="toggle-switch-figure"></div>
+                <div class="toggle-switch-figureAlt"></div>
+            </div>
         </div>
-    </div>
     {% block content %}
 
     {% endblock %}
