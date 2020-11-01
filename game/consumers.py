@@ -509,22 +509,23 @@ class GameRoomConsumer(AsyncConsumer):
         # Updating winning streak
         winner_profile.winning_streak += 1
 
-        # Updating current rating
-        winner_profile.current_rating += winner_player_obj.rating_change
+        if self.game_type == GameServer.PUBLIC:
+            # Updating current rating
+            winner_profile.current_rating += winner_player_obj.rating_change
 
-        # Updating maximum rating
-        winner_profile.maximum_rating = max(winner_profile.maximum_rating, winner_profile.current_rating)
+            # Updating maximum rating
+            winner_profile.maximum_rating = max(winner_profile.maximum_rating, winner_profile.current_rating)
 
-        league = winner_profile.current_league
-        updated_league = winner_profile.get_current_league()
-        if winner_player_obj.rating_change > 0:
-            if league != updated_league:
-                winner_profile.is_league_changed = UserProfile.LEAGUE_UPGRADED
-        elif winner_player_obj.rating_change < 0:
-            if league != updated_league:
-                winner_profile.is_league_changed = UserProfile.LEAGUE_DEGRADED
+            league = winner_profile.current_league
+            updated_league = winner_profile.get_current_league()
+            if winner_player_obj.rating_change > 0:
+                if league != updated_league:
+                    winner_profile.is_league_changed = UserProfile.LEAGUE_UPGRADED
+            elif winner_player_obj.rating_change < 0:
+                if league != updated_league:
+                    winner_profile.is_league_changed = UserProfile.LEAGUE_DEGRADED
 
-        winner_profile.current_league = updated_league
+            winner_profile.current_league = updated_league
 
         winner_profile.save()
 
@@ -551,26 +552,26 @@ class GameRoomConsumer(AsyncConsumer):
         # Resetting Winning streak
         loser_profile.winning_streak = 0
 
-        # Updating current rating
-        loser_profile.current_rating += loser_player_obj.rating_change
+        if self.game_type == GameServer.PUBLIC:
+            # Updating current rating
+            loser_profile.current_rating += loser_player_obj.rating_change
 
-        # Updating maximum rating
-        loser_profile.maximum_rating = max(loser_profile.maximum_rating, loser_profile.current_rating)
+            # Updating maximum rating
+            loser_profile.maximum_rating = max(loser_profile.maximum_rating, loser_profile.current_rating)
 
-        league = loser_profile.current_league
-        updated_league = loser_profile.get_current_league()
-        if loser_player_obj.rating_change > 0:
-            if league != updated_league:
-                loser_profile.is_league_changed = UserProfile.LEAGUE_UPGRADED
-        elif loser_player_obj.rating_change < 0:
-            if league != updated_league:
-                loser_profile.is_league_changed = UserProfile.LEAGUE_DEGRADED
+            league = loser_profile.current_league
+            updated_league = loser_profile.get_current_league()
+            if loser_player_obj.rating_change > 0:
+                if league != updated_league:
+                    loser_profile.is_league_changed = UserProfile.LEAGUE_UPGRADED
+            elif loser_player_obj.rating_change < 0:
+                if league != updated_league:
+                    loser_profile.is_league_changed = UserProfile.LEAGUE_DEGRADED
 
-        loser_profile.current_league = updated_league
+            loser_profile.current_league = updated_league
 
         loser_profile.save()
 
-    #  TODO: Implementing History
     @database_sync_to_async
     def create_game_history(self):
         if self.game is not None:
@@ -588,8 +589,12 @@ class GameRoomConsumer(AsyncConsumer):
             for player_obj in player_objs:
                 player_username = player_obj.username
                 player_score = player_obj.score
-                player_rating_change = player_obj.rating_change
-                player_seed = player_obj.seed
+                if self.game_type == GameServer.PUBLIC:
+                    player_rating_change = player_obj.rating_change
+                    player_seed = player_obj.seed
+                else:
+                    player_rating_change = 0
+                    player_seed = 0.0
                 player = User.objects.get(username=player_username)
                 Participant.objects.create(user=player, game_room=game_room_history, score=player_score,
                                            rating_change=player_rating_change, seed=player_seed)

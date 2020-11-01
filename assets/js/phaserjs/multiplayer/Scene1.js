@@ -376,7 +376,7 @@ class Scene1 extends Phaser.Scene {
                     if(me === currentGame.adminUsername && currentGame.gameType === Game.FRIEND) { // Game Type is Friend.
                         _this.addPlayButton();
                     }
-                    else { // TODO: Change this
+                    else {
                         if(currentGame.gameType === Game.FRIEND) {
                             _this.add.text(game.config.width/2 - 140, game.config.height/2 + 30, "Wait for admin to start the game.");
                         }

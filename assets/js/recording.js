@@ -106,7 +106,7 @@ function stop_recording() {
     $('#id_resume_btn').prop('disabled', true);
     $('#id_stop_btn').prop('disabled', true);
     if(MEDIA_RECORDER === undefined){
-        alert("No Recording being recorded...");
+        // alert("No Recording being recorded...");
         return;
     }
     if(MEDIA_RECORDER.state !== "inactive"){

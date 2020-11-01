@@ -499,7 +499,7 @@ class BotScene2 extends Phaser.Scene {
             x: toX,
             y: toY,
             duration: duration,
-            onComplete: function () { // TODO: Test this
+            onComplete: function () {
                 for(let i = 0; i < removeCardSpritesArray.length; ++i) {
                     removeCardSpritesArray[i].destroy();
                     _this.adjustSelfHandOnTable();
@@ -518,7 +518,6 @@ class BotScene2 extends Phaser.Scene {
         _this.playerRemainingCardsCountBitMap.clear(true, true);
         _this.turnIndicator.destroy();
 
-        // TODO: Next Round will start in 3 2 1....
         // Starting new round.
         currentGame.copyData(gameData);
         console.log("After Won: ", gameData);
@@ -678,7 +677,6 @@ class BotScene2 extends Phaser.Scene {
             },
             callbackScope: _this
         });
-        // TODO: Error in positioning and playing of keep card.
     }
 
     chooseColorOfWildCards(drawnCardSprite, drawnCardObject, index) {

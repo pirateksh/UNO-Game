@@ -109,7 +109,6 @@ class Scene2 extends Phaser.Scene {
                 _this.moveOrSetTurnIndicator(true);
             }
             else if(status === "voluntary_draw_card") {
-                // TODO: Bug when player drew WILD FOUR. Look into it.
                 currentGame.copyData(gameData);
 
                 _this.startTimer();
@@ -170,7 +169,7 @@ class Scene2 extends Phaser.Scene {
 
                 _this.moveOrSetTurnIndicator(true);
             }
-            else if(status === "won_round") { // TODO: Add timer or not. -- Kshitiz
+            else if(status === "won_round") {
                 _this.sound.play('shuffle');
                 _this.playCardEventConsumer(backendResponse, true);
             }
@@ -199,7 +198,7 @@ class Scene2 extends Phaser.Scene {
                     _this.sound.play("unoCallSound");
                 }
             }
-            else if(status === "failed_call_uno") { // TODO: Add banned sound mp3.
+            else if(status === "failed_call_uno") {
                 let username = data.username;
                 if(username === me) {
                     let text = "You UNO Call failed!";
@@ -253,7 +252,6 @@ class Scene2 extends Phaser.Scene {
             }
             if(status === "time_out") {
                 currentGame.copyData(gameData);
-                // TODO: Card count is not getting updated.
                 _this.startTimer();
 
                 _this.makeHandInteractive();
@@ -299,6 +297,10 @@ class Scene2 extends Phaser.Scene {
                     currentGame.players.splice(currentGame.players.indexOf(leftUsername), 1); // TESTING
                 }
 
+                if(me === leftUsername) {
+                    // Stopping recording
+                    stop_recording();
+                }
 
                 if(me !== leftUsername) {
                     for(let i = 0; i < _this.oppHandGroup.getChildren().length; ++i) {
@@ -465,7 +467,7 @@ class Scene2 extends Phaser.Scene {
             x: toX,
             y: toY,
             duration: duration,
-            onComplete: function () { // TODO: Test this
+            onComplete: function () {
                 for(let i = 0; i < removeCardSpritesArray.length; ++i) {
                     removeCardSpritesArray[i].destroy();
                     _this.adjustSelfHandOnTable();
@@ -486,7 +488,6 @@ class Scene2 extends Phaser.Scene {
 
         _this.newRound = true;
 
-        // TODO: Next Round will start in 3 2 1....
         // Starting new round.
         currentGame.copyData(gameData);
         if(serializedPlayer) {
@@ -706,7 +707,6 @@ class Scene2 extends Phaser.Scene {
             },
             callbackScope: _this
         });
-        // TODO: Error in positioning and playing of keep card.
     }
 
     chooseColorOfWildCards(drawnCardObject, index) {
@@ -1062,6 +1062,10 @@ class Scene2 extends Phaser.Scene {
                 cardSprite.disableBody(true, true);
             }
         }
+
+        // Stop Recording if it is on.
+        stop_recording();
+
         // Calling endGame() method of Game Class.
         currentGame.endGame();
     }
@@ -1076,7 +1080,7 @@ class Scene2 extends Phaser.Scene {
                 let card = myHand.getCardAt(i);
                 let cardSprite = myHand.getCardSpriteAt(i);
                 if(card != null && cardSprite != null) {
-                    if(currentGame.canPlay(card)) { // TODO: Remove this if condition if there is any bug.
+                    if(currentGame.canPlay(card)) {
                         cardSprite.setInteractive();
                     }
                 }

@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
+from django.conf import settings
+
 # Importing token
 from .tokens import account_activation_token
 
@@ -158,7 +160,8 @@ def delete_existing_avatar(username):
     :return:
     """
     try:
-        path = f"media/img/profile_avatars/{username}"
+        media_url = str(settings.MEDIA_URL)[1:]
+        path = f"{media_url}img/profile_avatars/{username}"
         files = os.listdir(path=path)
         for file_ in files:
             os.remove(f"{path}/{file_}")

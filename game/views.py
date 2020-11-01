@@ -63,7 +63,14 @@ def play_now(request):
         player_profile.is_league_changed = UserProfile.LEAGUE_STABLE
         player_profile.save()
         return render(request, 'game/league_changed.html', league_change_context)
-    return render(request, 'game/play_now.html', {})
+
+    # Fetching top 10 player's
+    top_ratings = UserProfile.objects.order_by('-current_rating').filter(total_public_games_count__gt=0).values_list('current_rating', flat=True).distinct()
+    top_players = UserProfile.objects.order_by('-current_rating').filter(total_public_games_count__gt=0).filter(current_rating__in=top_ratings[:10])
+    context = {
+        "top_players": top_players,
+    }
+    return render(request, 'game/play_now.html', context=context)
 
 
 # TODO: Play Anonymously option for authenticated users as well.
