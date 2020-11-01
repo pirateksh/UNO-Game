@@ -8,6 +8,10 @@
 {% endcomment %}
 {% block title %}Login Page{% endblock %}
 
+{% block style %}
+
+{% endblock %}
+
 {% block content %}
     {% include 'navbar.html' %}
     <div class="container">
@@ -57,8 +61,14 @@
                                             <div class="form-group">
                                                 <div class="custom-control custom-checkbox small">
                                                     <div class="form-check">
-                                                        <input class="form-check-input custom-control-input" type="checkbox" id="formCheck-1" name="remember_me" value="remember_me">
-                                                        <label class="form-check-label custom-control-label" for="formCheck-1">Remember Me</label>
+                                                        <span class="float-left">
+                                                            <input class="form-check-input custom-control-input" type="checkbox" id="formCheck-1" name="remember_me" value="remember_me">
+                                                            <label class="form-check-label custom-control-label" for="formCheck-1">Remember Me</label>
+                                                        </span>
+                                                        <span class="float-right">
+                                                            <input id="id_show_password_checkbox" class="form-check-input custom-control-input" type="checkbox" value="show_password">
+                                                            <label id="id_show_password_label" class="form-check-label custom-control-label" for="id_show_password_checkbox">Show Password</label>
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -80,4 +90,20 @@
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+        {#let passwordInputElement = $("#exampleInputPassword");#}
+        {#let showPasswordCheckbox = $("#id_show_password_checkbox");#}
+        {##}
+        {#showPasswordCheckbox.change(function () {#}
+        {#    let type = passwordInputElement.attr("type");#}
+        {#    if(this.checked) {#}
+        {#        passwordInputElement.attr("type", "text");#}
+        {#    } else {#}
+        {#        passwordInputElement.attr("type", "password");#}
+        {#    }#}
+        {# });#}
+    </script>
 {% endblock %}

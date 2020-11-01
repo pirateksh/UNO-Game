@@ -10,6 +10,10 @@
         "overall_win_rate": int(overall_win_rate),
         "public_win_rate": int(public_win_rate),
         "custom_win_rate": int(custom_win_rate),
+        "level": level,
+        "xp": xp,
+        "xp_progress": xp_progress,
+        "xp_threshold": xp_threshold,
     }
 {% endcomment %}
 {% block styles %}
@@ -39,7 +43,7 @@
                     <div class="card-body card-bg text-center shadow">
                         <img class="rounded-circle mb-3 mt-4" src="{{ visited_profile.avatar.url }}" width="160" height="160" alt="Avatar">
                         {% if visited_user.username == user.username %}
-                            <form class="" method="post" enctype="multipart/form-data" action="{% url "avatar_upload" visited_user.username %}">
+                            <form id="id_avatar_edit_form_{{ visited_user.username }}" method="post" enctype="multipart/form-data" action="{% url "avatar_upload" visited_user.username %}" hidden>
                                 <div class="mb-3">
                                     {% csrf_token %}
                                     {{ avatar_upload_form }}
@@ -51,9 +55,9 @@
                             </form>
                         {% endif %}
 
-                        <h4 class="small text-left font-weight-bold">Progress<span class="float-right">Level 3</span></h4>
+                        <h4 class="small text-left font-weight-bold">Current XP ({{ visited_profile.xp }})<span class="float-right">Level {{ level }} ({{ xp_threshold }})</span></h4>
                         <div class="progress progress-sm mb-3">
-                            <div class="progress-bar bg-success" aria-valuenow="{{ current_league_progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ current_league_progress }}%;"><span class="sr-only">{{ current_league_progress }}%</span></div>
+                            <div class="progress-bar bg-success" aria-valuenow="{{ xp_progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ xp_progress }}%;"><span class="sr-only">{{ xp_progress }}%</span></div>
                         </div>
                     </div>
                 </div>
@@ -396,6 +400,7 @@
         let firstNameElem = $("#id_first_name_{{ visited_user.username }}");
         let lastNameElem = $("#id_last_name_{{ visited_user.username }}");
         let emailElem = $("#id_email_{{ visited_user.username }}");
+        let avatarEditForm = $("#id_avatar_edit_form_{{ visited_user.username }}");
 
         // When editProfile Button is clicked.
         editProfileButton.on('click', function (e) {
@@ -407,6 +412,7 @@
             firstNameElem.attr({"disabled": false});
             lastNameElem.attr({"disabled": false});
             emailElem.attr({"disabled": false});
+            avatarEditForm.attr({"hidden": false});
 
             // Setting values in the fields.
             firstNameElem.val("{{ visited_user.first_name }}");
