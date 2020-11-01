@@ -94,12 +94,12 @@ def enter_public_play(request):
                         if public_game.league == current_player_league:
                             active_unique_id = public_game.unique_id
                             return HttpResponseRedirect(
-                                reverse('enter_game_room',
+                                reverse('proceed_to_game',
                                         kwargs={'game_type': GameServer.PUBLIC, 'unique_id': active_unique_id}))
         # If no Public Game Room Available, create new.
         active_unique_id = id_generator(10)
         return HttpResponseRedirect(
-            reverse('enter_game_room', kwargs={'game_type': GameServer.PUBLIC, 'unique_id': active_unique_id}))
+            reverse('proceed_to_game', kwargs={'game_type': GameServer.PUBLIC, 'unique_id': active_unique_id}))
     else:
         message = f"You need to Login/Signup first."
         return render(request, '404.html', {"message": message})
@@ -129,14 +129,29 @@ def enter_friend_play(request):
                         message = f"Game is already running in Custom Game Room with ID {unique_id}."
                         return render(request, '404.html', {"message": message})
                     return HttpResponseRedirect(
-                        reverse('enter_game_room',
+                        reverse('proceed_to_game',
                                 kwargs={"game_type": GameServer.CUSTOM, "unique_id": unique_id}))
         message = f"Custom Game Room with ID {unique_id} does'nt exist."
         return render(request, '404.html', {"message": message})
     elif request.method == "GET":  # Creating New Game and Entering
         unique_id = id_generator(10)
         return HttpResponseRedirect(
-            reverse('enter_game_room', kwargs={"game_type": GameServer.CUSTOM, "unique_id": unique_id}))
+            reverse('proceed_to_game', kwargs={"game_type": GameServer.CUSTOM, "unique_id": unique_id}))
+
+
+def proceed_to_game(request, game_type, unique_id):
+    """
+    View to show game room tutorial.
+    :param request:
+    :param game_type:
+    :param unique_id:
+    :return:
+    """
+    context = {
+        "game_type": game_type,
+        "unique_id": unique_id,
+    }
+    return render(request, 'game/info.html', context)
 
 
 @login_required

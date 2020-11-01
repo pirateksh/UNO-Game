@@ -1,5 +1,13 @@
 {% load static %}
 <!DOCTYPE html>
+{% comment %}
+    context = {
+        "PUBLIC": str(GameServer.PUBLIC),
+        "CUSTOM": str(GameServer.CUSTOM),
+        "game_type": str(game_type),
+        "unique_id": str(unique_id),
+    }
+{% endcomment %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,7 +16,8 @@
     <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}">
 </head>
 <body class="text-center" style="background-color:rgba(0, 0, 0, 0.9 ); background-repeat: no-repeat; background-size: cover;">
-    <img src="{% static 'edited.png' %}" alt="Gameplay Info" style="height: 80vh; width: 95vw;">
-    <a class="btn btn-outline-warning btn-lg"><span>Proceed to Play</span></a>
+    <img src="{% static 'img/edited.png' %}" alt="Game play Info" style="height: 80vh; width: 95vw;">
+    <a class="btn btn-outline-warning btn-lg" href="{% url 'enter_game_room' game_type unique_id %}"><span>Proceed to Play</span></a>
+
 </body>
 </html>
