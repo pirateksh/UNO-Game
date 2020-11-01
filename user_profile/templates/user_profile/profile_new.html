@@ -117,7 +117,8 @@
                         </div>
 
                         <div class="card-body card-bg">
-                            <form>
+                            <form method="post" action="{% url 'edit_profile' user.username %}">
+                                {% csrf_token %}
                                 <div class="form-row">
                                     <div class="col">
                                         <div class="form-group">
@@ -129,33 +130,36 @@
                                         <div class="form-group">
                                             {% if user.username == visited_user.username %}
                                                 {% if visited_profile.is_email_verified %}
-                                                    <label for="email"><strong>Email Address (Verified)</strong></label>
+                                                    <label for="id_email_{{ visited_user.username }}"><strong>Email Address (Verified)</strong></label>
                                                 {% else %}
-                                                    <label for="email"><strong>Email Address (Un-verified)</strong></label>
+                                                    <label for="id_email_{{ visited_user.username }}"><strong>Email Address (Un-verified)</strong></label>
                                                 {% endif %}
                                             {% else %}
-                                                <label for="email"><strong>Email Address</strong></label>
+                                                <label for="id_email_{{ visited_user.username }}"><strong>Email Address</strong></label>
                                             {% endif %}
-                                            <input class="form-control" type="email" placeholder="{{ visited_user.email }}" name="email" disabled>
+                                            <input id="id_email_{{ visited_user.username }}" class="form-control" type="email" placeholder="{{ visited_user.email }}" disabled>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <div class="col">
                                         <div class="form-group">
-                                            <label for="first_name"><strong>First Name</strong></label>
-                                            <input class="form-control" type="text" placeholder="{{ visited_user.first_name }}" name="first_name" disabled>
+                                            <label for="id_first_name_{{ visited_user.username }}"><strong>First Name</strong></label>
+                                            <input id="id_first_name_{{ visited_user.username }}" class="form-control" type="text" placeholder="{{ visited_user.first_name }}" disabled>
                                         </div>
                                     </div>
                                     <div class="col">
                                         <div class="form-group">
-                                            <label for="last_name"><strong>Last Name</strong></label>
-                                            <input class="form-control" type="text" placeholder="{{ visited_user.last_name }}" name="last_name" disabled>
+                                            <label for="id_last_name_{{ visited_user.username }}"><strong>Last Name</strong></label>
+                                            <input id="id_last_name_{{ visited_user.username }}" class="form-control" type="text" placeholder="{{ visited_user.last_name }}" disabled>
                                         </div>
                                     </div>
                                 </div>
                                 {% if visited_user.username == user.username %}
-                                    <div class="form-group"><button class="btn btn-primary btn-sm" type="submit">Edit Details</button></div>
+                                    <div class="form-group">
+                                        <button id="id_edit_profile_button" class="btn btn-primary btn-sm">Edit Details</button>
+                                        <button id="id_confirm_edit_button" type="submit" class="btn btn-primary btn-sm" hidden disabled>Confirm</button>
+                                    </div>
                                 {% endif %}
                             </form>
                         </div>
@@ -342,5 +346,116 @@
 {% endblock %}
 
 {% block javascript %}
+    <script>
+        /************************************************
+             Setup to send POST AJAX request in Django
+         ************************************************/
+        $(function() {
+            // This function gets cookie with a given name
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = jQuery.trim(cookies[i]);
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            var csrftoken = getCookie('csrftoken');
+
+            /*
+            The functions below will create a header with csrftoken
+            */
+
+            function csrfSafeMethod(method) {
+                // these HTTP methods do not require CSRF protection
+                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+            }
+            function sameOrigin(url) {
+                // test that a given url is a same-origin URL
+                // url could be relative or scheme relative or absolute
+                var host = document.location.host; // host + port
+                var protocol = document.location.protocol;
+                var sr_origin = '//' + host;
+                var origin = protocol + sr_origin;
+                // Allow absolute or scheme relative URLs to same origin
+                return (url === origin || url.slice(0, origin.length + 1) === origin + '/') ||
+                    (url === sr_origin || url.slice(0, sr_origin.length + 1) === sr_origin + '/') ||
+                    // or any other URL that isn't scheme relative or absolute i.e relative.
+                    !(/^(\/\/|http:|https:).*/.test(url));
+            }
+
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
+                        // Send the token to same-origin, relative URLs only.
+                        // Send the token only if the method warrants CSRF protection
+                        // Using the CSRFToken value acquired earlier
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+
+        });
+    </script>
+    <script>
+        let editProfileButton = $("#id_edit_profile_button");
+        let confirmEditButton = $("#id_confirm_edit_button");
+
+        let firstNameElem = $("#id_first_name_{{ visited_user.username }}");
+        let lastNameElem = $("#id_last_name_{{ visited_user.username }}");
+        let emailElem = $("#id_email_{{ visited_user.username }}");
+
+        // When editProfile Button is clicked.
+        editProfileButton.on('click', function (e) {
+           e.preventDefault();
+            confirmEditButton.attr({"hidden":false, "disabled":false});
+            editProfileButton.attr({"disabled": true});
+
+            // Setting disable to false
+            firstNameElem.attr({"disabled": false});
+            lastNameElem.attr({"disabled": false});
+            emailElem.attr({"disabled": false});
+
+            // Setting values in the fields.
+            firstNameElem.val("{{ visited_user.first_name }}");
+            lastNameElem.val("{{ visited_user.last_name }}");
+            emailElem.val("{{ visited_user.email }}");
+
+        });
+
+        // On clicking Confirm Button
+        confirmEditButton.on("click", function (e) {
+            e.preventDefault();
+
+            let firstName = firstNameElem.val();
+            let lastName = lastNameElem.val();
+            let email = emailElem.val();
+            $.ajax({
+                type:'POST',
+                url: "{% url 'edit_profile' user.username %}",
+                data:{
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: email
+                },
+                dataType: 'json',
+                success:function(data){
+                    let status = data.status;
+                    if(status === "success") {
+                        console.log(data);
+                        window.location.replace("{% url 'user_profile' user.username %}");
+                    }
+                }
+             });
+        });
+
+    </script>
 
 {% endblock %}

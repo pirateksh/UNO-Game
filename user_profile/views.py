@@ -5,7 +5,7 @@ from django.shortcuts import render, get_object_or_404, HttpResponse, HttpRespon
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-
+from django.http import JsonResponse
 from django.conf import settings
 
 # Importing token
@@ -179,34 +179,38 @@ def avatar_upload(request, username):
     if request.method == 'POST':
         avatar_form = AvatarUploadForm(request.POST, request.FILES)
         print(request.FILES)
+        if request.FILES:
+            if avatar_form.is_valid():
+                user = User.objects.get(username=username)
+                user_prof = UserProfile.objects.get(user=user)
+                if clean_file(request, avatar_form):
+                    mime = check_in_memory_mime(request)
+                    if mime == 'image/jpg' or mime == 'image/jpeg' or mime == 'image/png':
+                        img = avatar_form.cleaned_data['avatar']
 
-        if avatar_form.is_valid():
-            user = User.objects.get(username=username)
-            user_prof = UserProfile.objects.get(user=user)
-            if clean_file(request, avatar_form):
-                mime = check_in_memory_mime(request)
-                if mime == 'image/jpg' or mime == 'image/jpeg' or mime == 'image/png':
-                    img = avatar_form.cleaned_data['avatar']
+                        # Deleting existing avatar of user.
+                        delete_existing_avatar(username=username)
 
-                    # Deleting existing avatar of user.
-                    delete_existing_avatar(username=username)
-
-                    user_prof.avatar = img
-                    user_prof.save()
-                    messages.success(request, f"Avatar uploaded successfully!")
-                    return HttpResponseRedirect(reverse("user_profile", kwargs={'username': username}))
+                        user_prof.avatar = img
+                        user_prof.save()
+                        messages.success(request, f"Avatar uploaded successfully!")
+                        return HttpResponseRedirect(reverse("user_profile", kwargs={'username': username}))
+                    else:
+                        messages.success(request, f"Please upload an Image File only of jpeg/jpg/png format only...")
+                        return HttpResponseRedirect(reverse("user_profile", kwargs={'username': username}))
                 else:
-                    messages.success(request, f"Please upload an Image File only of jpeg/jpg/png format only...")
+                    messages.success(request, f"File too Large to be uploaded...")
                     return HttpResponseRedirect(reverse("user_profile", kwargs={'username': username}))
             else:
-                messages.success(request, f"File too Large to be uploaded...")
+                if avatar_form.errors:
+                    for field in avatar_form:
+                        for error in field.errors:
+                            print(error)
+                            messages.success(request, error)
                 return HttpResponseRedirect(reverse("user_profile", kwargs={'username': username}))
         else:
-            if avatar_form.errors:
-                for field in avatar_form:
-                    for error in field.errors:
-                        print(error)
-                        messages.success(request, error)
+            message = f"Please choose a file before uploading."
+            messages.error(request, message)
             return HttpResponseRedirect(reverse("user_profile", kwargs={'username': username}))
     else:
         message = None
@@ -243,3 +247,41 @@ def get_history(username):
             "all_game_data": all_game_data,
         }
     return response
+
+
+@login_required
+def edit_profile(request, username):
+    user = request.user
+    if user.username != username:
+        message = f"{user.username}, why are you trying to edit {username}'s profile?"
+        return render(request, '404.html', {"message": message})
+
+    if request.method == "POST":
+
+        user_profile = UserProfile.objects.get(user=user)
+
+        # Fetching the edited values
+        edited_first_name = request.POST["first_name"]
+        edited_last_name = request.POST["last_name"]
+        edited_email = request.POST["email"]
+
+        # Updating the values
+        user.first_name = edited_first_name
+        user.last_name = edited_last_name
+
+        # If user has edited the email, set is_email_verified to false
+        print(user.email, edited_email)
+        if user.email != edited_email:
+            print("Here")
+            user.email = edited_email
+            user_profile.is_email_verified = False
+            user_profile.save()
+
+        user.save()
+
+        response = {
+            "status": "success",
+            "message": "Request Received Successfully!",
+        }
+        messages.success(request, f"Details have been updated successfully.")
+        return JsonResponse(response)
