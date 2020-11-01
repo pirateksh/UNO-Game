@@ -110,12 +110,13 @@ class BotGameState:
         5. top_card i.e. the current top card of the game
         6. top_card_type i.e. the type of color changing card 1 for WF, 0 for W
     """
-    def __init__(self, bot_game_room, bot_id, player, level):
+    def __init__(self, bot_game_room, bot_id, player, bot_level, player_draws_count_list):
         self.bot_game_room = bot_game_room  # a string representing unique game room
         self.player = player  # a string representing username of player
         self.bot = bot_id  # a string representing id of bot
         self.deck = UnoDeckServer()  # object of UnoDeckServer Class
-        self.level = level
+        self.bot_level = bot_level # 0 means easy and 1 means medium
+        self.player_draws_count_list = player_draws_count_list # List containing 4 numbers. Draws on Red, Green, Blue and Yellow Colors Respectively.
         random.shuffle(self.deck.cards)
         self.top_card = None  # Object of UnoCard Class
         self.top_card_type = 0 # This value is valid only if the self.top_card.number is 13. 0 => W and 1 => WF
@@ -244,8 +245,19 @@ def check_drawn_card_playable(drawn_card_object, player_state, bot_game_state):
 def update_state_request(player_card_value, player_state, bot_game_state, bot_state):
     """
         This function updates the player_state[Removes the played card from hand] and the game_state[Changes the Top Card]
+        This function is Called in the player's context only i.e. never called by Bot
     """
     if player_card_value == "DRAW_CARD":
+        # Update bot_game_state.player_draws_count_list 
+        if bot_game_state.top_card.category == 'R':
+            bot_game_state.player_draws_count_list[0]+=1
+        elif bot_game_state.top_card.category == 'G':
+            bot_game_state.player_draws_count_list[1]+=1
+        elif bot_game_state.top_card.category == 'B':
+            bot_game_state.player_draws_count_list[2]+=1
+        else:
+            bot_game_state.player_draws_count_list[3]+=1
+
         if not len(bot_game_state.deck.cards):
             print("DECK EXHAUSTED!!!")
             recover_deck(player_state, bot_game_state, bot_state)
@@ -426,6 +438,7 @@ def bot_decide_card(bot_state):
     :param bot_state:
     :return: string representing the card to play or DRAW_CARD,
     """
+    # Easy Bot
     cards = bot_state.allowed_cards
     if len(cards):
         # print("Cnt of Allowed Cards:", len(cards))
@@ -434,7 +447,7 @@ def bot_decide_card(bot_state):
             # print("Allowed Card", card_val)
             number, category = card_val.split(" of ")
             if number in ['10', '11', '12', '13']:
-                print("Special Card Available, hence Played")
+                print("Special Card Played by the Bot.")
                 return card_val
         color = max_freq_color_in_allowed_cards(bot_state)
         print("Most Frequent Color is", color)
@@ -461,7 +474,46 @@ def bot_choose_top_color(bot_state):
     return max_freq_color(bot_state) # Value will be among R, G, B, Y
 
 
+def color_changing_special_card_allowed(allowed_cards_list):
+    for card_val in allowed_cards_list:
+        if card_val == "13 of W" or card_val == "13 of WF":
+            return 1
+    return 0 
+
+
+def decide_top_color_using_game_info(colors_to_choose_from, bot_game_state):
+    cnt_draws_on_red = bot_game_state.player_draws_count_list[0]
+    cnt_draws_on_green = bot_game_state.player_draws_count_list[1]
+    cnt_draws_on_blue = bot_game_state.player_draws_count_list[2]
+    cnt_draws_on_yellow = bot_game_state.player_draws_count_list[3]
+    color_on_which_max_draws = None
+    draws = 0;
+    for color in colors_to_choose_from:
+        if color == 'R':
+            if draws < cnt_draws_on_red:
+                draws = cnt_draws_on_red
+                color_on_which_max_draws = 'R'
+        elif color == 'G':
+            if draws < cnt_draws_on_green:
+                draws = cnt_draws_on_green
+                color_on_which_max_draws = 'G'
+        elif color == 'B':
+            if draws < cnt_draws_on_blue:
+                draws = cnt_draws_on_blue
+                color_on_which_max_draws = 'B'
+        elif color == 'Y':
+            if draws < cnt_draws_on_yellow:
+                draws = cnt_draws_on_yellow
+                color_on_which_max_draws = 'Y'
+    color_on_which_max_draws
+
+
 def bot_play_card(bot_state, bot_game_state, player_state, top_color=None):
+
+    for card in bot_state.cards:
+        print(card.show_card())
+
+
     """
     :param bot_state: it will be updated as per the card played by the bot
     :param bot_game_state: bot_game_state.top_card value will be updated
@@ -469,34 +521,225 @@ def bot_play_card(bot_state, bot_game_state, player_state, top_color=None):
     :param top_color: if earlier card played was a wild then this parameter will show the color of top card
     :return:
     """
-    bot_state.allowed_cards = get_playable_cards(bot_state, bot_game_state, top_color)
-    card_val_to_move = bot_decide_card(bot_state)
-    if card_val_to_move == "DRAW_CARD":
-        if not len(bot_game_state.deck.cards):
-            print("DECK EXHAUSTED!!!")
-            recover_deck(player_state, bot_game_state, bot_state)
-        drawn_card_object = bot_game_state.deck.deal()
-        print("Card Drawn from the Deck is", drawn_card_object.show_card())
-        bot_state.cards.append(drawn_card_object)
+    # EASY BOT
+    bot_level = bot_game_state.bot_level
+    if bot_level == 0:
+        print("Easy Bot is Deciding")
+        bot_state.allowed_cards = get_playable_cards(bot_state, bot_game_state, top_color)
+        card_val_to_move = bot_decide_card(bot_state)
+        if card_val_to_move == "DRAW_CARD":
+            if not len(bot_game_state.deck.cards):
+                print("DECK EXHAUSTED!!!")
+                recover_deck(player_state, bot_game_state, bot_state)
+            drawn_card_object = bot_game_state.deck.deal()
+            print("Card Drawn from the Deck is", drawn_card_object.show_card())
+            bot_state.cards.append(drawn_card_object)
+            return card_val_to_move
+        else:
+            try:
+                bot_state.allowed_cards.remove(card_val_to_move)
+                for card in bot_state.cards:
+                    if card.show_card() == card_val_to_move:
+                        bot_state.cards.remove(card)
+                        bot_game_state.top_card = card
+                        number, category = card_val_to_move.split(" of ")
+                        if number == '13':
+                            if category == 'W':
+                                bot_game_state.top_card_type = 0 # W 
+                            else:
+                                bot_game_state.top_card_type = 1 # WF
+                        break
+            except:
+                print("Illegal move!!! How not Present in Allowed Cards?")
         return card_val_to_move
-    else:
-        try:
-            bot_state.allowed_cards.remove(card_val_to_move)
-            for card in bot_state.cards:
-                if card.show_card() == card_val_to_move:
-                    bot_state.cards.remove(card)
-                    bot_game_state.top_card = card
-                    number, category = card_val_to_move.split(" of ")
-                    if number == '13':
-                        if category == 'W':
-                            bot_game_state.top_card_type = 0 # W 
-                        else:
-                            bot_game_state.top_card_type = 1 # WF
-                    break
-        except:
-            print("Illegal move!!! How not Present in Allowed Cards?")
-    return card_val_to_move
+    # MEDIUM BOT
+    else: 
+        print("Medium Bot is Deciding")
+        DECIDED_YET = False
+        card_val_to_move = None
+        bot_state.allowed_cards = get_playable_cards(bot_state, bot_game_state, top_color)
+        # Step 1: Check if Count of Opponents Cards is <= 2
+        player_cards_count = len(player_state.cards)
+        allowed_cards_list = bot_state.allowed_cards
+        if player_cards_count <= 2:
+            print("Player Count of Cards <= 2")
+            # Consider Playing the Special Cards
+            # Check if there exist a WF
+            if DECIDED_YET == False:
+                for card_val in allowed_cards_list:
+                    if card_val == "13 of WF":
+                        print("Player will play WF")
+                        card_val_to_move = card_val
+                        DECIDED_YET = True
+                        break
+            # Check if there exist a DT
+            if DECIDED_YET == False:
+                for card_val in allowed_cards_list:
+                    number, category = card_val.split(" of ")
+                    if number == '12':
+                        print("Player will play DT")
+                        card_val_to_move = card_val
+                        DECIDED_YET = True
+                        break
+            # Check if there exist a Reverse/Skip
+            if DECIDED_YET == False:
+                for card_val in allowed_cards_list:
+                    number, category = card_val.split(" of ")
+                    if number == '11' or number == '10':
+                        print("Player will play REV/SKIP")
+                        card_val_to_move = card_val
+                        DECIDED_YET = True
+                        break
+            # Check if there exist a Wild Card
+            if DECIDED_YET == False:
+                for card_val in allowed_cards_list:
+                    if card_val == "13 of W":
+                        print("Player will play Wild")
+                        card_val_to_move = card_val
+                        DECIDED_YET = True
+                        break
+            # Just decide to Play the Card with most Frequent Color
+            if DECIDED_YET == False:
+                print("Player will Just decide to Play the Card with most Frequent Color Cant do anything else")
+                card_val_to_move = bot_decide_card(bot_state)
+                DECIDED_YET = True
 
+            print("Taking action on decided card", card_val_to_move)
+            if card_val_to_move == "DRAW_CARD":
+                if not len(bot_game_state.deck.cards):
+                    print("DECK EXHAUSTED!!!")
+                    recover_deck(player_state, bot_game_state, bot_state)
+                drawn_card_object = bot_game_state.deck.deal()
+                print("Card Drawn from the Deck is", drawn_card_object.show_card())
+                bot_state.cards.append(drawn_card_object)
+                return card_val_to_move
+            else:
+                try:
+                    bot_state.allowed_cards.remove(card_val_to_move)
+                    for card in bot_state.cards:
+                        if card.show_card() == card_val_to_move:
+                            bot_state.cards.remove(card)
+                            bot_game_state.top_card = card
+                            number, category = card_val_to_move.split(" of ")
+                            if number == '13':
+                                if category == 'W':
+                                    bot_game_state.top_card_type = 0 # W 
+                                else:
+                                    bot_game_state.top_card_type = 1 # WF
+                            break
+                except:
+                    print("Illegal move!!! How not Present in Allowed Cards?")
+            return card_val_to_move
+        # Step 2: When Cards Count is > 2
+        else:
+            # Check if Top Card is a Number Card i.e. between 0 to 9
+            top_card_val = bot_game_state.top_card.show_card()
+            print("Using top Card", top_card_val)
+            top_number, top_category = top_card_val.split(" of ")
+            if top_number in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+                print("Top Card is not Color Specific i.e. Special Card")
+                # Top Card is not Color Specific/Special Card
+                # Bot can choose same number of Different Colors
+                colors_to_choose_from = []
+                for card_val in allowed_cards_list:
+                    number, category = card_val.split(" of ")
+                    if number == top_number:
+                        colors_to_choose_from.append(category);
+
+                if len(colors_to_choose_from) == 0:
+                    print("We cannot have the Same Number as the top_number")
+                    # We cannot have the Same Number as the top_number
+                    # Choose any of the Card belonging to top_category
+                    for card_val in allowed_cards_list:
+                        number, category = card_val.split(" of ")
+                        if number in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] and category == top_category:
+                            card_val_to_move = card_val
+                            DECIDED_YET = True
+                            break
+                    if DECIDED_YET == False:
+                        print("We cannot have the Same Color as the top_number as well")
+                        card_val_to_move = bot_decide_card(bot_state)
+                        DECIDED_YET = True
+                elif len(colors_to_choose_from) == 1:
+                    print("We can have the Same Number as the top_number but no other color options. So just Play it")
+                    # We can have the Same Number as the top_number but no other color options. So just Play it
+                    card_val_to_move = f"{top_number} of {colors_to_choose_from[0]}"
+                    DECIDED_YET = True
+                else:
+                    print("We can have the Same Number as the top_number and need to decide the Color of the Top Card")
+                    # We can have the Same Number as the top_number and need to decide the Color of the Top Card
+                    if color_changing_special_card_allowed(allowed_cards_list):
+                        # if we have a Color Changing Special Card, then play according to the opponents draws count
+                        color = decide_top_color_using_game_info(colors_to_choose_from, bot_game_state)
+                        card_val_to_move = f"{top_number} of {color}"
+                        print("Handle the Case for usign game info here...")
+                    else:
+                        print("else play according to what most frequent color we have out of colors_to_choose_from ")
+                        # else play according to what most frequent color we have out of colors_to_choose_from 
+                        frq = {}
+                        frq['R'] = 0
+                        frq['G'] = 0
+                        frq['B'] = 0 
+                        frq['Y'] = 0 
+                        for card_val in allowed_cards_list:
+                            number, category = card_val.split(" of ")
+                            if category == 'R':
+                                frq['R'] += 1
+                            elif category == 'G':
+                                frq['G'] += 1
+                            elif category == 'B': 
+                                frq['B'] += 1
+                            elif category == 'Y':
+                                frq['Y'] += 1
+                        max_freq_color = None
+                        max_freq = 0
+                        for color in colors_to_choose_from:
+                            if frq[color] > max_freq:
+                                max_freq_color = color
+                        card_val_to_move = f"{top_number} of {max_freq_color}"
+                        DECIDED_YET = True
+            else:
+                print("Top Card is Color Specific i.e. Special Card")
+                # Top Card is Color Specific i.e. Special Card
+                # Choose any of the Card belonging to top_category
+                for card_val in allowed_cards_list:
+                    number, category = card_val.split(" of ")
+                    if number in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] and category == top_category:
+                        card_val_to_move = card_val
+                        DECIDED_YET = True
+                        break
+
+                if DECIDED_YET == False:
+                # Don't have any Number Card of this color, hence need to move Special Card or Draw Card
+                    card_val_to_move = bot_decide_card(bot_state)
+                    DECIDED_YET = True
+
+            print("Taking action on decided card", card_val_to_move)
+            if card_val_to_move == "DRAW_CARD":
+                if not len(bot_game_state.deck.cards):
+                    print("DECK EXHAUSTED!!!")
+                    recover_deck(player_state, bot_game_state, bot_state)
+                drawn_card_object = bot_game_state.deck.deal()
+                print("Card Drawn from the Deck is", drawn_card_object.show_card())
+                bot_state.cards.append(drawn_card_object)
+                return card_val_to_move
+            else:
+                try:
+                    bot_state.allowed_cards.remove(card_val_to_move)
+                    for card in bot_state.cards:
+                        if card.show_card() == card_val_to_move:
+                            bot_state.cards.remove(card)
+                            bot_game_state.top_card = card
+                            number, category = card_val_to_move.split(" of ")
+                            if number == '13':
+                                if category == 'W':
+                                    bot_game_state.top_card_type = 0 # W 
+                                else:
+                                    bot_game_state.top_card_type = 1 # WF
+                            break
+                except:
+                    print("Illegal move!!! How not Present in Allowed Cards?")
+            return card_val_to_move
 
 class BotGameServer:
     """
@@ -507,16 +750,20 @@ class BotGameServer:
     """
     current_games = {} # Dictionary Storing all the Games Currently Being Played on the Server
 
-    def __init__(self, bot_id, player, bot_game_room, level):
+    def __init__(self, bot_id, player, bot_game_room, bot_level, player_draws_count_list):
         self.bot_state = PlayerState(bot_id, [])
         self.player_state = PlayerState(player, [])
-        self.bot_game_state = BotGameState(bot_game_room, bot_id, player, level)
+        self.bot_game_state = BotGameState(bot_game_room, bot_id, player, bot_level, player_draws_count_list)
         self.deal_hands()
 
     @classmethod
-    def create_bot_game(cls, bot_id, player, bot_game_room):
+    def create_bot_game(cls, bot_id, player, bot_game_room, bot_level):
+        player_draws_count_list = [0, 0, 0, 0]
         if cls.current_games.get(bot_game_room) is None:
-            cls.current_games[bot_game_room] = cls(bot_id, player, bot_game_room, level) # calling the constructor
+            cls.current_games[bot_game_room] = cls(bot_id, player, bot_game_room, bot_level, player_draws_count_list) # calling the constructor
+        else:
+            cls.current_games[bot_game_room].bot_game_state.bot_level = bot_level
+        print("Bot_LEVEL_IS", cls.current_games[bot_game_room].bot_game_state.bot_level)
         return cls.current_games[bot_game_room]
 
     @classmethod
@@ -543,7 +790,7 @@ class BotGameConsumer(AsyncConsumer):
     bot = None # id of the bot
     # Above 3 properties are set when web_socket connection opens.
     game = None # Object of BotGameServer class. This is set when player presses the Play Now Button
-
+    bot_level = None # number showing the level of the bot
     async def websocket_connect(self, event):
         print("Accepting an handshake request", event)
 
@@ -606,9 +853,10 @@ class BotGameConsumer(AsyncConsumer):
             loaded_dict_data = json.loads(front_text)
             type_of_event = loaded_dict_data.get('type', None)
             text_of_event = loaded_dict_data.get('text', None)
-            # print(type_of_event, text_of_event)
+            # print(type_of_event, type())
             if type_of_event and text_of_event:
                 if type_of_event == "change.scene":
+                    self.bot_level = text_of_event.get('data').get('bot_level')
                     # This is surely a Change Scene Request which came after pressing Play Button.
                     change_scene_response = {
                         "status": "change_scene",
@@ -630,7 +878,7 @@ class BotGameConsumer(AsyncConsumer):
                     # This is a start game request.
                     # if any state of this game room was present earlier, then retrieve that state
                     self.game = BotGameServer.create_bot_game(bot_id=self.bot_id, player=self.player,
-                                                              bot_game_room=self.bot_game_room)
+                                                              bot_game_room=self.bot_game_room, bot_level=self.bot_level)
                     response_player_state = self.game.player_state.get_all_cards()
                     response_bot_state = self.game.bot_state.get_all_cards()
                     response_bot_game_state = self.game.bot_game_state.get_top_card()
@@ -649,13 +897,12 @@ class BotGameConsumer(AsyncConsumer):
                     }
 
                     await self.channel_layer.group_send(
-                        self.bot_game_room,  # name of the Chat root
+                        self.bot_game_room,  # name of the Bot room
                         {
                             'type': "send_to_player",
                             'text': json.dumps(server_response)
                         }
                     )
-
                     print("Start Game Sent.")
                     return
 

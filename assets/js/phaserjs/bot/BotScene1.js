@@ -278,7 +278,7 @@ class BotScene1 extends Phaser.Scene {
 
         _this.playButton.on("pointerdown", function (pointer) {
             // console.log("PLAY NOW CLICKED!");
-            let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": 2}};
+            let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": 2, "bot_level": 1}};
             let response = {"type": "change.scene", "text": data};
             socket.send(JSON.stringify(response));
         });
