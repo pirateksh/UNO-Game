@@ -256,7 +256,7 @@
 
                           status_button.addClass('btn btn-success');
                           $('.class_add_friend').after(`
-                                <a class="nav-link class_friends_tab active" value="${other_person}" data-toggle="pill" href="#chat-1" role="tab" aria-controls="chat-1" aria-selected="true">
+                                <a class="nav-link class_friends_tab" value="${other_person}" data-toggle="pill" href="#chat-1" role="tab" aria-controls="chat-1" aria-selected="true">
                                     <img src="${avatar_src_path}" alt="avatar" width="55px" class="rounded-circle" />
                                     <div class="about">
                                         <div class="name">${other_person}</div>
@@ -274,12 +274,14 @@
 
           $('#id_add_friend').click(() => {
               $('#id_landing_tab').css('display', 'none');
+              // Removing the previous active links
+              let ele = $(".nav-link.class_friends_tab.active")
+              ele.removeClass('active');
           });
 
           {# Function Responsible for Showing Chat History with a friend #}
           $(document).on('click', '.class_friends_tab', function(){
               $('#id_landing_tab').css('display', 'none');
-
 
               // Removing all other links as active ones and making the current active link
               let ele = $(".nav-link.class_friends_tab.active");

@@ -8,10 +8,23 @@ class Scene2 extends Phaser.Scene {
     *  2. Try to implement a game tour for new players.
     *  3. Can make customizable cards available to players of certain league.
     * */
+
+    createAudioSource(audioElem, play){
+        // Creating a new MediaElementAudioSourceNode by giving it the audio HTML element
+        let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let sourceNode = audioCtx.createMediaElementSource(audioElem);
+        let destinationNode = audioCtx.createMediaStreamDestination();
+        sourceNode.connect(destinationNode);
+        let AudioStream = destinationNode.stream;
+        AudioElementsFromCanvas["background"] = AudioStream;
+        sourceNode.connect(audioCtx.destination);
+    }  
+
     create() {
         let _this = this;
         _this.config = game.config;
         let config = _this.config;
+
 
         // Setting up and Starting the Game.
         _this.setupGame();
@@ -53,6 +66,7 @@ class Scene2 extends Phaser.Scene {
                 _this.startTimer();
 
                 _this.sound.play("playCard");
+
 
                 _this.playCardEventConsumer(backendResponse, false);
 
