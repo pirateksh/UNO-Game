@@ -162,7 +162,8 @@ class BotScene1 extends Phaser.Scene {
         });
 
         _this.easyButton.on("pointerdown", function (pointer) {
-            let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": 2, "botLevel": 0}};
+            level = "Easy"; // Easy
+            let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": 2, "bot_level": 0}};
             let response = {"type": "change.scene", "text": data};
             socket.send(JSON.stringify(response));
         });
@@ -178,7 +179,8 @@ class BotScene1 extends Phaser.Scene {
         });
 
         _this.mediumButton.on("pointerdown", function (pointer) {
-            let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": 2, "botLevel": 1}};
+            level = "Medium"; // Medium
+            let data = {"status": "change_scene", "message": "Game is being started.", "data": {"sceneNumber": 2, "bot_level": 1}};
             let response = {"type": "change.scene", "text": data};
             socket.send(JSON.stringify(response));
         });

@@ -16,6 +16,7 @@ const NONE = 13;
 
 let game, gameDetails, socket;
 let currentAnimKeys = [];
+let level;
 
 window.onload = function () {
 

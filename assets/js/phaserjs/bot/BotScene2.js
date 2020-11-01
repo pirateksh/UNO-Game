@@ -71,8 +71,8 @@ class BotScene2 extends Phaser.Scene {
             _this.endGame();
         });
 
-        // Adding Unique ID of Game.
-        // _this.uniqueIdTag = _this.add.text(50, game.config.height - 50, `Unique ID: ${currentGame.uniqueId}`);
+        // Adding Level of Game.
+        _this.levelTag = _this.add.text(50, game.config.height - 50, `Level: ${level}`, {fontSize: 20});
 
 
         _this.unoButton = _this.physics.add.sprite(gameDetails.unoButtonX, gameDetails.unoButtonY, "unoButton");
