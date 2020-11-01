@@ -218,13 +218,16 @@ def avatar_upload(request, username):
 
 
 def get_history(username):
+    """
+    Function to fetch history of game.
+    :param username:
+    :return:
+    """
     user = User.objects.get(username=username)
     participant_qs = Participant.objects.filter(user=user)
     response = {}
     if participant_qs:
         all_games = []
-        public_games = []
-        custom_games = []
         for participant in participant_qs:
             game_room = participant.game_room
             all_games.append(game_room)
@@ -251,6 +254,12 @@ def get_history(username):
 
 @login_required
 def edit_profile(request, username):
+    """
+    Method to updated edited personal details.
+    :param request:
+    :param username:
+    :return:
+    """
     user = request.user
     if user.username != username:
         message = f"{user.username}, why are you trying to edit {username}'s profile?"

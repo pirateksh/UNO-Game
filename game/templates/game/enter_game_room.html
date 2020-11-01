@@ -160,7 +160,7 @@
 
             static PUBLIC = 0;
             static FRIEND = 1;
-            static MAX_LIMIT = 2;
+            static MAX_LIMIT = 3;
 
             constructor(gameData) {
                 this.uniqueId = gameData.uniqueId;
@@ -393,7 +393,6 @@
                     return;
                 }
 
-                alert(`You are trying to catch ${oppUsername}`);
                 let data = {"status": "catch_player", "message": "The player is caught.", "data": {"catcher": me, "caught": oppUsername }};
                 let response = {"type": "catch.player", "text": data};
                 socket.send(JSON.stringify(response));

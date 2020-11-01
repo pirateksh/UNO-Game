@@ -215,7 +215,7 @@ class Scene1 extends Phaser.Scene {
         const my_peer = new Peer(undefined, { // making available a Peer Object from peerjs library to work on the root path
             host: '/',
             port: '8001'
-            // host: 'pirateksh-028b1663.localhost.run',
+            // host: '2eb1cd3c2c0a.ngrok.io',
             // port: ''
 
             // host: 'sangwan-e071a5cd.localhost.run',
@@ -632,16 +632,21 @@ class Scene1 extends Phaser.Scene {
                     console.log("Sending Change Scene Request!");
                     _this.isChangeSceneRequestSent = true;
                     // _this.sound.play("10Seconds");
-                    _this.time.delayedCall(
-                        2000,
-                        function () {
-                            if (me === currentGame.adminUsername) {
-                                console.log("Sent Change Scene Request!");
-                                currentGame.changeSceneRequest(socket, 2);
-                            }
-                        },
-                        [], _this
-                    );
+                    if (me === currentGame.adminUsername) {
+                        console.log("Sent Change Scene Request!");
+                        currentGame.changeSceneRequest(socket, 2);
+                    }
+
+                    // _this.time.delayedCall(
+                    //     2000,
+                    //     function () {
+                    //         if (me === currentGame.adminUsername) {
+                    //             console.log("Sent Change Scene Request!");
+                    //             currentGame.changeSceneRequest(socket, 2);
+                    //         }
+                    //     },
+                    //     [], _this
+                    // );
 
                 }
             }

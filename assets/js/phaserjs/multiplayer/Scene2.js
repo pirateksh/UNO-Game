@@ -171,6 +171,8 @@ class Scene2 extends Phaser.Scene {
             }
             else if(status === "won_round") {
                 _this.sound.play('shuffle');
+                currentGame.copyData(gameData); // TODO: Uncomment this
+                _this.startTimer();
                 _this.playCardEventConsumer(backendResponse, true);
             }
             else if(status === "won_game") {

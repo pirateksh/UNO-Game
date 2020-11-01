@@ -13,7 +13,7 @@ from asgiref.sync import async_to_sync
 ERROR = "error"
 SUCCESS = "success"
 MAX_JOINED_PLAYER_COUNT = 10
-MINIMUM_ONLINE_PLAYER_REQUIRED = 2
+MINIMUM_ONLINE_PLAYER_REQUIRED = 3
 
 channel_layer = get_channel_layer()
 

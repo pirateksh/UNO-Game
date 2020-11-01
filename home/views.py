@@ -51,7 +51,7 @@ def signup(request):
             messages.error(request, "Email already registered.")
             return redirect(request.path)
         if username in reg_username:
-            messages.error(request, "Username Exists!!!")
+            messages.error(request, "This username is already taken.")
             return redirect(request.path)
 
         user = User.objects.create_user(
