@@ -212,40 +212,41 @@ class BotScene2 extends Phaser.Scene {
                 }
             }
 
-            // To print the list of cards that bot posses using array let_bot_state
-            for(let i=0;i < let_bot_state.length;i++){
-                id_bot_state.append("<li>" + let_bot_state[i] + "</li>");
-            }
-            // To print the list of cards that bot played previously using array let_bot_played_cards
-            for(let i=0;i < let_bot_played_cards.length;i++){
-                id_bot_played_cards.prepend("<li><button disabled>" + let_bot_played_cards[i] + "</button></li>");
-            }
-            // To print the list of cards that player posses by using array let_player_state
-            for(let i=0;i < let_player_state.length;i++){
-                id_player_state.append("<li>" + let_player_state[i] + "</li>");
-            }
-            // To print current Top Card by using let_bot_game_state array
-            for(let i=0;i < let_bot_game_state.length;i++){
-                // console.log(let_bot_game_state[i]);
-                id_bot_game_state.append("<li>" + let_bot_game_state[i] + "</li>");
-            }
+            // // To print the list of cards that bot posses using array let_bot_state
+            // for(let i=0;i < let_bot_state.length;i++){
+            //     id_bot_state.append("<li>" + let_bot_state[i] + "</li>");
+            // }
+            // // To print the list of cards that bot played previously using array let_bot_played_cards
+            // for(let i=0;i < let_bot_played_cards.length;i++){
+            //     id_bot_played_cards.prepend("<li><button disabled>" + let_bot_played_cards[i] + "</button></li>");
+            // }
+            // // To print the list of cards that player posses by using array let_player_state
+            // for(let i=0;i < let_player_state.length;i++){
+            //     id_player_state.append("<li>" + let_player_state[i] + "</li>");
+            // }
+            // // To print current Top Card by using let_bot_game_state array
+            // for(let i=0;i < let_bot_game_state.length;i++){
+            //     // console.log(let_bot_game_state[i]);
+            //     id_bot_game_state.append("<li>" + let_bot_game_state[i] + "</li>");
+            // }
 
-            // Creating Buttons for Allowed Cards using let_player_state array and let_playable_cards array
-            for(let i=0;i < let_player_state.length;i++){
-                // {#console.log("Checking Card " + let_player_state[i]);#}
-                if(let_playable_cards.includes(let_player_state[i])){
-                   // {#console.log("An allowed Card " + let_player_state[i]);#}
-                    id_playable_cards.append(function(){
-                        return $("<button style='margin: 10px' id="+i+" >" + let_player_state[i] + "</button>");
-                    });
+            // // Creating Buttons for Allowed Cards using let_player_state array and let_playable_cards array
+            // for(let i=0;i < let_player_state.length;i++){
+            //     // {#console.log("Checking Card " + let_player_state[i]);#}
+            //     if(let_playable_cards.includes(let_player_state[i])){
+            //        // {#console.log("An allowed Card " + let_player_state[i]);#}
+            //         id_playable_cards.append(function(){
+            //             return $("<button style='margin: 10px' id="+i+" >" + let_player_state[i] + "</button>");
+            //         });
 
-                    let current_button = document.getElementById(i);
-                    let text = current_button.innerHTML;
-                    // {#console.log("text is :" + text);#}
-                    current_button.addEventListener('click', send_card_play_request, false);
-                    current_button.myParam = text;
-                }
-            }
+            //         let current_button = document.getElementById(i);
+            //         let text = current_button.innerHTML;
+            //         // {#console.log("text is :" + text);#}
+            //         current_button.addEventListener('click', send_card_play_request, false);
+            //         current_button.myParam = text;
+            //     }
+            // }
+            
         });
     }
 
