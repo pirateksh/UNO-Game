@@ -55,14 +55,18 @@ def user_profile_view(request, username):
     public_win_rate = 100 * (public_games_won / public_games_played) if public_games_played > 0 else -1
     custom_win_rate = 100 * (custom_games_won / custom_games_played) if custom_games_played > 0 else -1
 
-    print(f"current_league_progress = {current_league_progress}")
-    print(f"overall_win_rate = {overall_win_rate}")
-
+    xp = visited_profile.xp
+    level, xp_threshold = visited_profile.get_current_level_and_xp_threshold()
+    xp_progress = 100 * (xp / xp_threshold)
+    print(xp, level, xp_progress)
     stats = {
         "current_league_progress": int(current_league_progress),
         "overall_win_rate": int(overall_win_rate),
         "public_win_rate": int(public_win_rate),
         "custom_win_rate": int(custom_win_rate),
+        "level": int(level),
+        "xp_progress": int(xp_progress),
+        "xp_threshold": int(xp_threshold),
     }
 
     history = get_history(username=username)
@@ -120,6 +124,7 @@ def verify_email(request, username):
 def activate(request, uidb64, token):
     """
         A function that verifies email through activation link.
+        It decodes the encoded pk (primary key).
     """
     try:
         uid = force_text(urlsafe_base64_decode(uidb64))
@@ -193,7 +198,8 @@ def avatar_upload(request, username):
 
                         user_prof.avatar = img
                         user_prof.save()
-                        messages.success(request, f"Avatar uploaded successfully!")
+                        message = f"Avatar uploaded successfully!"
+                        messages.success(request, message=message)
                         return HttpResponseRedirect(reverse("user_profile", kwargs={'username': username}))
                     else:
                         messages.success(request, f"Please upload an Image File only of jpeg/jpg/png format only...")

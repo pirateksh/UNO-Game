@@ -100,6 +100,9 @@ class UserProfile(models.Model):
     is_league_changed = models.PositiveSmallIntegerField(default=LEAGUE_STABLE, choices=is_league_changed_choices,
                                                          verbose_name="Is League Changed")
 
+    # Player's experience
+    xp = models.IntegerField(default=10, verbose_name="XP")
+
     def __str__(self):
         return self.user.username
 
@@ -133,3 +136,18 @@ class UserProfile(models.Model):
             return self.UNIVERSE_BOSS
         elif rating < self.RATING_THRESHOLDS[self.OP]:
             return self.OP
+
+    PARTICIPATION_XP, WIN_ROUND_XP, WIN_GAME_XP = 20, 70, 120
+
+    def get_current_level_and_xp_threshold(self):
+        """
+        Method to return current level based on current xp.
+        :return: level, xp_threshold
+        """
+        current_xp = self.xp
+        xp_threshold = 100
+        level = 1
+        while current_xp > xp_threshold:
+            level += 1
+            xp_threshold += 1.5 * xp_threshold
+        return level, xp_threshold

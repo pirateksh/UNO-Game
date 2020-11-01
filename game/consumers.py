@@ -107,7 +107,7 @@ class GameRoomConsumer(AsyncConsumer):
                                 text_of_event['status'] = "won_round"
                                 type_of_event = "won_round"
 
-                                # await self.handle_winning_round(winner_username=winner_username)
+                                await self.handle_winning_round(winner_username=winner_username)
 
                                 print(f"This round ended. Get ready for next round.")
 
@@ -485,6 +485,21 @@ class GameRoomConsumer(AsyncConsumer):
         return UserProfile.objects.get(user=me)
 
     @database_sync_to_async
+    def handle_winning_round(self, winner_username):
+        """
+        Updates the XP of player who won the round.
+        :param winner_username: Username of player who won the round.
+        :return:
+        """
+        round_winner = User.objects.get(username=winner_username)
+
+        round_winner_profile = UserProfile.objects.get(user=round_winner)
+
+        round_winner_profile.xp += UserProfile.WIN_ROUND_XP
+
+        round_winner_profile.save()
+
+    @database_sync_to_async
     def handle_winning_game(self, winner_player_obj):
         """
         Updates the value in the database when a user wins the game.
@@ -508,6 +523,9 @@ class GameRoomConsumer(AsyncConsumer):
 
         # Updating winning streak
         winner_profile.winning_streak += 1
+
+        # Updating the xp
+        winner_profile.xp += (UserProfile.WIN_GAME_XP + UserProfile.PARTICIPATION_XP)
 
         if self.game_type == GameServer.PUBLIC:
             # Updating current rating
@@ -551,6 +569,9 @@ class GameRoomConsumer(AsyncConsumer):
 
         # Resetting Winning streak
         loser_profile.winning_streak = 0
+
+        # Updating xp
+        loser_profile.xp += UserProfile.PARTICIPATION_XP
 
         if self.game_type == GameServer.PUBLIC:
             # Updating current rating
