@@ -1,9 +1,9 @@
 <nav class="navbar navbar-light navbar-expand-lg fixed-top bg-secondary bounce animated text-uppercase" id="mainNav">
     <div class="container">
         {% if user.is_authenticated %}
-            <a class="navbar-brand js-scroll-trigger" href="#page-top">Hi, {{ user.username }}!</a>
+            <a class="navbar-brand js-scroll-trigger" href="{% url 'home' %}">Hi, {{ user.username }}!</a>
         {% else %}
-            <a class="navbar-brand js-scroll-trigger" href="#page-top">Uno</a>
+            <a class="navbar-brand js-scroll-trigger" href="{% url 'home' %}">Uno</a>
         {% endif %}
         <button data-toggle="collapse" data-target="#navbarResponsive" class="navbar-toggler navbar-toggler-right text-uppercase bg-primary text-white rounded" aria-controls="navbarResponsive"
             aria-expanded="false" aria-label="Toggle navigation">

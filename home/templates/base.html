@@ -63,8 +63,8 @@
 {#        <button type="button" style="position: absolute; top:50%; right:0"#}
 {#            class="btn btn-primary"#}
 {#            id="myBtn">Show Toast</button>#}
-
-        <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
+        <div style="position: absolute; top:5%; right:0; min-height: 200px;">
+        <div aria-live="polite" aria-atomic="true" style="position: absolute; min-height: 200px;">
             <!-- Position it -->
             <div class="toast_container" style="position: absolute; top: 50px; right: 20px; z-index:1500;">
                 <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -83,7 +83,7 @@
                 </div>
             </div>
         </div>
-        
+        </div>
         {% comment %} meteor {% endcomment %}
         <img style="z-index:2; overflow:hidden" alt=""
             id="text1" src="{% static 'img/meteor.png' %}"
