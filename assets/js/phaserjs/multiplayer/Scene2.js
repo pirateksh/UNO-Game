@@ -386,14 +386,31 @@ class Scene2 extends Phaser.Scene {
         if(_this.timedSkipEvent) {
             _this.timedSkipEvent.remove(false);
         }
-        if(currentGame.getCurrentPlayer() === me) {
-            console.log("TIMER HAS BEEN STARTED.");
-            _this.timedSkipEvent = _this.time.addEvent({
-                delay: 1000,
-                callback: _this.skipTurn,
-                callbackScope: _this,
-                loop: true
-            });
+
+        if(_this.clockSound) {
+            _this.clockSound.stop();
+        }
+
+        if(_this.timerText) {
+            _this.timerText.destroy();
+        }
+
+        _this.timedSkipEvent = _this.time.addEvent({
+            delay: 1000,
+            callback: _this.skipTurn,
+            callbackScope: _this,
+            loop: true
+        });
+
+        let timerTextX = _this.config.width - 60, timerTextY = _this.config.height - 35;
+        if(currentGame.getCurrentPlayer() !== me) { // Opponent's timer
+            // TODO: This is taking lead of 3 - 4 seconds. Resolve it. -- Kshitiz
+            _this.timerText = _this.add.text(timerTextX, timerTextY, `${currentGame.getCurrentPlayer()}'s timer:`);
+            _this.timerText.setOrigin(1, 0.5);
+        }
+        else {
+            _this.timerText = _this.add.text(timerTextX, timerTextY, `Your timer:`);
+            _this.timerText.setOrigin(1, 0.5);
         }
     }
 
@@ -401,13 +418,13 @@ class Scene2 extends Phaser.Scene {
         let _this = this;
         _this.timeRemainingToSkip--;
         if(_this.timeRemainingToSkip === 10) {
-
             _this.clockSound.play();
         }
         if(_this.timeRemainingToSkip === 0) {
             _this.clockSound.stop();
-
-            currentGame.timeOutRequest(socket);
+            if(currentGame.getCurrentPlayer() === me) {
+                currentGame.timeOutRequest(socket);
+            }
             _this.timedSkipEvent.remove(false);
         }
     }

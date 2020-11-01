@@ -19,7 +19,7 @@ let currentAnimKeys = [];
 
 window.onload = function () {
 
-	let width = 1275, height = 610;
+	let width = 1230, height = 600;
 
 	gameDetails = {
 		deckX: width/2 - 100,
@@ -48,7 +48,7 @@ window.onload = function () {
 		playButtonScale: 0.3,
         chooseColorButtonScale: 0.5,
         dimAlpha: 0.2,
-		timeOutLimitInSeconds: 10,
+		timeOutLimitInSeconds: 60,
         liveFeedScale: 0.2,
         uniqueIdX: 50,
         uniqueIdY: height - 50,
