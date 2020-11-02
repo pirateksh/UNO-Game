@@ -43,7 +43,7 @@ class BotScene3 extends Phaser.Scene {
 
 
 
-        _this.add.text(config.width / 2 - 200, config.height / 2, "Game has ended! Following are the player's scores.");
+        _this.add.text(config.width / 2 - 70, config.height / 2, "Game has ended!");
 
         let closeIn = _this.add.text(config.width / 2 - 200, config.height / 2 + 50,
             "You will be redirected to Play Now page in ");
