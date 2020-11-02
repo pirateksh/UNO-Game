@@ -45,6 +45,21 @@
       $("#mainNav").removeClass("navbar-shrink");
     }
   };
+
+  $("#id_collapse_button").click(function () {
+    let divElem = $("#navbarResponsive");
+    divElem.toggleClass("show");
+    // if($(this).attr("aria-expanded")) {
+    //   $(this).attr("aria-expanded", false);
+    // } else {
+    //   $(this).attr("aria-expanded", true);
+    // }
+    //
+    // alert("Clicked");
+    // navbarCollapse();
+  });
+
+
   // Collapse now if page is not at top
   navbarCollapse();
   // Collapse the navbar when page is scrolled
