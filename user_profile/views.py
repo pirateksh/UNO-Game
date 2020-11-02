@@ -274,6 +274,7 @@ def edit_profile(request, username):
     if request.method == "POST":
 
         user_profile = UserProfile.objects.get(user=user)
+        all_users_qs = User.objects.all()
 
         # Fetching the edited values
         edited_first_name = request.POST["first_name"]
@@ -287,7 +288,15 @@ def edit_profile(request, username):
         # If user has edited the email, set is_email_verified to false
         print(user.email, edited_email)
         if user.email != edited_email:
-            print("Here")
+            for user_ in all_users_qs:
+                if user_.email == edited_email:
+                    message = f"This email is already taken. Try again!"
+                    messages.info(request, message)
+                    response = {
+                        "status": "error",
+                        "message": "Request Failed!",
+                    }
+                    return JsonResponse(response)
             user.email = edited_email
             user_profile.is_email_verified = False
             user_profile.save()

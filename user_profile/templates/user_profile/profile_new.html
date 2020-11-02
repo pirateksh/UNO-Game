@@ -443,6 +443,9 @@
                         console.log(data);
                         window.location.replace("{% url 'user_profile' user.username %}");
                     }
+                    else {
+                        window.location.replace("{% url 'user_profile' user.username %}");
+                    }
                 }
              });
         });

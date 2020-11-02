@@ -56,7 +56,7 @@ class Scene1 extends Phaser.Scene {
         const my_peer = new Peer(undefined, { // making available a Peer Object from peerjs library to work on the root path
             host: '/',
             port: '8001'
-            // host: '2eb1cd3c2c0a.ngrok.io',
+            // host: '92a8c748998c.ngrok.io',
             // port: ''
 
             // host: 'sangwan-e071a5cd.localhost.run',
