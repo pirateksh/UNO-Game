@@ -40,6 +40,7 @@ oauthlib==3.1.0
 peerjs==1.2.5
 pilkit==2.0
 Pillow==8.0.1
+psycopg2==2.8.6
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycparser==2.20
