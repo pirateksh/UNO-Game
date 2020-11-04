@@ -54,13 +54,9 @@ class Scene1 extends Phaser.Scene {
         socket = new WebSocket(endpoint);
 
         const my_peer = new Peer(undefined, { // making available a Peer Object from peerjs library to work on the root path
-            host: '/',
-            port: '8001'
-            // host: '92a8c748998c.ngrok.io',
-            // port: ''
-
-            // host: 'sangwan-e071a5cd.localhost.run',
-            // port: ''
+            secure: true,
+            host: 'unopjs.herokuapp.com',
+            port: '443'
         });
 
         const get_my_peer_id = new Promise(resolve => {

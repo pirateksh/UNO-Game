@@ -1,5 +1,5 @@
-# UNO Game
-A real-time multiplayer UNO Game developed using Django Web Framework, Django Channels 2 and Phaser 3.
+# Galactic UNO Game
+A real-time multiplayer UNO Game developed using Django Web Framework, Django Channels 2, Phaser 3 and Peer.js.
 ## How to run?
 * Clone the Repository.
 * Make a virtual environment `python -m venv <envname>`

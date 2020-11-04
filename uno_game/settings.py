@@ -10,10 +10,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'i9v(c%vq^ucdc@+4j*ox_-lz#w^ex&oxkjpwdp^3r#mt4uk=l2'
+SECRET_KEY = config('SECRET_KEY', default="SOME+RANDOM+BACKUPKEz9+3vnmjb0u@&w68t#5_e8s9-lbfhv-")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default="")
 
 ALLOWED_HOSTS = ['*']
 
@@ -33,14 +33,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'channels',
 
     # 3rd Party Libraries
+    'channels',
     'social_django',  # Social Media Login
     'imagekit',
 ]
 
 MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Added for deployment
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -91,6 +92,11 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+import dj_database_url
+db_from_env = dj_database_url.config()
+DATABASES['default'].update(db_from_env)
+DATABASES['default']['CONN_MAX_AGE'] = 500
 
 
 # Password validation
@@ -144,14 +150,18 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'assets'),
 )
 
+#  Add configuration for static files storage using whitenoise
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            # "hosts": [("127.0.0.1", 6379)],
             # Below commented line to be used in case of Production (Example: heroku)
-            # "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
         },
+        "symmetric_encryption_keys": [SECRET_KEY],
     },
 }
 
@@ -179,10 +189,12 @@ LOGOUT_URL = 'logout'
 LOGIN_REDIRECT_URL = 'home'
 
 # Email Setup
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_HOST = config('EMAIL_HOST', default="")
+EMAIL_PORT = config('EMAIL_PORT', default="")
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default="")
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default="")
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default="")
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default="")
+
+
 

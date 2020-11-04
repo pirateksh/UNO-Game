@@ -20,6 +20,7 @@ cryptography==3.1.1
 daphne==2.5.0
 dataclasses-json==0.5.2
 defusedxml==0.7.0rc1
+dj-database-url==0.5.0
 Django==3.1.2
 django-appconf==1.0.4
 django-imagekit==4.0.2
@@ -65,5 +66,6 @@ typing-extensions==3.7.4.3
 typing-inspect==0.6.0
 urllib3==1.25.10
 websockets==8.1
+whitenoise==5.2.0
 yarl==1.5.1
 zope.interface==5.1.2
