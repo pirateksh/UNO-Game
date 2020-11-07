@@ -159,18 +159,19 @@ CHANNEL_LAYERS = {
         "CONFIG": {
             # "hosts": [("127.0.0.1", 6379)],
             # Below commented line to be used in case of Production (Example: heroku)
-            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+            # "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+            "hosts": [config('REDIS_URL', default="redis://localhost:6379")]
         },
-        "symmetric_encryption_keys": [SECRET_KEY],
+        # "symmetric_encryption_keys": [SECRET_KEY],
     },
 }
 
-CACHES = {
-    "default": {
-         "BACKEND": "redis_cache.RedisCache",
-         "LOCATION": os.environ.get('REDIS_URL'),
-    }
-}
+# CACHES = {
+#     "default": {
+#          "BACKEND": "redis_cache.RedisCache",
+#          "LOCATION": os.environ.get('REDIS_URL'),
+#     }
+# }
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',  # Default Django Authentication Backend
