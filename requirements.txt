@@ -16,7 +16,7 @@ chardet==3.0.4
 coloredlogs==14.0
 constantly==15.1.0
 crc32c==2.1
-cryptography==3.1.1
+cryptography==3.2
 daphne==2.5.0
 dataclasses-json==0.5.2
 defusedxml==0.7.0rc1
