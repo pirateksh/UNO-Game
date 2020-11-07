@@ -1,7 +1,7 @@
 from decouple import config # Using python-decouple library
 from pathlib import Path
 import os
-import redis
+# import redis
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -81,7 +81,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'uno_game.wsgi.application'
+# WSGI_APPLICATION = 'uno_game.wsgi.application'
 
 
 # Database
@@ -153,7 +153,7 @@ STATICFILES_DIRS = (
 
 #  Add configuration for static files storage using whitenoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-r = redis.from_url(os.environ.get("REDIS_URL", 'redis://localhost:6379'))
+# r = redis.from_url(os.environ.get("REDIS_URL", 'redis://localhost:6379'))
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -167,12 +167,12 @@ CHANNEL_LAYERS = {
     },
 }
 
-CACHES = {
-    "default": {
-         "BACKEND": "redis_cache.RedisCache",
-         "LOCATION": os.environ.get('REDIS_URL'),
-    }
-}
+# CACHES = {
+#     "default": {
+#          "BACKEND": "redis_cache.RedisCache",
+#          "LOCATION": os.environ.get('REDIS_URL'),
+#     }
+# }
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',  # Default Django Authentication Backend
