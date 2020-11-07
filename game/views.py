@@ -2,6 +2,7 @@ from django.shortcuts import render, reverse, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.contrib import messages
+from django.conf import settings
 from .models import GameRoom, Player, id_generator
 from .helper import GameServer
 from user_profile.models import UserProfile
@@ -177,5 +178,7 @@ def enter_game_room(request, game_type, unique_id):
 
     context = {
         'unique_id': unique_id,
+        'peer_js_host_name': settings.PEER_JS_HOST_NAME,
+        'peer_js_port_number': settings.PEER_JS_PORT_NUMBER,
     }
     return render(request, 'game/enter_game_room.html', context)

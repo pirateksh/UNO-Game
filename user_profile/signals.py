@@ -9,8 +9,11 @@ User = get_user_model()
 @receiver(post_save, sender=User)  # takes signal:post_save and sender as arguments
 def create_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
-
+        if instance.has_usable_password():
+            UserProfile.objects.create(user=instance)
+        else:
+            # If user signed - up using social login
+            UserProfile.objects.create(user=instance, is_email_verified=True)
 
 # @receiver(post_save, sender=User)
 # def save_profile(sender, instance, **kwargs):

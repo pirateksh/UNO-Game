@@ -55,8 +55,8 @@ class Scene1 extends Phaser.Scene {
 
         const my_peer = new Peer(undefined, { // making available a Peer Object from peerjs library to work on the root path
             secure: true,
-            host: 'unopjs.herokuapp.com',
-            port: '443'
+            host: peerJsHostName, // This is being passed as context from the enter_game_view and declared in enter_game_room.html
+            port: peerJsPortNumber
         });
 
         const get_my_peer_id = new Promise(resolve => {

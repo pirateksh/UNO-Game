@@ -94,16 +94,16 @@
 
 {% block javascript %}
     <script>
-        {#let passwordInputElement = $("#exampleInputPassword");#}
-        {#let showPasswordCheckbox = $("#id_show_password_checkbox");#}
-        {##}
-        {#showPasswordCheckbox.change(function () {#}
-        {#    let type = passwordInputElement.attr("type");#}
-        {#    if(this.checked) {#}
-        {#        passwordInputElement.attr("type", "text");#}
-        {#    } else {#}
-        {#        passwordInputElement.attr("type", "password");#}
-        {#    }#}
-        {# });#}
+        let passwordInputElement = $("#exampleInputPassword");
+        let showPasswordCheckbox = $("#id_show_password_checkbox");
+
+        showPasswordCheckbox.change(function () {
+            let type = passwordInputElement.attr("type");
+            if(this.checked) {
+                passwordInputElement.attr("type", "text");
+            } else {
+                passwordInputElement.attr("type", "password");
+            }
+         });
     </script>
 {% endblock %}

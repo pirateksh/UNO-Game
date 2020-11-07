@@ -89,11 +89,13 @@
                             </div>
                         {% endif %}
                     {% else %}
-                        <p>You haven't played any match yet.</p>
-                        <p><a href="{% url 'play_now' %}">Click to Play Now</a></p>
+                        {% if visited_user.username == user.username %}
+                            <p>You haven't played any public match yet.</p>
+                            <p><a href="{% url 'play_now' %}">Click to Play Now</a></p>
+                        {% else %}
+                            <p>{{ visited_user.username }} hasn't played any public match yet.</p>
+                        {% endif %}
                     {% endif %}
-
-
                     </div>
                 </div>
             </div>
@@ -278,7 +280,12 @@
                                         </li>
                                     {% endfor %}
                                 {% else %}
-                                    You haven't played any multi-player yet. &nbsp; <a href="{% url 'play_now' %}">Click to Play Now.</a>
+                                    {% if visited_user.username == user.username %}
+                                        <p>You haven't played any public match yet.</p>
+                                        <p><a href="{% url 'play_now' %}">Click to Play Now</a></p>
+                                    {% else %}
+                                        <p>{{ visited_user.username }} hasn't played any public match yet.</p>
+                                    {% endif %}
                                 {% endif %}
                                 <!-- MULTI-PLAYER GAME HISTORY ENDED -->
                             </ul>        

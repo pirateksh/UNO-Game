@@ -165,6 +165,13 @@ CHANNEL_LAYERS = {
     },
 }
 
+CACHES = {
+    "default": {
+         "BACKEND": "redis_cache.RedisCache",
+         "LOCATION": os.environ.get('REDIS_URL'),
+    }
+}
+
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',  # Default Django Authentication Backend
     'social_core.backends.github.GithubOAuth2',  # for Github authentication
@@ -196,5 +203,8 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default="")
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
 
+# Peer JS Server
+PEER_JS_HOST_NAME = config('PEER_JS_HOST_NAME', default="/")
+PEER_JS_PORT_NUMBER = config('PEER_JS_PORT_NUMBER', default="8001")
 
 
