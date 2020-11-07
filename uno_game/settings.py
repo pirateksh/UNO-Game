@@ -1,6 +1,7 @@
 from decouple import config # Using python-decouple library
 from pathlib import Path
 import os
+import redis
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -152,26 +153,26 @@ STATICFILES_DIRS = (
 
 #  Add configuration for static files storage using whitenoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
+r = redis.from_url(os.environ.get("REDIS_URL"))
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             # "hosts": [("127.0.0.1", 6379)],
             # Below commented line to be used in case of Production (Example: heroku)
-            # "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
-            "hosts": [config('REDIS_URL', default="redis://localhost:6379")]
+            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+            # "hosts": [config('REDIS_URL', default="redis://localhost:6379")]
         },
-        # "symmetric_encryption_keys": [SECRET_KEY],
+        "symmetric_encryption_keys": [SECRET_KEY],
     },
 }
 
-# CACHES = {
-#     "default": {
-#          "BACKEND": "redis_cache.RedisCache",
-#          "LOCATION": os.environ.get('REDIS_URL'),
-#     }
-# }
+CACHES = {
+    "default": {
+         "BACKEND": "redis_cache.RedisCache",
+         "LOCATION": os.environ.get('REDIS_URL'),
+    }
+}
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',  # Default Django Authentication Backend
