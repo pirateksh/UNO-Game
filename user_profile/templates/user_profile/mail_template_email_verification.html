@@ -11,7 +11,7 @@
 Hi {{ user.username }},<br><br>
 
 Please click on the link to verify your email,<br><br>
-http{% if request.is_secure %}s{% endif %}://{{ host }}{% url 'activate' uidb64=uid token=token %} <br> <br>
+https://{{ host }}{% url 'activate' uidb64=uid token=token %} <br> <br>
 
 If clicking the link above doesn't work, please copy and paste the URL in a new browser
 window instead.<br><br>
