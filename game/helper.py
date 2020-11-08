@@ -3,7 +3,7 @@ import math
 import string
 from json import JSONEncoder
 import random
-
+from django.conf import settings
 
 def delete_object(object_):
     del object_
@@ -199,7 +199,7 @@ class PlayerServer:
 class GameServer:
     PUBLIC, CUSTOM = 0, 1
     PUBLIC_ROOM_LIMIT = 2
-    WINNING_SCORE = 1
+    WINNING_SCORE = int(settings.WINNING_THRESHOLD_SCORE)
     AVAILABLE_FRIEND_GAMES = []
     AVAILABLE_PUBLIC_GAMES = []
     # TODO: What will happen if deck runs out of cards. -- Kshitiz
