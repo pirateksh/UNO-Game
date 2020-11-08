@@ -426,8 +426,9 @@
     <script>
         // Constants
         constraintObj = {
+            video: true,
             audio: true,
-            video: {facingMode: { exact: "user" }}
+            // facingMode: { exact: "user" }
         };
 
         const STREAM = navigator.mediaDevices.getUserMedia(constraintObj);
