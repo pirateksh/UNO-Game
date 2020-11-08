@@ -308,11 +308,13 @@ class Scene2 extends Phaser.Scene {
             }
             else if(status === "user_left_room") {
                 console.log("USER LEFT ROOM.");
+                currentGame.copyData(gameData);
+
                 let leftUsername = data.left_user_username;
 
-                if(currentGame.players.includes(leftUsername)) {
-                    currentGame.players.splice(currentGame.players.indexOf(leftUsername), 1); // TESTING
-                }
+                // if(currentGame.players.includes(leftUsername)) {
+                //     currentGame.players.splice(currentGame.players.indexOf(leftUsername), 1); // TESTING
+                // }
 
                 if(me === leftUsername) {
                     // Stopping recording

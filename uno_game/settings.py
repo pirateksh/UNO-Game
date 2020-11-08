@@ -209,4 +209,4 @@ EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
 PEER_JS_HOST_NAME = config('PEER_JS_HOST_NAME', default="/")
 PEER_JS_PORT_NUMBER = config('PEER_JS_PORT_NUMBER', default="8001")
 
-
+WINNING_THRESHOLD_SCORE = int(config('WINNING_THRESHOLD_SCORE', default="100"))
