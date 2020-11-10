@@ -1,7 +1,7 @@
 # Galactic UNO Game
 A real-time **multi-player UNO Game** with **live video calling** feature developed using **Django Web Framework**, **Django Channels 2**, **Phaser 3**, **Peer.js** and **Bootstrap 5**.
 
-![Image of Homepage](./assets/img/edited.png?raw=true)
+![Image of Homepage](./assets/img/edited2.png?raw=true)
 
 ## How to run locally?
 * Clone the Repository.
