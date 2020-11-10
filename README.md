@@ -1,6 +1,9 @@
 # Galactic UNO Game
-A real-time multiplayer UNO Game developed using Django Web Framework, Django Channels 2, Phaser 3 and Peer.js.
-## How to run?
+A real-time **multi-player UNO Game** with **live video calling** feature developed using **Django Web Framework**, **Django Channels 2**, **Phaser 3**, **Peer.js** and **Bootstrap 5**.
+
+![Image of Homepage](./assets/img/edited.png?raw=true)
+
+## How to run locally?
 * Clone the Repository.
 * Make a virtual environment `python -m venv <envname>`
 * If you are using Linux, run `source <envname>/bin/activate` to activate the virtual environment.
@@ -31,6 +34,6 @@ A real-time multiplayer UNO Game developed using Django Web Framework, Django Ch
 * If you had forked the repository (i.e. you are not a Collaborator), open a **Pull Request** from the forked repository.
 
 ## Contributors - Team Django Unchained
-* Kshitiz Srivastava
-* Ankit Sangwan
-* Vishwajeet Kumar
+* <a href="https://github.com/pirateksh">Kshitiz Srivastava</a>
+* <a href="https://github.com/ankitsangwan1999">Ankit Sangwan</a>
+* <a href="https://github.com/vishu6361">Vishwajeet Kumar</a>
