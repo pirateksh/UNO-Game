@@ -1,0 +1,270 @@
+/*
+F5EB42 - sun inner
+E4C74D - sun outer
+FFFFFF - cloud inner
+D4D4D2 - cloud outer
+81C0D5 - parent outer
+C0E6F6 - parent inner
+FFFDF2 - moon inner
+DEE1C5 - moon outer
+FCFCFC - stars
+*/
+body {
+  background-color: #F3F3F3;
+}
+
+/* .wrapper {
+  padding-top: 40px;
+  text-align: center;
+} */
+
+.toggle {
+  position: fixed;
+  display: inline-block;
+  width: 100px;
+  left: 2vh;
+  top: 50vh;
+  padding: 4px;
+  border-radius: 40px;
+  z-index: 1;
+}
+
+.toggle:before,
+.toggle:after {
+  content: "";
+  display: table;
+}
+
+.toggle:after {
+  clear: both;
+}
+
+.toggle-bg {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 90%;
+  height: 100%;
+  background-color: #C0E6F6;
+  border-radius: 40px;
+  border: 4px solid #81C0D5;
+  transition: all 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.toggle-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid red;
+  border-radius: 40px;
+  z-index: 2;
+  opacity: 0;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 35px;
+  height: 35px;
+  margin-left: 45px;
+  background-color: #F5EB42;
+  border: 4px solid #E4C74D;
+  border-radius: 50%;
+  transition: all 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.toggle-switch-figure {
+  position: absolute;
+  bottom: -14px;
+  left: -50px;
+  display: block;
+  width: 80px;
+  height: 30px;
+  border: 8px solid #D4D4D2;
+  border-radius: 20px;
+  background-color: #fff;
+  transform: scale(0.4);
+  transition: all 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.toggle-switch-figure:after {
+  content: "";
+  display: block;
+  position: relative;
+  top: -65px;
+  right: -42px;
+  width: 15px;
+  height: 15px;
+  border: 8px solid #D4D4D2;
+  border-radius: 100%;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  transform: rotateZ(70deg);
+  background-color: #fff;
+}
+.toggle-switch-figure:before {
+  content: "";
+  display: block;
+  position: relative;
+  top: -25px;
+  right: -10px;
+  width: 30px;
+  height: 30px;
+  border: 8px solid #D4D4D2;
+  border-radius: 100%;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  transform: rotateZ(30deg);
+  background-color: #fff;
+}
+
+.toggle-switch-figureAlt {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 2px;
+  width: 2px;
+  height: 2px;
+  background-color: #EFEEDA;
+  border-radius: 100%;
+  border: 4px solid #DEE1C5;
+  box-shadow: 42px -7px 0 -3px #FCFCFC, 75px -10px 0 -3px #FCFCFC, 54px 4px 0 -4px #FCFCFC, 83px 7px 0 -2px #FCFCFC, 63px 18px 0 -4px #FCFCFC, 44px 28px 0 -2px #FCFCFC, 78px 23px 0 -3px #FCFCFC;
+  transition: all 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform: scale(0);
+}
+
+.toggle-switch-figureAlt:before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 18px;
+  width: 7px;
+  height: 7px;
+  background-color: #EFEEDA;
+  border-radius: 100%;
+  border: 4px solid #DEE1C5;
+}
+
+.toggle-switch-figureAlt:after {
+  content: "";
+  position: absolute;
+  top: 19px;
+  left: 15px;
+  width: 2px;
+  height: 2px;
+  background-color: #EFEEDA;
+  border-radius: 100%;
+  border: 4px solid #DEE1C5;
+}
+
+.toggle-input:checked ~ .toggle-switch {
+  margin-left: 4px;
+  border-color: #DEE1C5;
+  background-color: #FFFDF2;
+}
+
+.toggle-input:checked ~ .toggle-bg {
+  background-color: #484848;
+  border-color: #202020;
+}
+
+.toggle-input:checked ~ .toggle-switch .toggle-switch-figure {
+  margin-left: 40px;
+  opacity: 0;
+  transform: scale(0.1);
+}
+
+.toggle-input:checked ~ .toggle-switch .toggle-switch-figureAlt {
+  transform: scale(0.8);
+}
+/* Toggle ends */
+
+ /*------------------------------------------------------------------------------------------------------------------------------------- 
+ Dark Mode 
+ ---------------------------------------------------------------------------------------------------------------------------------------*/
+
+ :root {
+  --text-color: #222;
+  --bkg-color: #fff;
+  --anchor-color: #0033cc;
+  --can-bg: linear-gradient( 135deg, #FFF6B7 10%, #F6416C 100%);
+  --primary: #18bc9c;
+  --h-color: black;
+  --bg-07: white;
+  --bg-03: white;
+  --about-bg: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme {
+  --text-color: #eee;
+  --bkg-color: #121212;
+  --anchor-color: #809fff;
+  --can-bg: rgba(0, 0, 0, 0.9);
+  --primary: #0e6957;
+  --h-color: rgba(255, 255, 255, 0.7);
+  --bg-07: rgba(0, 0, 0, 0.7);
+  --bg-03: rgba(0, 0, 0, 0.3);
+  --about-bg: rgba(0, 0, 0, 0.7);
+}
+
+canvas {
+  background: var(--can-bg);
+  z-index: -1;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+body {
+  color: var(--text-color);
+  background: var(--bkg-color);
+  
+}
+
+/* a {
+  color: var(--anchor-color);
+} */
+
+p {
+  color: var(--text-color);
+}
+
+.btn-outline-light {
+  color: var(--text-color);
+  border-color: var(--text-color);
+}
+.btn-outline-light:hover {
+  color: var(--bkg-color);
+  border-color: var(--text-color);
+  background-color: var(--text-color);
+}
+.btn-outline-dark {
+  border-color: var(--bkg-color);
+}
+
+.bg-primary {
+  background-color: var(--primary) !important;
+}
+  
+.about-bg {
+  background-color: var(--about-bg);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--h-color);
+}
+
+.card-bg {
+  background-color: var(--bg-07);
+}
+.card-hd {
+  background-color: var(--bg-03);
+}
+
+.tbl-bg {
+  background-color: var(--bg-07);
+  color: var(--text-color);
+}
+.table-hover tbody tr:hover {
+  color: var(--text-color) !important;
+}
