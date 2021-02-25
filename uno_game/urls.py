@@ -29,6 +29,7 @@ urlpatterns = [
 
 # To make Django serve Media File irrespective to DEBUG value. 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
+# To make White noise Serve Static File irrespective to DEBUG value, if settings.py is correctly configured
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 # if settings.DEBUG:
 #     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
