@@ -152,7 +152,11 @@ STATICFILES_DIRS = (
 )
 
 #  Add configuration for static files storage using whitenoise
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+# DONOT USE BELOW AS IT GIVES SERVER ERROR 500:-(Source: https://stackoverflow.com/a/56259827/11070092)
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # r = redis.from_url(os.environ.get("REDIS_URL", 'redis://localhost:6379'))
 CHANNEL_LAYERS = {
     "default": {
